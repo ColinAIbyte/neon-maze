@@ -45,7 +45,7 @@ const notFound = `<!DOCTYPE html>
 <style>body{margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;
 justify-content:center;background:#0a0612;color:#ece7fb;font-family:system-ui,sans-serif;gap:16px}
 a{color:#ffcf5c}</style></head>
-<body><h1 style="font-size:20px">页面不存在</h1><a href="/">回到${TITLE}</a></body></html>
+<body><h1 style="font-size:20px">页面不存在</h1><a href="/neon-maze/">回到${TITLE}</a></body></html>
 `;
 
 // GitHub Pages 直接读取仓库根目录。构建同时覆盖这里，避免源片段和线上页面漂移。

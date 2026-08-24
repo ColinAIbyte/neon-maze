@@ -2,7 +2,7 @@
 
 在原版 Doudou Maze 引擎上完成的霓虹街机升级版。保留六关地图、移动手感、敌人逻辑和难度节奏，重点升级角色、迷宫光效、UI 与反馈。**打开网址就能玩，手机电脑都支持。**
 
-👉 **[点这里开始玩](https://colinaibyte.github.io/doudou-maze/)**
+👉 **[点这里开始玩](https://colinaibyte.github.io/neon-maze/)**
 
 设计者：超级奶爸　反馈：2685897@qq.com
 

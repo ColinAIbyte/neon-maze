@@ -56,17 +56,15 @@ if (!fail.length){
   }
 
   /* —— 小豆的半径不许再随呼吸变化 ——
-     锚点要选**不会被这次改动删掉**的东西。第一版拿 `const r = PELLET_R` 当起点，
-     结果模拟"把半径改回会变的"时正好把这行删了，切片落空，报的是"定位不到段落"
-     而不是真正的原因 —— 测试红了，但红得看不懂，等于少了一半价值。
-     改用绘制循环那两个固定不变的标记来夹。 */
-  const a = src.indexOf('if (pelletsLeft <= LAST_PELLET_HINT){');
-  const b = src.indexOf('if (anyDot) ctx.fill();');
+     普通豆已抽成可缓存的 drawRegularDots，所以直接夹住这个完整函数。
+     用函数边界当锚点，绘制语句怎样聚合都不会让测试因重构假红。 */
+  const a = src.indexOf('function drawRegularDots(c2, glow){');
+  const b = src.indexOf('function rebuildDotCache(){', a);
   if (a < 0 || b < 0 || b <= a) {
     fail.push('定位不到小豆的绘制段落（锚点变了，去 test_pellet_contrast 里改）');
   } else {
     const draw = src.slice(a, b);
-    if (!/const r = PELLET_R;/.test(src.slice(Math.max(0, a - 400), b))) {
+    if (!/const r = PELLET_R;/.test(draw)) {
       fail.push('小豆半径不再是 `const r = PELLET_R;` —— 要么没用这个常量，要么它变成了可改的');
     }
     // 段落里出现对 r 的赋值（不含 const 声明），就说明半径又会动了

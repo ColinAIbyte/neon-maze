@@ -35,7 +35,11 @@
 ```
 index.html                 GitHub Pages 入口（构建产物）
 404.html                   静态站点错误页（构建产物）
-assets/doudou-hero.png     原创豆豆主视觉
+assets/
+  doudou-hero.png          豆豆展示主视觉
+  neon-logo-v2.jpg         Neon Maze 双行霓虹 Logo
+  neon-space-bg-v2.jpg     深色宇宙背景
+  neon-characters-v2.jpg   豆豆与四位对手角色图集
 源码/
   pacman_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
   工具/                    构建、地图校验、回归测试、自动试玩
@@ -69,7 +73,7 @@ node 工具/test_phase.mjs    # 穿墙 + 计分的回归测试
 node 工具/validate_mazes.mjs # 地图硬底线校验，改地图后必跑
 ```
 
-最近一次实测：第 1 关 100%、2 关 90%、3 关 85%、4 关 100%、5 关 75%、6 关 100%。
+最近一次 20 轮自动试玩：第 1 关 100%、2 关 100%、3 关 90%、4 关 100%、5 关 90%、6 关 100%；六关完整通关率 90%。
 
 几条踩出来的经验：
 

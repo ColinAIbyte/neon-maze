@@ -225,24 +225,33 @@ body{
 /* 连击弹一下：105%~110%、150ms，一次性。
    刻意不做持续抖动 —— 玩家这时候正盯着迷宫躲幽灵，余光里"跳一下"就够了，
    一直动反而分散注意力。 */
-@keyframes comboBump{
+@keyframes comboBumpA{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.09);}
+  100%{transform:scale(1);}
+}
+@keyframes comboBumpB{
   0%{transform:scale(1);}
   40%{transform:scale(1.09);}
   100%{transform:scale(1);}
 }
 #comboLabel{display:inline-block;transform-origin:left center;}
-#comboLabel.bump{animation:comboBump .15s ease-out;}
+#comboLabel.bump-a{animation:comboBumpA .15s ease-out;}
+#comboLabel.bump-b{animation:comboBumpB .15s ease-out;}
 @media (prefers-reduced-motion: reduce){
-  #comboLabel.bump{animation:none;}
+  #comboLabel.bump-a,#comboLabel.bump-b{animation:none;}
 }
 .combo-wrap{display:flex;flex-direction:column;gap:3px;flex:1;min-width:60px;max-width:120px;}
 .combo-bar{height:6px;border-radius:4px;background:#1c1436;overflow:hidden;border:1px solid var(--panel-border);}
 /* 不加 transition：这是倒计时条，每帧都在缩，补间只会让它看起来比实际慢半拍，
    而"还剩多久"正是它唯一的意义。 */
 .combo-fill{
-  height:100%;width:0%;
+  height:100%;width:100%;
   background:linear-gradient(90deg,var(--cyan),var(--tang));
   box-shadow:0 0 8px var(--tang);
+  transform:scaleX(0);
+  transform-origin:left center;
+  will-change:transform;
 }
 .combo-fill.urgent{
   background:linear-gradient(90deg,var(--danger),var(--danger));
@@ -264,6 +273,7 @@ body{
   display:block;
   width:100%;
   height:auto;
+  aspect-ratio:19 / 21;
   border-radius:8px;
   background:var(--void-deep);
   /* 棋盘是 19:21 的竖长方形，光给宽度它就会往下长，长过一屏就得滚页面 ——
@@ -738,11 +748,45 @@ body{
      实测 375x812：可用 304px，而前三名全展开需要 309px —— 只差 5px。
      从行距里省，而不是把「开始游戏」做小：那是主按钮，缩它是拿最重要的东西
      换最不重要的空间。7px 省出 6px，正好够，且各元素之间仍然分得开。 */
-  gap:7px;
+  gap:0;
+  padding:clamp(10px,2.2vw,24px);
+  background:rgba(2,2,16,.28);
+  overflow:hidden;
+}
+.start-card{
+  position:relative;
+  z-index:70;
+  width:min(92%,430px);
+  max-height:calc(100% - 20px);
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  padding:clamp(18px,3vw,30px) clamp(16px,3vw,34px) 18px;
+  border:1px solid rgba(178,116,255,.55);
+  border-radius:24px;
   background:
-    radial-gradient(ellipse 70% 45% at 50% 46%,
-                    rgba(255,207,92,.07), rgba(255,207,92,0) 70%),
-    rgba(6,3,16,.86);
+    radial-gradient(ellipse 75% 42% at 50% 6%,rgba(85,232,255,.14),transparent 72%),
+    linear-gradient(180deg,rgba(15,13,55,.92),rgba(6,6,30,.94));
+  box-shadow:
+    0 0 0 1px rgba(49,231,255,.12) inset,
+    0 0 34px rgba(108,49,226,.38),
+    0 24px 48px rgba(0,0,0,.5);
+  scrollbar-width:thin;
+}
+.start-card::before{
+  content:'';
+  position:absolute;
+  left:12%;right:12%;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),var(--pink),transparent);
+  box-shadow:0 0 16px rgba(49,231,255,.72);
+}
+#startOverlay > .start-card{position:relative;z-index:70;}
+#startOverlay .start-card > *{position:relative;z-index:1;}
+#startOverlay .start-card h2{font-size:clamp(22px,4vw,31px);}
+@media (max-width:420px){
+  .start-card{width:96%;max-height:calc(100% - 8px);border-radius:19px;padding:15px 12px 12px;gap:7px;}
 }
 
 .welcome{
@@ -1294,42 +1338,37 @@ body.in-game .marquee{
 /* ---------- Neon Maze · Phase 1 visual system ----------
    桌面复刻参考图的三栏街机感；棋盘仍是原生 19:21，不拉伸、不改碰撞。 */
 body{
-  background:
-    radial-gradient(circle at 18% 18%, rgba(77,39,190,.18), transparent 28%),
-    radial-gradient(circle at 82% 76%, rgba(0,188,255,.11), transparent 30%),
-    radial-gradient(ellipse at 50% -10%, #17104d 0%, var(--void) 44%, var(--void-deep) 100%);
+  background-color:var(--void-deep);
+  background-image:
+    linear-gradient(180deg,rgba(1,1,25,.12),rgba(1,1,25,.3)),
+    url('assets/neon-space-bg-v2.jpg');
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
 }
 body::before{
   content:'';
-  position:fixed;inset:0;pointer-events:none;opacity:.55;
-  background-image:
-    radial-gradient(circle at 8% 20%, rgba(255,94,174,.9) 0 1px, transparent 2px),
-    radial-gradient(circle at 17% 64%, rgba(255,212,71,.9) 0 1.4px, transparent 2.4px),
-    radial-gradient(circle at 72% 12%, rgba(49,231,255,.8) 0 1.2px, transparent 2px),
-    radial-gradient(circle at 91% 38%, rgba(145,91,255,.9) 0 1px, transparent 2px);
+  position:fixed;inset:0;pointer-events:none;opacity:.7;
+  background:
+    radial-gradient(ellipse at 50% 44%,transparent 35%,rgba(1,1,20,.32) 100%),
+    linear-gradient(90deg,rgba(2,2,24,.18),transparent 22%,transparent 78%,rgba(2,2,24,.18));
 }
 .brand-lockup{
-  display:inline-flex;flex-direction:column;align-items:center;
-  margin:0;font-family:var(--font-display);font-weight:900;
-  line-height:.76;letter-spacing:-.055em;text-indent:0;
-  transform:rotate(-1deg);
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:100%;height:116px;min-height:116px;margin:0;overflow:hidden;
+  text-indent:0;transform:none;
 }
 .brand-lockup::after{display:none !important;}
-.brand-neon{
-  font-size:clamp(25px,6.2vw,38px);
-  color:#ffe67c;
-  -webkit-text-stroke:1px #ff9b19;
-  text-shadow:0 3px 0 #bd4c12, 0 0 12px rgba(255,201,54,.75), 0 0 28px rgba(255,88,49,.35);
-}
-.brand-maze{
-  margin-top:8px;font-size:clamp(31px,7.6vw,48px);
-  color:#55eeff;
-  -webkit-text-stroke:1px #168cff;
-  text-shadow:0 4px 0 #134ab7, 0 0 14px rgba(49,231,255,.9), 0 0 30px rgba(63,69,255,.55);
+.brand-neon,.brand-maze{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+.brand-logo{
+  display:block;width:190px;height:190px;max-width:none;flex:none;
+  margin-top:-39px;object-fit:cover;mix-blend-mode:screen;
+  filter:drop-shadow(0 9px 16px rgba(24,20,110,.55));
 }
 .brand-sub{
-  margin-top:14px;font-size:9px;line-height:1;letter-spacing:.32em;
-  color:#d8c8ff;text-shadow:0 0 9px rgba(180,115,255,.65);
+  position:absolute;left:0;right:0;bottom:1px;
+  font-size:8px;line-height:1;letter-spacing:.34em;
+  color:#e1d3ff;text-shadow:0 0 9px rgba(180,115,255,.72);
 }
 .mission-strip{
   display:none;
@@ -1345,7 +1384,7 @@ body::before{
 .mission-strip .power{color:var(--pink);}
 .mission-strip .outsmart{color:var(--cyan);}
 .mission-strip i{width:5px;height:5px;border-radius:50%;background:#d5b5ff;box-shadow:0 0 8px #9f64ff;}
-.power-card,.mascot-stage,.howto-card,.high-score-stat{display:none;}
+.power-card,.mascot-stage,.enemy-card,.howto-card,.high-score-stat{display:none;}
 .power-card{
   width:100%;padding:16px;border:1px solid rgba(80,94,153,.72);border-radius:20px;
   background:linear-gradient(180deg,rgba(12,15,53,.88),rgba(5,7,27,.9));
@@ -1377,6 +1416,20 @@ body::before{
   font-family:var(--font-display);font-size:9px;letter-spacing:.2em;color:#dffcff;
 }
 .hud-controls{display:flex;align-items:center;gap:10px;}
+.enemy-card{padding:14px 0 12px;border-bottom:1px dashed rgba(83,92,153,.52);}
+.enemy-card .rail-title{margin-bottom:11px;padding-bottom:8px;}
+.enemy-roster{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.enemy-thumb{
+  display:block;width:38px;height:38px;justify-self:center;border-radius:50%;
+  background-image:url('assets/neon-characters-v2.jpg');
+  background-size:300% 200%;background-repeat:no-repeat;background-color:#010119;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 0 12px color-mix(in srgb,currentColor 52%,transparent);
+}
+.enemy-thumb.chaser{background-position:50% 0;color:var(--pink);}
+.enemy-thumb.ambush{background-position:100% 0;color:var(--tang);}
+.enemy-thumb.shy{background-position:0 100%;color:var(--lime);}
+.enemy-thumb.patrol{background-position:50% 100%;color:#a56cff;}
 .howto-card{margin-top:auto;padding-top:16px;border-top:1px solid rgba(70,79,132,.55);}
 .howto-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
 .howto-card li{display:grid;grid-template-columns:25px 1fr;gap:9px;align-items:center;color:var(--text-dim);font-size:10.5px;line-height:1.35;}
@@ -1394,7 +1447,7 @@ body::before{
     radial-gradient(circle at 50% 45%,rgba(26,20,79,.68),rgba(2,2,19,.96) 70%);
   background-size:26px 26px,26px 26px,100% 100%;
 }
-.scanlines{opacity:.22;}
+.scanlines{opacity:.1;mix-blend-mode:normal;}
 .btn{
   border-radius:13px;background:linear-gradient(180deg,#ffe991,var(--amber) 58%,#ffad22);
   box-shadow:0 4px 0 #c66d13,0 0 24px rgba(255,212,71,.28);
@@ -1407,28 +1460,31 @@ body::before{
 }
 
 @media (min-width:1120px) and (min-height:720px){
-  body{padding:18px;overflow:hidden;}
+  body{padding:12px;overflow:hidden;}
   .cabinet{
-    width:min(1400px,calc(100vw - 36px));height:min(900px,calc(100dvh - 36px));
+    width:min(1400px,calc(100vw - 24px));height:min(900px,calc(100dvh - 24px));
     display:grid;grid-template-columns:240px minmax(470px,620px) 230px;
-    grid-template-rows:58px minmax(0,1fr) 36px;
-    gap:16px 20px;justify-content:center;align-items:center;
+    grid-template-rows:52px minmax(0,1fr) 34px;
+    gap:10px 20px;justify-content:center;align-items:center;
   }
   .marquee{
     grid-column:1;grid-row:1/4;width:100%;height:100%;max-height:none !important;
     display:flex;flex-direction:column;align-items:center;gap:22px;
-    padding:24px 16px !important;margin:0 !important;opacity:1 !important;overflow:hidden;
+    padding:18px 16px !important;margin:0 !important;opacity:1 !important;overflow:hidden;
     border:1px solid rgba(63,72,124,.7);border-radius:24px;
     background:linear-gradient(180deg,rgba(8,10,38,.72),rgba(3,4,22,.82));
     box-shadow:0 22px 52px rgba(0,0,0,.32);
   }
+  .brand-lockup{height:146px;min-height:146px;}
+  .brand-logo{width:232px;height:232px;margin-top:-48px;}
+  .brand-sub{bottom:0;font-size:8.5px;}
   .marquee .tagline{margin:0;flex-wrap:wrap;}
   .marquee .tag-words{display:none;}
-  .power-card,.mascot-stage,.howto-card,.high-score-stat{display:block;}
+  .power-card,.mascot-stage,.enemy-card,.howto-card,.high-score-stat{display:block;}
   .hud .high-score-stat{display:flex;}
   .mission-strip{display:flex;grid-column:2;grid-row:1;width:min(100%,600px);justify-self:center;}
   .stage{grid-column:2;grid-row:2;width:100%;align-self:center;padding:9px;border-radius:21px;}
-  #mazeCanvas{width:min(100%,calc((100dvh - 155px)*19/21));max-width:600px;border-radius:14px;}
+  #mazeCanvas{width:min(100%,calc((100dvh - 150px)*19/21));max-width:620px;border-radius:14px;}
   .scanlines{inset:9px;border-radius:14px;}
   .pad-area{grid-column:2;grid-row:3;display:flex;height:100%;}
   .pad-grid{display:none;}
@@ -1458,11 +1514,16 @@ body::before{
   .high-score-stat .k{color:#73c9ff !important;}
   .howto-card .rail-title{margin-bottom:13px;}
 }
+@media (min-width:1120px) and (min-height:720px) and (max-height:799px){
+  /* 矮屏先保住完整玩法说明；角色图鉴在更高的屏幕再展开。 */
+  .enemy-card{display:none;}
+}
 </style>
 
 <div class="cabinet">
   <div class="marquee">
     <h1 class="brand-lockup" aria-label="Neon Maze · 豆豆">
+      <img class="brand-logo" src="assets/neon-logo-v2.jpg" alt="" width="1280" height="1280" decoding="async">
       <span class="brand-neon">NEON</span>
       <span class="brand-maze">MAZE</span>
       <span class="brand-sub">DOUDOU · 豆豆</span>
@@ -1557,6 +1618,13 @@ body::before{
       <span class="k">最高分</span>
       <span class="v" id="highScoreVal">0</span>
     </div>
+    <section class="enemy-card" aria-label="敌人角色">
+      <h2 class="rail-title">ENEMIES</h2>
+      <div class="enemy-roster" aria-hidden="true">
+        <i class="enemy-thumb chaser"></i><i class="enemy-thumb ambush"></i>
+        <i class="enemy-thumb shy"></i><i class="enemy-thumb patrol"></i>
+      </div>
+    </section>
     <section class="howto-card" aria-label="玩法速览">
       <h2 class="rail-title">HOW TO PLAY</h2>
       <ul>
@@ -1576,6 +1644,7 @@ body::before{
     <canvas id="fxCanvas" class="fx"></canvas>
 
     <div class="overlay" id="startOverlay">
+      <div class="start-card">
       <h2>NEON READY</h2>
       <!-- 开始页只留一句。原来这里是六行说明，加上榜单和署名之后总高超出
            弹层 61px，"开始"按钮直接被切在屏幕外——第一次玩的人看到的是一屏
@@ -1617,6 +1686,7 @@ body::before{
            2026-08-21 业主把这句从"♥ 一个爸爸和儿子一起做的小游戏"改成「怀旧游戏」，
            心也一并去掉。那段自述没有丢，它完整地留在「关于」里。 -->
       <button class="story-line" id="storyLine">原创霓虹迷宫 · 和豆豆一起出发</button>
+      </div>
     </div>
 
     <!-- 暂停页也要能看玩法。开打之后标题栏会收起来（body.in-game），那个「?」
@@ -2025,6 +2095,35 @@ const canvas = document.getElementById('mazeCanvas');
 canvas.width = COLS*TILE; canvas.height = ROWS*TILE;
 const ctx = canvas.getContext('2d');
 
+/* 角色美术是一次加载、每帧 drawImage 的贴图；加载失败时下面仍保留完整的
+   Canvas 矢量兜底。这样精细度不再依赖每帧堆 shadowBlur，弱机也更轻。 */
+let characterAtlas = null, characterAtlasReady = false;
+if (typeof Image === 'function'){
+  characterAtlas = new Image();
+  characterAtlas.decoding = 'async';
+  characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
+  characterAtlas.src = 'assets/neon-characters-v2.jpg';
+}
+const CHARACTER_CELL = {
+  player:[0,0], chaser:[1,0], ambush:[2,0], shy:[0,1], patrol:[1,1]
+};
+
+function drawCharacterSprite(id,size){
+  if (!characterAtlasReady || !characterAtlas || !CHARACTER_CELL[id]) return false;
+  const cell=CHARACTER_CELL[id];
+  const aw=characterAtlas.naturalWidth||characterAtlas.width||1536;
+  const ah=characterAtlas.naturalHeight||characterAtlas.height||1024;
+  const sw=aw/3,sh=ah/2;
+  ctx.save();
+  ctx.beginPath();ctx.arc(0,0,size*.53,0,Math.PI*2);ctx.clip();
+  /* 图集是深蓝背景 JPG。screen 会把接近黑的底色变成视觉中性，
+     只把高饱和角色留在迷宫上，避免移动时带着一块黑色圆盘挡住豆子。 */
+  ctx.globalCompositeOperation='screen';
+  ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-size/2,-size/2,size,size);
+  ctx.restore();
+  return true;
+}
+
 /* 让画布的**内部像素**跟上它实际被显示的大小。
  *
  * 原来这块画布固定 494x546 内部像素，而 CSS 把它按可用高度拉伸 —— 在一台
@@ -2062,18 +2161,29 @@ const CAN_OWN_CANVAS =
 let wallCache = null;        // 离屏画布；null = 还没建或环境建不出来
 let wallCacheDirty = true;   // 建关/换关、resize 之后要重画
 let wallCacheFailed = false; // 离屏不可用（微信垫片等）时退回每帧现画
+let dotCache = null;         // 普通豆子同样是静态层，吃到时只擦掉对应小块
+let dotCacheDirty = true;
+let dotCacheFailed = false;
+let staticFrameDirty = true; // 开始/暂停/结算页只在必要时重画一次
 
 function fitMazeCanvas(){
   if (!CAN_OWN_CANVAS) return;
   const r = canvas.getBoundingClientRect();
-  if (!r.width || !r.height) return;              // 还没布局好，等下一次
+  if (!r.width) return;                            // 还没布局好，等下一次
   const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
-  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  /* 高度必须从宽度和固定地图比例推导，不能再读取 r.height。
+     canvas 的 CSS height:auto 会参考 intrinsic ratio；如果又把量到的高度反写回
+     intrinsic height，四舍五入误差会触发 ResizeObserver 一直长高，顺带每次
+     重建墙缓存。1280×738 上已经实测复现 592→598→605→611… 的漂移。 */
+  const w = Math.max(1, Math.round(r.width * dpr));
+  const h = Math.max(1, Math.round(w * ROWS / COLS));
   if (canvas.width === w && canvas.height === h) return;   // 尺寸没变就别动
   /* 给 canvas.width 赋值会清空画布并**重置变换矩阵**，所以这两件事必须
      一起做，而且只在真的变了的时候做 —— 每帧无脑设一次等于每帧清一次屏。 */
   canvas.width = w; canvas.height = h;
   wallCacheDirty = true;   // 内部像素变了，墙的离屏缓存要按新尺寸重画
+  dotCacheDirty = true;
+  staticFrameDirty = true;
 }
 
 /* 变换在每帧开头设，不是在 fitMazeCanvas 里设一次就完。
@@ -2456,6 +2566,8 @@ function resetLevel(fullReset){
   buildWallEdges();           // 墙的线段表也只跟迷宫有关，一关算一次就够
   buildPortals();             // 传送门坐标表：checkPortal 和绘制都不用再全图扫
   wallCacheDirty = true;      // 墙的离屏缓存跟着迷宫一起失效
+  dotCacheDirty = true;
+  staticFrameDirty = true;
   const playerSpeed = 5.408 + (level-1)*0.2912;
   player = {
     x: SPAWN.player.x, y: SPAWN.player.y, dir:{x:0,y:0}, want:{x:0,y:0},
@@ -2840,8 +2952,8 @@ function checkPortal(ent){
  * The expiry window is measured in tiles rather than seconds so the feel stays
  * identical if the player's speed is ever retuned.
  */
-const TURN_ASSIST_TILES = 0.45;  // how early a perpendicular turn may start
-const TURN_BUFFER_TILES = 3;     // how far a pending press stays alive
+const TURN_ASSIST_TILES = 0.22;  // enough to catch a near miss, too small to look like a jump
+const TURN_BUFFER_TILES = 2.2;   // catches a planned turn without surviving several junctions
 
 /** Current cell along an axis. Not Math.round: past the halfway point that
  *  flips to the destination tile early and breaks the distance maths. */
@@ -3115,6 +3227,12 @@ function drawWallsNormal(c2){
   }
   /* 同一条聚合路径分三层描边：暗紫管身、主色霓虹、细高光。
      正常状态会缓存成离屏贴图，每帧仍只是一次 drawImage。 */
+  c2.strokeStyle = '#130538';
+  c2.lineWidth = 13;
+  c2.shadowColor = cssVar('--wall-cyan');
+  c2.shadowBlur = 18;
+  c2.globalAlpha = .62;
+  c2.stroke();
   c2.strokeStyle = cssVar('--wall-core');
   c2.lineWidth = 9;
   c2.shadowColor = cssVar('--wall-cyan');
@@ -3163,6 +3281,54 @@ function rebuildWallCache(){
     // 造不出离屏画布就退回每帧现画 —— 慢一点，但画面和原来一模一样
     wallCache = null; wallCacheFailed = true;
   }
+}
+
+/* 普通豆子不需要每帧重建 175 个圆弧。它们和墙一样先画进离屏层；吃掉一颗时
+   只清掉那颗周围的一小块。最后十颗为了保留“呼吸提示”才退回动态绘制。 */
+function drawRegularDots(c2, glow){
+  const r = PELLET_R;
+  const amber = cssVar('--amber');
+  const TAU = Math.PI * 2;
+  let any = false;
+  c2.save();
+  c2.fillStyle = amber;
+  c2.shadowColor = amber;
+  c2.shadowBlur = glow;
+  c2.beginPath();
+  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
+    if (grid[y][x] !== '.') continue;
+    const cxp=x*TILE+TILE/2, cyp=y*TILE+TILE/2;
+    c2.moveTo(cxp+r,cyp); c2.arc(cxp,cyp,r,0,TAU); any=true;
+  }
+  if (any) c2.fill();
+  c2.restore();
+}
+
+function rebuildDotCache(){
+  dotCacheDirty = false;
+  if (!CAN_OWN_CANVAS || dotCacheFailed) return;
+  try {
+    if (!dotCache) dotCache = document.createElement('canvas');
+    if (!dotCache || typeof dotCache.getContext !== 'function') throw new Error('no offscreen');
+    dotCache.width = canvas.width; dotCache.height = canvas.height;
+    const dctx = dotCache.getContext('2d');
+    if (!dctx || !dctx.arc) throw new Error('no 2d');
+    dctx.setTransform(canvas.width/(COLS*TILE),0,0,canvas.height/(ROWS*TILE),0,0);
+    drawRegularDots(dctx, PELLET_GLOW);
+  } catch (e) {
+    dotCache = null; dotCacheFailed = true;
+  }
+}
+
+function eraseDotCache(x,y){
+  if (!dotCache || dotCacheDirty || dotCache.width !== canvas.width) return;
+  const dctx = dotCache.getContext('2d');
+  if (!dctx) { dotCacheDirty = true; return; }
+  const cxp=x*TILE+TILE/2, cyp=y*TILE+TILE/2;
+  dctx.save();
+  dctx.setTransform(canvas.width/(COLS*TILE),0,0,canvas.height/(ROWS*TILE),0,0);
+  dctx.clearRect(cxp-10,cyp-10,20,20);
+  dctx.restore();
 }
 
 function buildEyeField(){
@@ -3509,6 +3675,7 @@ function triggerChomp(){
 function eatPelletAt(x,y){
   const ch = grid[y][x];
   if (ch==='.'){
+    eraseDotCache(x,y);
     grid[y][x]=' '; pelletsLeft--; addPelletScore(10);
     Audio2.pellet(eatProgress());
     triggerChomp();
@@ -3911,6 +4078,9 @@ function releaseCaches(){
   wallCache = null;          // 墙的离屏缓存也放掉，下一帧自动重建
   wallCacheDirty = true;
   wallCacheFailed = false;
+  dotCache = null;           // 普通豆的离屏层同样可以随时重建
+  dotCacheDirty = true;
+  dotCacheFailed = false;
   CSSVAR.clear();
   return true;
 }
@@ -4089,6 +4259,7 @@ const NAME_KEY = 'doudou.name';
 const BOARD_SIZE = 8;
 const NAME_MAX = 8;
 const DEFAULT_NAME = '无名豆豆';
+let bestScoreCache = null, bestComboCache = null;
 
 /**
  * v1 rows were earned before SCORE_MULT existed, so ranking them against new
@@ -4172,7 +4343,12 @@ function loadScores(){
 }
 
 function saveScores(list){
-  try { localStorage.setItem(SCORE_KEY, JSON.stringify(list)); return true; }
+  try {
+    localStorage.setItem(SCORE_KEY, JSON.stringify(list));
+    bestScoreCache = list.length ? Math.max.apply(null,list.map(r=>r.score||0)) : 0;
+    bestComboCache = list.reduce((m,r)=>Math.max(m,r.combo||0),0);
+    return true;
+  }
   catch { return false; }
 }
 
@@ -4230,8 +4406,10 @@ function renameScore(id, name){
  * 返回 0 表示还没有任何记录（第一次玩），调用方据此决定要不要显示。
  */
 function bestScore(){
+  if (bestScoreCache !== null) return bestScoreCache;
   const list = loadScores();
-  return list.length ? (list[0].score || 0) : 0;
+  bestScoreCache = list.length ? (list[0].score || 0) : 0;
+  return bestScoreCache;
 }
 
 /**
@@ -4240,7 +4418,9 @@ function bestScore(){
  * 小孩不需要一张 Excel。分数管"打得多好"，连击管"打得多顺"，两个够了。
  */
 function bestCombo(){
-  return loadScores().reduce((m, r)=> Math.max(m, r.combo || 0), 0);
+  if (bestComboCache !== null) return bestComboCache;
+  bestComboCache = loadScores().reduce((m, r)=> Math.max(m, r.combo || 0), 0);
+  return bestComboCache;
 }
 
 /** 开始页的关卡选择。只在解锁了第二关之后才出现——第一次玩的人屏幕上
@@ -4657,14 +4837,14 @@ function updateComboBar(){
   // 分母要用**当前**窗口：窗口会随连击变宽，拿固定值当分母的话，
   // 高连击时条永远填不满，看起来像刚吃就快断了。
   const left = combo > 1 ? Math.max(0, comboTimer) / comboWindow() : 0;
-  /* 去抖：这函数每帧都跑，元素引用缓存一次；宽度变化不到 1% 不写入
-     （每帧一次 style 写入就是每帧一次 layout invalidate）；urgent 类
+  /* 去抖：这函数每帧都跑，元素引用缓存一次；变化不到 1% 不写入。
+     用 transform 而不是 width，避免每帧 layout invalidate；urgent 类
      也记住上次状态，变了才 toggle。 */
   if (!comboFillEl) comboFillEl = document.getElementById('comboFill');
-  const w = Math.round(left * 1000) / 10;
-  if (Math.abs(w - comboBarLastW) >= 1){
-    comboFillEl.style.width = w + '%';
-    comboBarLastW = w;
+  const scale = Math.round(left * 100) / 100;
+  if (Math.abs(scale - comboBarLastScale) >= 0.01){
+    comboFillEl.style.transform = 'scaleX(' + scale + ')';
+    comboBarLastScale = scale;
   }
   const urgent = left > 0 && left < 0.35;   // 快断了变红
   if (urgent !== comboBarLastUrgent){
@@ -4672,7 +4852,7 @@ function updateComboBar(){
     comboBarLastUrgent = urgent;
   }
 }
-let comboFillEl = null, comboBarLastW = -1, comboBarLastUrgent = null;
+let comboFillEl = null, comboBarLastScale = -1, comboBarLastUrgent = null;
 
 /* 幽灵悬赏把分数推到了六七位数，"1283000" 这种一长串瞟一眼是读不出来的。
    自己加千分位，不用 toLocaleString('en-US')：那个要靠 Intl，微信小游戏在
@@ -4687,25 +4867,35 @@ function fmtNum(n){
 }
 
 let lastComboShown = 1;   // 只在连击真的变了时才弹，见下面
+let comboBumpFlip = false;
+let hudScoreEl=null,hudLevelEl=null,hudLivesEl=null,hudHighEl=null,hudComboEl=null;
+let hudLastScore='',hudLastLevel='',hudLastLives=null,hudLastHigh='';
 function updateHud(){
-  document.getElementById('scoreVal').textContent = fmtNum(score);
-  document.getElementById('levelVal').textContent = level + '/' + MAX_LEVEL;
-  document.getElementById('livesVal').innerHTML = Array.from({length:Math.max(lives,0)}).map(()=>
-    '<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17.2 3.1 10.8C-.4 7.5 1.9 2.2 6.3 2.2c1.6 0 3 .8 3.7 2 0.7-1.2 2.1-2 3.7-2 4.4 0 6.7 5.3 3.2 8.6L10 17.2Z" fill="'+cssVar('--pink')+'"/></svg>'
-  ).join('');
-  const high = document.getElementById('highScoreVal');
-  if (high) high.textContent = fmtNum(Math.max(score, bestScore()));
-  const cl = document.getElementById('comboLabel');
-  cl.textContent = '连击 x' + combo;
+  if (!hudScoreEl){
+    hudScoreEl=document.getElementById('scoreVal');hudLevelEl=document.getElementById('levelVal');
+    hudLivesEl=document.getElementById('livesVal');hudHighEl=document.getElementById('highScoreVal');
+    hudComboEl=document.getElementById('comboLabel');
+  }
+  const scoreText=fmtNum(score),levelText=level+'/'+MAX_LEVEL;
+  if (scoreText!==hudLastScore){hudScoreEl.textContent=scoreText;hudLastScore=scoreText;}
+  if (levelText!==hudLastLevel){hudLevelEl.textContent=levelText;hudLastLevel=levelText;}
+  if (lives!==hudLastLives){
+    hudLivesEl.innerHTML=Array.from({length:Math.max(lives,0)}).map(()=>
+      '<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17.2 3.1 10.8C-.4 7.5 1.9 2.2 6.3 2.2c1.6 0 3 .8 3.7 2 0.7-1.2 2.1-2 3.7-2 4.4 0 6.7 5.3 3.2 8.6L10 17.2Z" fill="'+cssVar('--pink')+'"/></svg>'
+    ).join('');
+    hudLastLives=lives;
+  }
+  const highText=fmtNum(Math.max(score,bestScore()));
+  if (hudHighEl&&highText!==hudLastHigh){hudHighEl.textContent=highText;hudLastHigh=highText;}
+  const cl=hudComboEl;
+  if (combo!==lastComboShown) cl.textContent='连击 x'+combo;
   /* 连击的画面反馈**只在 HUD 上**：玩家这时候正贴着幽灵跑，在迷宫上糊特效
      等于害他送命。一行字变个色，看得见又挡不着。 */
-  /* 连击涨一级就轻轻弹一下。只加一个 class，动画交给 CSS：
-     每次都要重新触发，所以先摘掉、强制回流、再加上 —— 不这么做的话
-     连续涨级时动画只播第一次。 */
+  /* 两个同形动画交替，不再用 offsetWidth 强制同步回流。 */
   if (combo > 1 && combo !== lastComboShown){
-    cl.classList.remove('bump');
-    void cl.offsetWidth;
-    cl.classList.add('bump');
+    comboBumpFlip=!comboBumpFlip;
+    cl.classList.remove('bump-a','bump-b');
+    cl.classList.add(comboBumpFlip?'bump-a':'bump-b');
   }
   lastComboShown = combo;
   cl.style.color = combo >= 100 ? cssVar('--amber')
@@ -4859,7 +5049,7 @@ document.addEventListener('touchend', (e)=>{
   lastTouchEnd = now;
 }, { passive:false });
 
-const SWIPE_MIN_PX = 24;
+const SWIPE_MIN_PX = 14;
 let swipeFrom = null;
 const stage = document.getElementById('mazeCanvas').parentElement;
 
@@ -5176,6 +5366,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 document.getElementById('helpCloseBtn').addEventListener('click', closeHelp);
 
 /** 开打时收起标题，回到任何弹层时再露出来。 */
+let chromeInGame = null;
 function syncChrome(){
   /* 说明盖着的时候，**什么都别动**。
    *
@@ -5188,7 +5379,10 @@ function syncChrome(){
    * 根本看不见，压根没有理由跟着变。开之前什么样，关掉还是什么样，
    * 零动画、零位移。 */
   if (docPanelOpen()) return;
-  document.body.classList.toggle('in-game', gameState === 'playing');
+  const next = gameState === 'playing';
+  if (next === chromeInGame) return;
+  document.body.classList.toggle('in-game', next);
+  chromeInGame = next;
 }
 
 /* ---------- 切走标签页自动暂停 ----------
@@ -5477,7 +5671,6 @@ function drawMaze(){
      唯一的差别是光晕重叠处：分开画时两团光会叠加变亮，合成一条路径则不会。
      正常间距（26px）下光晕只有 4px，根本碰不到；只有剩最后几颗、光晕涨到
      20px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
-  const r = PELLET_R;          // 恒定：大小是区分小豆和能量豆的第一条线索
   let glow = PELLET_GLOW;
   if (pelletsLeft <= LAST_PELLET_HINT){
     /* 剩最后几颗时让豆子自己"喘气"。
@@ -5494,22 +5687,26 @@ function drawMaze(){
   }
   const amber = cssVar('--amber');
   const pulse = POWER_R + Math.sin(elapsed*6) * POWER_R_SWING;
-  const TAU = Math.PI*2;
+  let anyPower = false;
 
-  let anyDot = false, anyPower = false;
-  ctx.fillStyle = amber; ctx.shadowColor = amber;
-
-  ctx.shadowBlur = glow;
-  ctx.beginPath();
-  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
-    if (grid[y][x] !== '.') continue;
-    const cxp = x*TILE+TILE/2, cyp = y*TILE+TILE/2;
-    ctx.moveTo(cxp+r, cyp); ctx.arc(cxp,cyp,r,0,TAU); anyDot = true;
+  /* 大多数时间普通豆子直接贴离屏层；最后十颗才需要每帧改变光晕。 */
+  if (pelletsLeft > LAST_PELLET_HINT){
+    if (dotCacheDirty || !dotCache || dotCache.width !== canvas.width) rebuildDotCache();
+    if (dotCache){
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.drawImage(dotCache,0,0);
+      ctx.restore();
+    } else {
+      drawRegularDots(ctx, PELLET_GLOW);
+    }
+  } else {
+    drawRegularDots(ctx, glow);
   }
-  if (anyDot) ctx.fill();
 
   /* 能量星：五角形轮廓与参考界面一致，机制仍是原来的能量豆。
      数量很少，但仍合并到同一条路径中，只做一次 fill + stroke。 */
+  ctx.fillStyle = amber; ctx.shadowColor = amber;
   ctx.shadowBlur = POWER_GLOW;
   ctx.beginPath();
   for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
@@ -5620,7 +5817,7 @@ function drawPlayer(){
   /* Doudou 的吃豆反馈由 chompT 驱动：不再是扇形张嘴，而是整只角色短促弹一下。 */
   let joy;
   if (player.chompT !== undefined && player.chompT < 1){
-    player.chompT = Math.min(1, player.chompT + (1/60)/CHOMP_SECONDS);
+    player.chompT = Math.min(1, player.chompT + visualFrameDt/CHOMP_SECONDS);
     joy = Math.sin(player.chompT * Math.PI);
   } else {
     if (moving) player.mouth += 0.11;
@@ -5645,6 +5842,17 @@ function drawPlayer(){
   ctx.globalAlpha = player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62)
                   : invuln > 0       ? pulse(INVULN_PULSE_HZ, 0.45)
                   : 1;
+
+  if (drawCharacterSprite('player',38)){
+    if (player.phase>0 || invuln>0){
+      ctx.globalAlpha=.82;
+      ctx.strokeStyle=player.phase>0?cssVar('--phase'):cssVar('--amber');
+      ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(0,0,18.3,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.restore();
+    return;
+  }
 
   /* 手脚先画在身体后面，轮廓不超过半格，碰撞判定不变。 */
   ctx.fillStyle='#168f96';
@@ -5701,10 +5909,11 @@ function drawGhost(g){
   /* 颜色在 spawn 时就从 GHOST_DEFS 铺到了 g.color 上，cssVar 自己也有缓存 ——
      不再需要每帧 GHOST_DEFS.find 一次。 */
   let color = cssVar(g.color);
-  let eyesOnly=false, dozing=false;
+  let eyesOnly=false, dozing=false, edibleVisual=false;
   if (g.state==='eaten'){
     eyesOnly=true;                      // 只剩一根羽毛飘回老巢，不参与变色
   } else if (isEdible(g)){
+    edibleVisual=true;
     /* 颜色跟着 isEdible 走，而不是跟着 state。
        按 state==='frightened' 上色时，刚从老巢出来（state 还是 'exiting'）
        的幽灵明明已经可以吃了，却画成原来的颜色 —— 玩家看到一只红幽灵冲出来
@@ -5738,6 +5947,25 @@ function drawGhost(g){
   ctx.scale(scale,scale);
   const r = TILE*0.42;
   const R = r*.88;
+  if (!eyesOnly && drawCharacterSprite(g.id,35)){
+    if (edibleVisual){
+      ctx.globalAlpha=.42;
+      ctx.fillStyle=dozing?'#bdefff':'#ffffff';
+      ctx.beginPath();ctx.arc(0,0,16.2,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='#27305f';ctx.lineWidth=1.9/scale;ctx.lineCap='round';
+      [[-4.2,-1.5],[4.2,-1.5]].forEach(([ex,ey])=>{
+        ctx.beginPath();ctx.moveTo(ex-2,ey-2);ctx.lineTo(ex+2,ey+2);
+        ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
+      });
+    }
+    if (g.isFusionHost){
+      ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.4/scale;
+      ctx.beginPath();ctx.arc(0,0,17.2,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.restore();
+    return;
+  }
   if (!eyesOnly){
     ctx.fillStyle = color;
     ctx.shadowColor = color; ctx.shadowBlur = g.isFusionHost?18:10;
@@ -5897,6 +6125,7 @@ function drawPhaseBar(){
 
 /* ---------- main loop ---------- */
 let lastT = performance.now();
+let visualFrameDt = 1/60;
 /* 一帧要做的事全在这儿，loop 只负责算 dt 和排下一帧。
  *
  * 抽出来是为了让测试能跑**同一份代码**。之前测试里手抄了一份一模一样的
@@ -5904,6 +6133,9 @@ let lastT = performance.now();
  * 同样的坑连着踩了三次（syncChrome、键盘作用域、死亡定格），根子都是
  * "测试验的不是真实路径"。共用一个函数，这类假绿就不可能再发生。 */
 function stepFrame(dt){
+  visualFrameDt = Math.max(0,Math.min(0.05,dt));
+  const wasPlaying = gameState === 'playing';
+  const hadDeathFlash = deathFlash > 0;
   if (gameState==='playing'){
     // 关卡卡片期间整局冻住：不跑 update，elapsed 就不走，幽灵、恐惧倒计时、
     // 复活计时全部停在原地。玩家有个空拍看清这是哪一关。
@@ -5913,7 +6145,10 @@ function stepFrame(dt){
   }
   // 红闪自己走，不受定格影响 —— 它就是用来填这段定格的
   if (deathFlash > 0) deathFlash -= dt;
-  render();
+  if (wasPlaying || gameState==='playing' || hadDeathFlash || deathFlash>0 || staticFrameDirty){
+    render();
+    staticFrameDirty = false;
+  }
 }
 
 function loop(t){

@@ -55,7 +55,15 @@ writeFileSync(`${ROOT_DIR}404.html`, notFound);
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(`${OUT_DIR}/index.html`, html);
 mkdirSync(`${OUT_DIR}/assets`, { recursive: true });
-copyFileSync(here('../../assets/doudou-hero.png'), `${OUT_DIR}/assets/doudou-hero.png`);
+const assets = [
+  'doudou-hero.png',
+  'neon-logo-v2.jpg',
+  'neon-space-bg-v2.jpg',
+  'neon-characters-v2.jpg',
+];
+for (const name of assets){
+  copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);
+}
 
 // 静态托管上没有这个文件时，访问不存在的路径会是平台自带的英文报错页。
 writeFileSync(`${OUT_DIR}/404.html`, notFound);
@@ -65,5 +73,5 @@ console.log(`已生成根目录 index.html（${kb} KB，零外部网络依赖）
 console.log('     根目录 404.html');
 console.log('已镜像 发布到网站/index.html');
 console.log('     发布到网站/404.html');
-console.log('     发布到网站/assets/doudou-hero.png');
+console.log(`     发布到网站/assets/（${assets.length} 个本地美术资源）`);
 console.log('整个目录拖到任意静态托管即可。');

@@ -1376,7 +1376,7 @@ body::before{
   min-height:52px;padding:10px 24px;
   border:2px solid rgba(132,69,238,.72);border-radius:999px;
   background:linear-gradient(180deg,rgba(19,17,65,.92),rgba(8,8,35,.92));
-  box-shadow:0 0 0 1px rgba(92,171,255,.18) inset,0 0 22px rgba(108,49,226,.22);
+  box-shadow:0 0 0 1px rgba(92,171,255,.16) inset,0 0 12px rgba(108,49,226,.16);
   font-family:var(--font-display);font-size:13px;font-weight:900;letter-spacing:.1em;
   color:var(--text);text-transform:uppercase;
 }
@@ -1437,17 +1437,15 @@ body::before{
 .stage{
   border-color:rgba(65,118,255,.82);
   background:linear-gradient(180deg,#0b0d34,#05051d);
-  box-shadow:0 0 0 2px rgba(49,231,255,.16) inset,0 0 22px rgba(38,119,255,.28),0 22px 54px rgba(0,0,0,.62);
+  box-shadow:0 0 0 1px rgba(49,231,255,.14) inset,0 0 12px rgba(38,119,255,.2),0 18px 42px rgba(0,0,0,.58);
 }
 #mazeCanvas{
   background-color:#03031a;
-  background-image:
-    linear-gradient(rgba(86,71,156,.09) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(86,71,156,.09) 1px,transparent 1px),
-    radial-gradient(circle at 50% 45%,rgba(26,20,79,.68),rgba(2,2,19,.96) 70%);
-  background-size:26px 26px,26px 26px,100% 100%;
+  background-image:radial-gradient(circle at 50% 45%,rgba(22,17,67,.56),rgba(2,2,19,.98) 72%);
+  background-size:100% 100%;
 }
-.scanlines{opacity:.1;mix-blend-mode:normal;}
+/* 细密扫描线在画布缩放时会形成摩尔纹，需要的是清晰而不是“老电视”。 */
+.scanlines{display:none;}
 .btn{
   border-radius:13px;background:linear-gradient(180deg,#ffe991,var(--amber) 58%,#ffad22);
   box-shadow:0 4px 0 #c66d13,0 0 24px rgba(255,212,71,.28);
@@ -3225,31 +3223,30 @@ function drawWallsNormal(c2){
     c2.moveTo(wallEdges[i], wallEdges[i+1]);
     c2.lineTo(wallEdges[i+2], wallEdges[i+3]);
   }
-  /* 同一条聚合路径分三层描边：暗紫管身、主色霓虹、细高光。
-     正常状态会缓存成离屏贴图，每帧仍只是一次 drawImage。 */
-  c2.strokeStyle = '#130538';
-  c2.lineWidth = 13;
-  c2.shadowColor = cssVar('--wall-cyan');
-  c2.shadowBlur = 18;
-  c2.globalAlpha = .62;
-  c2.stroke();
-  c2.strokeStyle = cssVar('--wall-core');
-  c2.lineWidth = 9;
-  c2.shadowColor = cssVar('--wall-cyan');
-  c2.shadowBlur = 14;
-  c2.globalAlpha = .78;
-  c2.stroke();
-  c2.strokeStyle = cssVar('--wall');
-  c2.lineWidth = 5.5;
-  c2.shadowColor = cssVar('--wall');
-  c2.shadowBlur = 8;
+  /* 先用不发光的暗边把墙从路面里切出来，再叠主色与细高光。
+     旧版四层都带 4~18px shadowBlur，紫光合在一起就变成一片雾；
+     这里保留霓虹识别度，但让轮廓本身始终是锐的。 */
+  c2.strokeStyle = '#09031f';
+  c2.lineWidth = 12;
+  c2.shadowBlur = 0;
   c2.globalAlpha = 1;
   c2.stroke();
+  c2.strokeStyle = cssVar('--wall-core');
+  c2.lineWidth = 8;
+  c2.shadowColor = cssVar('--wall-cyan');
+  c2.shadowBlur = 5;
+  c2.globalAlpha = .95;
+  c2.stroke();
+  c2.strokeStyle = cssVar('--wall');
+  c2.lineWidth = 4.25;
+  c2.shadowColor = cssVar('--wall');
+  c2.shadowBlur = 3;
+  c2.globalAlpha = .98;
+  c2.stroke();
   c2.strokeStyle = cssVar('--wall-hi');
-  c2.lineWidth = 1.35;
-  c2.shadowColor = cssVar('--wall-hi');
-  c2.shadowBlur = 4;
-  c2.globalAlpha = .92;
+  c2.lineWidth = 1;
+  c2.shadowBlur = 0;
+  c2.globalAlpha = .76;
   c2.stroke();
   c2.restore();
 
@@ -3434,12 +3431,12 @@ function comboWindow(){
  *     小豆最大光晕     <  能量豆光晕
  */
 const PELLET_R          = 2.6;   // 小豆半径，恒定 —— 不许再随呼吸变化
-const PELLET_GLOW       = 4;     // 小豆平时的光晕
-const PELLET_GLOW_SWING = 8;     // 呼吸最猛时额外加的光晕（再乘 urgency）
-const PELLET_GLOW_BASE_SWING = 2;// 呼吸的固定部分
+const PELLET_GLOW       = 2;     // 小豆平时的紧致光晕
+const PELLET_GLOW_SWING = 4.5;   // 最后几颗仍会呼吸，但不再糊成光团
+const PELLET_GLOW_BASE_SWING = 1;// 呼吸的固定部分
 const POWER_R           = 5.0;   // 能量豆半径中心值
 const POWER_R_SWING     = 0.7;   // 能量豆脉动幅度 → 4.3 ~ 5.7
-const POWER_GLOW        = 16;    // 能量豆光晕，恒定且高于小豆的最大值
+const POWER_GLOW        = 9;     // 能量星仍比小豆更亮，但边界清楚
 
 const LAST_PELLET_HINT = 10;
 // 剩三颗才转成明显跳动：那时候才真的开始「到底在哪」，五颗时一般还看得见
@@ -3785,6 +3782,8 @@ const MOMENTUM_MAX = 1.22;
    穿墙比无敌更慢，因为它持续 10 秒而无敌只有 1.6~2.4 秒 —— 越长越要温和。 */
 const PHASE_PULSE_HZ = 2;
 const INVULN_PULSE_HZ = 3;
+/* 能量结束的小夜枭警示也保持温和：2Hz 足够醒目，不再每秒四次硬闪。 */
+const GHOST_WARNING_HZ = 2;
 /* 尾迹：间距和点数。压到这一档是业主看过三档对比之后选的（方案 B）——
    最大的一个只有本体 60%、最亮 0.18，速度感留着，但不再和角色抢。 */
 const TRAIL_SPACING = 0.34;   // 每隔多少格留一个点
@@ -5625,7 +5624,7 @@ function drawMaze(){
     ctx.strokeStyle = wallColor;
     ctx.lineWidth = 3;
     ctx.shadowColor = wallColor;
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 4;
     ctx.lineCap = 'round';
     ctx.beginPath();
     for (let i=0;i<wallEdges.length;i+=4){
@@ -5669,8 +5668,8 @@ function drawMaze(){
      每段 arc 之前必须先 moveTo：arc 会从当前点连一条线过来，不另起子路径
      就会在豆子之间连出线段。
      唯一的差别是光晕重叠处：分开画时两团光会叠加变亮，合成一条路径则不会。
-     正常间距（26px）下光晕只有 4px，根本碰不到；只有剩最后几颗、光晕涨到
-     20px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
+     正常间距（26px）下光晕只有 2px，根本碰不到；只有剩最后几颗、光晕涨到
+     7.5px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
   let glow = PELLET_GLOW;
   if (pelletsLeft <= LAST_PELLET_HINT){
     /* 剩最后几颗时让豆子自己"喘气"。
@@ -5745,7 +5744,7 @@ function drawMaze(){
         ctx.save();
         ctx.translate(cxp,cyp);
         if (cooling) ctx.globalAlpha = 0.32;
-        ctx.strokeStyle = col; ctx.shadowColor=col; ctx.shadowBlur = cooling ? 0 : 9;
+        ctx.strokeStyle = col; ctx.shadowColor=col; ctx.shadowBlur = cooling ? 0 : 5;
         ctx.lineWidth=1.6;
         ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.stroke();
         // 外圈画一段随冷却缩短的弧，等于一个小进度条
@@ -5778,7 +5777,7 @@ function drawFruit(){
   ctx.translate(cxp,cyp);
   ctx.fillStyle = cssVar('--cyan');
   ctx.strokeStyle = '#e9ffff';
-  ctx.shadowColor = cssVar('--cyan'); ctx.shadowBlur=16;
+  ctx.shadowColor = cssVar('--cyan'); ctx.shadowBlur=8;
   ctx.lineWidth=1.2;
   ctx.beginPath();
   ctx.moveTo(0,-10);ctx.lineTo(8,-3);ctx.lineTo(0,10);ctx.lineTo(-8,-3);ctx.closePath();
@@ -5918,8 +5917,8 @@ function drawGhost(g){
        按 state==='frightened' 上色时，刚从老巢出来（state 还是 'exiting'）
        的幽灵明明已经可以吃了，却画成原来的颜色 —— 玩家看到一只红幽灵冲出来
        会本能躲开，白白错过。画面必须和判定同源。
-       受惊的小夜枭是打瞌睡的奶白色（--doze），最后 1.8 秒闪白照旧。 */
-    const ending = frightTimer < 1.8 && Math.floor(elapsed*8)%2===0;
+       受惊的小夜枭是打瞌睡的奶白色（--doze），最后 1.8 秒以 2Hz 柔和提示。 */
+    const ending = frightTimer < 1.8 && Math.sin(elapsed * GHOST_WARNING_HZ * Math.PI * 2) > 0;
     color = ending ? '#ffffff' : cssVar('--doze');
     dozing = !ending;
   }

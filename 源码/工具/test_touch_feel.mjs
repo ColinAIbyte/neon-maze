@@ -90,10 +90,23 @@ const hz = (name) => {
 };
 const PHASE_HZ = hz('PHASE_PULSE_HZ');
 const INVULN_HZ = hz('INVULN_PULSE_HZ');
+const GHOST_HZ = hz('GHOST_WARNING_HZ');
 if (Number.isFinite(PHASE_HZ) && PHASE_HZ > 3)
   fail.push(`穿墙闪烁 ${PHASE_HZ}Hz 超过 WCAG 的每秒 3 次，而它一持续就是 10 秒`);
 if (Number.isFinite(INVULN_HZ) && INVULN_HZ > 3)
   fail.push(`无敌闪烁 ${INVULN_HZ}Hz 超过 WCAG 的每秒 3 次`);
+if (Number.isFinite(GHOST_HZ) && GHOST_HZ > 3)
+  fail.push(`敌人警示闪烁 ${GHOST_HZ}Hz 超过 WCAG 的每秒 3 次`);
+
+const ghostWarningLine = src.match(/const ending = frightTimer < 1\.8[^;]+;/);
+if (!ghostWarningLine) {
+  fail.push('定位不到敌人能量结束警示（写法变了，去 test_touch_feel 里改）');
+} else {
+  if (/Math\.floor/.test(ghostWarningLine[0]))
+    fail.push('敌人能量结束警示又变回方波硬切了');
+  if (!/Math\.sin/.test(ghostWarningLine[0]) || !/GHOST_WARNING_HZ/.test(ghostWarningLine[0]))
+    fail.push('敌人能量结束警示必须使用受控的正弦节奏');
+}
 
 const alphaLine = src.match(/ctx\.globalAlpha = player\.phase > 0[\s\S]{0,220}?;/);
 if (!alphaLine) {
@@ -106,11 +119,11 @@ if (!alphaLine) {
   else {
     const worst = Math.min(...los);
     if (worst < 0.4) fail.push(`闪烁最暗到 ${worst}，太接近消失；下限不该低于 0.4`);
-    else console.log(`闪烁：穿墙 ${PHASE_HZ}Hz、无敌 ${INVULN_HZ}Hz，正弦，最暗 ${worst}`);
+    else console.log(`闪烁：穿墙 ${PHASE_HZ}Hz、无敌 ${INVULN_HZ}Hz、敌人警示 ${GHOST_HZ}Hz，正弦，最暗 ${worst}`);
   }
 }
 
 console.log('\n' + (fail.length
   ? '触屏手感有问题：\n  ✗ ' + fail.join('\n  ✗ ')
-  : '触屏手感的两条底线都守住了。'));
+  : '触屏手感的三条底线都守住了。'));
 process.exit(fail.length ? 1 : 0);

@@ -2614,7 +2614,7 @@ function resetLevel(fullReset){
   player = {
     x: SPAWN.player.x, y: SPAWN.player.y, dir:{x:0,y:0}, want:{x:0,y:0},
     baseSpeed: playerSpeed, speed: playerSpeed,
-    mouth:0, chompT:1, phase:0, alive:true, kind:'player', warpCd:0, warpCdCh:null,
+    mouth:0, chompT:1, visualLean:0, phase:0, alive:true, kind:'player', warpCd:0, warpCdCh:null,
     warpChoiceUntil:0,   // 传送落地后的思考时间，见 orientAfterWarp
     warpStandingOn:null, // 正踩着的那扇门（落地那扇不再触发）
     // odometer driving the distance-based turn buffer (see player control)
@@ -3707,8 +3707,8 @@ function eatProgress(){
   return pelletsTotal ? 1 - pelletsLeft / pelletsTotal : 0;
 }
 
-/** One full open-and-close of the mouth per pellet swallowed. */
-const CHOMP_SECONDS = 0.16;
+/** One compact bite per pellet. It must finish before the next high-speed pellet. */
+const CHOMP_SECONDS = 0.10;
 function triggerChomp(){
   player.chompT = 0;
 }
@@ -3828,6 +3828,15 @@ const PHASE_PULSE_HZ = 2;
 const INVULN_PULSE_HZ = 3;
 /* 能量结束的小夜枭警示也保持温和：2Hz 足够醒目，不再每秒四次硬闪。 */
 const GHOST_WARNING_HZ = 2;
+/* 穿墙结束时整张迷宫只做轻微呼吸；红色倒计时条负责真正的警示。 */
+const PHASE_WALL_WARNING_HZ = 2;
+/* 游戏内豆豆必须给通道留出读路空间。30px 图框里的实色角色约 23px，
+   和 26px 通道、小游戏的矢量豆豆尺寸相配；不再使用原来的 38px 大头像。 */
+const PLAYER_SPRITE_SIZE = 30;
+const PLAYER_GAIT_TILES = 0.85; // 每走 0.85 格完成一步，速度越快动作自然越快
+const PLAYER_HOP_PX = 0.38;
+const PLAYER_SWAY_PX = 0.22;
+const PLAYER_LEAN_RAD = 0.045;
 /* 尾迹：间距和点数。压到这一档是业主看过三档对比之后选的（方案 B）——
    最大的一个只有本体 60%、最亮 0.18，速度感留着，但不再和角色抢。 */
 const TRAIL_SPACING = 0.34;   // 每隔多少格留一个点
@@ -5654,17 +5663,19 @@ function drawMaze(){
      这是这个道具最值钱的一秒 —— 玩家真正要看懂的不是"我获得了穿墙"，而是
      **"墙不算数了"**。让墙自己变样，比在角色身上加特效直接得多：他一眼看到
      的是整张地图的规则变了，而不是自己身上多了层光。
-     最后 2 秒开始闪回实线，等于用墙本身做倒计时——不用再多一个提示条。 */
+     最后 2 秒只轻轻提高亮度；红色倒计时条和 3/2/1 音效已经足够说明时间，
+     整张迷宫不该再用硬切闪烁抢走玩家视线。 */
   const phasing = player && player.phase > 0;
-  const ending  = phasing && player.phase < 2 && Math.floor(elapsed*6)%2===0;
+  const ending  = phasing && player.phase < 2;
+  const wallPulse = ending && !prefersReducedMotion()
+    ? 0.48 + 0.10 * (0.5 + 0.5 * Math.sin(elapsed * PHASE_WALL_WARNING_HZ * Math.PI * 2))
+    : 0.48;
   if (phasing){
-    // 穿墙这几秒墙每帧都在变（虚线/闪烁），不走缓存，现画
-    const wallColor = ending ? cssVar('--wall') : cssVar('--phase');
+    // 穿墙这几秒墙是虚线并带轻微呼吸，不走缓存，现画
+    const wallColor = cssVar('--phase');
     ctx.save();
-    if (!ending){
-      ctx.globalAlpha = 0.42;
-      ctx.setLineDash([4, 5]);
-    }
+    ctx.globalAlpha = ending ? wallPulse : 0.42;
+    ctx.setLineDash([4, 5]);
     ctx.strokeStyle = wallColor;
     ctx.lineWidth = 3;
     ctx.shadowColor = wallColor;
@@ -5835,6 +5846,26 @@ function drawFruit(){
   ctx.restore();
 }
 
+/* 吃豆的动作放在角色前方，不再靠把整只豆豆撑大。
+   两粒小能量点既能在 20px 左右的小角色上看清，也不会遮住前面的路。 */
+function drawPlayerBiteSpark(bite){
+  if (bite <= 0.12) return;
+  let dx=player.dir.x, dy=player.dir.y;
+  if (!dx && !dy) dy=-1;
+  const sideX=-dy, sideY=dx;
+  const reach=PLAYER_SPRITE_SIZE*0.42;
+  const spread=1.7+bite*1.1;
+  ctx.save();
+  ctx.globalAlpha*=bite*0.72;
+  ctx.fillStyle=cssVar('--amber');
+  ctx.shadowColor=cssVar('--amber');ctx.shadowBlur=3;
+  ctx.beginPath();
+  ctx.arc(dx*reach+sideX*spread,dy*reach+sideY*spread,0.62+bite*0.24,0,Math.PI*2);
+  ctx.arc(dx*reach-sideX*spread,dy*reach-sideY*spread,0.48+bite*0.18,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawPlayer(){
   const cxp = player.x*TILE+TILE/2, cyp = player.y*TILE+TILE/2;
   const moving = player.dir.x||player.dir.y;
@@ -5857,14 +5888,12 @@ function drawPlayer(){
     ctx.restore();
   }
 
-  /* Doudou 的吃豆反馈由 chompT 驱动：不再是扇形张嘴，而是整只角色短促弹一下。 */
-  let joy;
+  /* 吃豆只做一记短促动作。高速时两颗豆间隔约 104ms，动作比它更长就会被
+     不停重置，看起来像一直肿着；所以 100ms 内完整收回。 */
+  let joy=0;
   if (player.chompT !== undefined && player.chompT < 1){
     player.chompT = Math.min(1, player.chompT + visualFrameDt/CHOMP_SECONDS);
     joy = Math.sin(player.chompT * Math.PI);
-  } else {
-    if (moving) player.mouth += 0.11;
-    joy = Math.abs(Math.sin(player.mouth)) * 0.12;
   }
   /* 无敌和穿墙都靠"闪"来表示，但原来两处都是**硬切**：穿墙 5Hz、无敌 7Hz，
      在 0.4 和 1 之间跳。WCAG 给的上限是每秒 3 次，而穿墙状态一持续就是 10 秒 ——
@@ -5875,24 +5904,35 @@ function drawPlayer(){
      用 sin 而不是方波，是因为方波的边沿本身就是刺激源，同样频率下方波比正弦
      难受得多。 */
   const pulse = (hz, lo) => lo + (1 - lo) * (0.5 + 0.5 * Math.sin(elapsed * hz * 2 * Math.PI));
-  const bounce = moving ? Math.sin(elapsed*12)*.62 : Math.sin(elapsed*4)*.22;
-  const lean = player.dir.x*.075;
+  /* 步态跟走过的距离绑定，而不是跟屏幕刷新率或绝对时间绑定。
+     同一段路在 30/60/120Hz 上都是同样两三步，高关跑快时动作才自然加快。 */
+  const gaitPhase = player.distTravelled * Math.PI * 2 / PLAYER_GAIT_TILES;
+  const stride = moving ? Math.sin(gaitPhase) : 0;
+  const hop = moving ? -Math.abs(stride)*PLAYER_HOP_PX : 0;
+  const sway = moving ? stride*PLAYER_SWAY_PX : 0;
+  const leanTarget = player.dir.x*PLAYER_LEAN_RAD;
+  if (!Number.isFinite(player.visualLean)) player.visualLean=0;
+  player.visualLean += (leanTarget-player.visualLean) * (1-Math.exp(-visualFrameDt*14));
   const body = player.phase>0 ? cssVar('--phase') : cssVar('--lantern');
   const lookX = player.dir.x*.48, lookY = player.dir.y*.38;
   ctx.save();
-  ctx.translate(cxp,cyp+bounce);ctx.rotate(lean);
-  ctx.scale(1+joy*.07,1-joy*.025);
+  ctx.translate(cxp-player.dir.y*sway,
+                cyp+player.dir.x*sway*.35+hop-joy*.45);
+  ctx.rotate(player.visualLean);
+  /* 吃豆时微微收窄、向上伸展：有反馈，但绝不会再横向挤进墙里。 */
+  ctx.scale(1-joy*.018,1+joy*.025);
   ctx.globalAlpha = player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62)
                   : invuln > 0       ? pulse(INVULN_PULSE_HZ, 0.45)
                   : 1;
 
-  if (drawCharacterSprite('player',38)){
+  if (drawCharacterSprite('player',PLAYER_SPRITE_SIZE)){
     if (player.phase>0 || invuln>0){
       ctx.globalAlpha=.82;
       ctx.strokeStyle=player.phase>0?cssVar('--phase'):cssVar('--amber');
       ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(0,0,18.3,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,PLAYER_SPRITE_SIZE*.49,0,Math.PI*2);ctx.stroke();
     }
+    drawPlayerBiteSpark(joy);
     ctx.restore();
     return;
   }
@@ -5943,6 +5983,7 @@ function drawPlayer(){
   ctx.save();ctx.translate(0,5.1);ctx.rotate(Math.PI/4);
   ctx.fillStyle='#dffcff';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=7;
   ctx.fillRect(-1.25,-1.25,2.5,2.5);ctx.restore();
+  drawPlayerBiteSpark(joy);
   ctx.restore();
 }
 

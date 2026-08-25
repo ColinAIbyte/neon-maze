@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
- * 由 v1-发布版/工具/build_weapp.mjs 从 v1-发布版/pacman_fragment.html 提取。
+ * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 39da0e228b9a   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 10f7dcbbfe32   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -80,7 +80,7 @@ const MAZE_LEVEL_2 = [
 
 const MAZE_LEVEL_3 = [
 "###################",
-"#1..o.#.....#.o..2#",
+"#1...o#.....#o...2#",
 "#.###.#.###.#.###.#",
 "#.....#.....#.....#",
 "#.#######.#######.#",
@@ -132,10 +132,10 @@ const MAZE_LEVEL_5 = [
 "#.###.###.###.###.#",
 "#.......#.#.......#",
 "#.#.###.#.#.###.#.#",
-"#...#.........#...#",
-"#####.###.###.#####",
+"#...#..o...o..#...#",
+"#####.## .###.#####",
 "#.#.............#.#",
-"#o#.#####D#####.#o#",
+"#.#.#####D#####.#.#",
 "#...#.#ggggg#.#...#",
 "T.....#ggggg#.....T",
 "#.#...#ggggg#...#.#",
@@ -245,6 +245,35 @@ const canvas = document.getElementById('mazeCanvas');
 canvas.width = COLS*TILE; canvas.height = ROWS*TILE;
 const ctx = canvas.getContext('2d');
 
+/* 角色美术是一次加载、每帧 drawImage 的贴图；加载失败时下面仍保留完整的
+   Canvas 矢量兜底。这样精细度不再依赖每帧堆 shadowBlur，弱机也更轻。 */
+let characterAtlas = null, characterAtlasReady = false;
+if (typeof Image === 'function'){
+  characterAtlas = new Image();
+  characterAtlas.decoding = 'async';
+  characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
+  characterAtlas.src = 'assets/neon-characters-v2.jpg';
+}
+const CHARACTER_CELL = {
+  player:[0,0], chaser:[1,0], ambush:[2,0], shy:[0,1], patrol:[1,1]
+};
+
+function drawCharacterSprite(id,size){
+  if (!characterAtlasReady || !characterAtlas || !CHARACTER_CELL[id]) return false;
+  const cell=CHARACTER_CELL[id];
+  const aw=characterAtlas.naturalWidth||characterAtlas.width||1536;
+  const ah=characterAtlas.naturalHeight||characterAtlas.height||1024;
+  const sw=aw/3,sh=ah/2;
+  ctx.save();
+  ctx.beginPath();ctx.arc(0,0,size*.53,0,Math.PI*2);ctx.clip();
+  /* 图集是深蓝背景 JPG。screen 会把接近黑的底色变成视觉中性，
+     只把高饱和角色留在迷宫上，避免移动时带着一块黑色圆盘挡住豆子。 */
+  ctx.globalCompositeOperation='screen';
+  ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-size/2,-size/2,size,size);
+  ctx.restore();
+  return true;
+}
+
 /* 让画布的**内部像素**跟上它实际被显示的大小。
  *
  * 原来这块画布固定 494x546 内部像素，而 CSS 把它按可用高度拉伸 —— 在一台
@@ -276,16 +305,35 @@ const CAN_OWN_CANVAS =
   canvas instanceof HTMLCanvasElement &&
   typeof ctx.setTransform === 'function';
 
+/* 墙的离屏缓存状态。声明必须放在 fitMazeCanvas 首次执行（下面初始化那几行）
+   之前 —— 它一改尺寸就会标脏，let 若在更后面就是一颗加载即炸的 TDZ 雷。
+   缓存本身的画法见 buildWallEdges 旁边那段。 */
+let wallCache = null;        // 离屏画布；null = 还没建或环境建不出来
+let wallCacheDirty = true;   // 建关/换关、resize 之后要重画
+let wallCacheFailed = false; // 离屏不可用（微信垫片等）时退回每帧现画
+let dotCache = null;         // 普通豆子同样是静态层，吃到时只擦掉对应小块
+let dotCacheDirty = true;
+let dotCacheFailed = false;
+let staticFrameDirty = true; // 开始/暂停/结算页只在必要时重画一次
+
 function fitMazeCanvas(){
   if (!CAN_OWN_CANVAS) return;
   const r = canvas.getBoundingClientRect();
-  if (!r.width || !r.height) return;              // 还没布局好，等下一次
+  if (!r.width) return;                            // 还没布局好，等下一次
   const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
-  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  /* 高度必须从宽度和固定地图比例推导，不能再读取 r.height。
+     canvas 的 CSS height:auto 会参考 intrinsic ratio；如果又把量到的高度反写回
+     intrinsic height，四舍五入误差会触发 ResizeObserver 一直长高，顺带每次
+     重建墙缓存。1280×738 上已经实测复现 592→598→605→611… 的漂移。 */
+  const w = Math.max(1, Math.round(r.width * dpr));
+  const h = Math.max(1, Math.round(w * ROWS / COLS));
   if (canvas.width === w && canvas.height === h) return;   // 尺寸没变就别动
   /* 给 canvas.width 赋值会清空画布并**重置变换矩阵**，所以这两件事必须
      一起做，而且只在真的变了的时候做 —— 每帧无脑设一次等于每帧清一次屏。 */
   canvas.width = w; canvas.height = h;
+  wallCacheDirty = true;   // 内部像素变了，墙的离屏缓存要按新尺寸重画
+  dotCacheDirty = true;
+  staticFrameDirty = true;
 }
 
 /* 变换在每帧开头设，不是在 fitMazeCanvas 里设一次就完。
@@ -398,6 +446,16 @@ let perfectLevelsThisRun = 0;
 let levelBonuses = [];   // earned within the current level, shown on level clear
 let runBonuses = [];     // everything across the run, shown on the end screen
 
+/* 这几个声明刻意放在**所有写入之前**（resetLevel 一进场就写它们）——
+   声明跟在写入后面是一颗 TDZ 雷：哪天有人把调用挪前一点，炸点离源头很远。 */
+let ghostEatChain = 0;              // 同一颗能量豆内连续吃了几只（悬赏阶梯）
+let deathPause = 0, deathFlash = 0; // 死亡定格与红闪，见 loseLife
+let comboMilestoneHit = 0;          // 本局连击里程碑已报到哪档，见 checkComboMilestone
+/* 温柔降难：同一关连续死 3 次（中途没通关），本关幽灵速度 ×0.9。
+   运行时乘数 —— GHOST_SPEED_BY_LEVEL 表本身一格不动；过关或手动重开时归 1。
+   只存内存，不落盘。 */
+let mercySpeedMult = 1;
+
 /**
  * Global payout multiplier. EVERY point earned goes through addScore, so the
  * multiplier is applied in exactly one place — the toasts and the end-screen
@@ -447,24 +505,24 @@ const HOUSE_DOOR = {x:9, y:8};
 const HOUSE_EXIT_TILE = {x:9, y:7};
 
 const GHOST_DEFS = [
-  {id:'chaser',  color:'--danger', label:'追击者'},
-  {id:'ambush',  color:'--pink',   label:'伏击者'},
-  {id:'shy',     color:'--tang',   label:'怕生鬼'},
-  {id:'patrol',  color:'--cyan',   label:'巡逻者'},
+  {id:'chaser',  color:'--danger', label:'闪闪'},
+  {id:'ambush',  color:'--tang',   label:'狐狐'},
+  {id:'shy',     color:'--lime',   label:'软软'},
+  {id:'patrol',  color:'--wall',   label:'慢慢'},
 ];
 
 // 5th ghost, joins from level 2 on: a second chaser. Same id so every
 // id-keyed lookup (targeting AI, color) treats it exactly like the first,
 // but flagged `flank` so it aims beside the player instead of at them.
-const EXTRA_CHASER_DEF = {id:'chaser', color:'--danger', label:'追击者', flank:true};
+const EXTRA_CHASER_DEF = {id:'chaser', color:'--danger', label:'闪闪', flank:true};
 const FLANK_OFFSET_TILES = 4;
 
 // 6th ghost (level 3+): an ambusher that reads much further ahead, so it cuts
 // you off well before the regular ambusher would.
-const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--pink', label:'伏击者', lookahead:7};
+const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--tang', label:'狐狐', lookahead:7};
 // 7th ghost (final level only): a patroller running the loop backwards, so the
 // two patrollers sweep opposite halves instead of trailing each other.
-const EXTRA_PATROL_DEF = {id:'patrol', color:'--cyan', label:'巡逻者', reverseRoute:true};
+const EXTRA_PATROL_DEF = {id:'patrol', color:'--wall', label:'慢慢', reverseRoute:true};
 
 /** Roster grows with the level: 4 -> 5 (L2) -> 6 (L3) -> 7 (final). */
 function ghostDefsForLevel(lvl){
@@ -498,7 +556,15 @@ const cssVar = (name)=>{
 
 /* ---------- retro synthesized audio (no external assets) ---------- */
 const Audio2 = (()=>{
-  let actx = null, muted = false, pelletToggle = 0;
+  /* 静音状态要存下来。原来只活在内存里 —— 玩家特意关掉声音（比如在教室、
+     在孩子睡觉的房间），下次打开又哗啦响起来，还得再关一次。
+     键带版本号：以后要改语义（比如分成音效/音乐两档）时，老值不会被误读。
+     存储在无痕模式或配额满时会直接抛，所以照例包一层。 */
+  const MUTE_KEY = 'doudou.muted.v1';
+  let actx = null, pelletToggle = 0;
+  let muted = (() => {
+    try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
+  })();
   // Each entry is a [lo, hi] "waka" pair, stepping up a pentatonic-ish scale
   // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
   // than arbitrary frequencies, so later steps read as melody, not siren.
@@ -535,7 +601,10 @@ const Audio2 = (()=>{
   function now(){ const ac=ctx(); return ac ? ac.currentTime : 0; }
   return {
     unlock,
-    setMuted(v){ muted = v; },
+    setMuted(v){
+      muted = !!v;
+      try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* 存不下就只在本次生效 */ }
+    },
     isMuted(){ return muted; },
     /**
      * `progress` is 0 at the start of a level and 1 when the last pellet is
@@ -597,15 +666,15 @@ const Audio2 = (()=>{
       // 吃到水果先"嗡"一下再叮 —— 那一声低频是"规则变了"的信号
       tone(90, t, 0.34, {type:'sine', gain:0.20, slideTo:200, slideDur:0.34});
       tone(700,t+0.06,0.09,{type:'triangle',gain:0.16}); tone(1050,t+0.15,0.16,{type:'triangle',gain:0.16}); },
-    /** 连击里程碑：档位越高，音符越多、越亮。x100 是全场最响的一次。 */
+    /** 连击里程碑（x10 / x20 / x50）：明亮的上行音阶，档越高音符越多、越亮。 */
     comboMilestone(m){
       const t=now();
-      const tier = m>=100 ? 3 : m>=50 ? 2 : m>=25 ? 1 : 0;
-      const base = [523, 659, 784, 1047][tier];
-      const n = 2 + tier;
+      const tier = m>=50 ? 2 : m>=20 ? 1 : 0;
+      const base = [587, 659, 784][tier];
+      const n = 3 + tier;
       for (let i=0;i<n;i++){
-        tone(base * Math.pow(1.26, i), t + i*0.055, 0.14, {type:'triangle', gain:0.11 + tier*0.02});
-        if (tier >= 2) tone(base * Math.pow(1.26, i) / 2, t + i*0.055, 0.14, {type:'sine', gain:0.06});
+        tone(base * Math.pow(1.26, i), t + i*0.05, 0.13, {type:'triangle', gain:0.12 + tier*0.02});
+        if (tier >= 1) tone(base * Math.pow(1.26, i) / 2, t + i*0.05, 0.12, {type:'sine', gain:0.06});
       }
     },
     /** 穿墙倒数：3/2/1，越数越高越急 */
@@ -645,11 +714,15 @@ function resetLevel(fullReset){
   pelletsTotal = pelletsLeft; // fixed at level load, so eating progress reads 0 -> 1
   buildEyeField();            // 迷宫定下来了，把眼睛的回家地图重算一遍
   buildWallEdges();           // 墙的线段表也只跟迷宫有关，一关算一次就够
+  buildPortals();             // 传送门坐标表：checkPortal 和绘制都不用再全图扫
+  wallCacheDirty = true;      // 墙的离屏缓存跟着迷宫一起失效
+  dotCacheDirty = true;
+  staticFrameDirty = true;
   const playerSpeed = 5.408 + (level-1)*0.2912;
   player = {
     x: SPAWN.player.x, y: SPAWN.player.y, dir:{x:0,y:0}, want:{x:0,y:0},
     baseSpeed: playerSpeed, speed: playerSpeed,
-    mouth:0, chompT:1, phase:0, alive:true, kind:'player', warpCd:0, warpCdCh:null,
+    mouth:0, chompT:1, visualLean:0, phase:0, alive:true, kind:'player', warpCd:0, warpCdCh:null,
     warpChoiceUntil:0,   // 传送落地后的思考时间，见 orientAfterWarp
     warpStandingOn:null, // 正踩着的那扇门（落地那扇不再触发）
     // odometer driving the distance-based turn buffer (see player control)
@@ -657,10 +730,12 @@ function resetLevel(fullReset){
     // tiles run without changing direction, and the fading motion trail it drives
     straightTiles:0, trail:[], trailAt:0,
   };
-  const ghostSpeed = Math.min(GHOST_SPEED_BY_LEVEL[level-1] ?? GHOST_SPEED_BY_LEVEL[MAX_LEVEL-1],
+  const speedRow = GHOST_SPEED_BY_LEVEL[level-1];   // 微信基础库没有 ??，一律三元
+  const ghostSpeed = Math.min(speedRow === undefined ? GHOST_SPEED_BY_LEVEL[MAX_LEVEL-1] : speedRow,
                               playerSpeed * 0.85);
   ghosts = ghostDefsForLevel(level).map((def,i)=>({
     ...def,
+    kind:'ghost',
     x: SPAWN.ghosts[i].x, y: SPAWN.ghosts[i].y,
     dir:{x:0,y:-1},
     baseSpeed: ghostSpeed, speed: ghostSpeed,
@@ -668,7 +743,7 @@ function resetLevel(fullReset){
     // file out one at a time because the house has a single door.
     state: 'exiting',
     releaseAt: 0,
-    eatenFlashUntil:0, warpCd:0, warpCdCh:null, warpStandingOn:null,
+    warpCd:0, warpCdCh:null, warpStandingOn:null,
     eatenThisFright:false,   // 这一轮能量豆里已经被吃过一次，见 isEdible
     homeY:null,               // 走回老巢后停下的位置，见 'eaten' 分支
     fusedWith:null, isFusionHost:false,
@@ -676,11 +751,12 @@ function resetLevel(fullReset){
   }));
   fruit = { active:false, x:9, y:13, timer:0, nextAt: 60, path:0 };
   comboTimer = 0; combo = 1;
-  frightTimer = 0; ghostEatChain = 0; comboMilestoneHit = 0;
+  frightTimer = 0; ghostEatChain = 0;
   deathsThisLevel = 0; levelBonuses = [];
+  mercySpeedMult = 1;   // 过关或重开：温柔降难复位（见 loseLife）
   introTimer = 0;   // 复位关卡时清掉卡片，免得它挂在上一关的画面上
   deathPause = 0; deathFlash = 0;
-  if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; }
+  if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0; }
   invuln = 2.4;
   elapsed = 0;
 }
@@ -776,9 +852,14 @@ function canEnter(ent, tx, ty){
          tx > 0 && tx < COLS-1 && ty > 0 && ty < ROWS-1;
 }
 
+/* 结果复用同一个预分配数组：幽灵 AI 每帧每只都要问一次，次次新建 [] 是
+   纯垃圾。所有调用方都是"拿出来立刻用完"（find/for/取下标），没有把返回
+   值存起来跨帧用的，也没有嵌套调用 —— 哪天要加嵌套，先改回局部数组。 */
+const OPEN_DIRS_BUF = [];
 function openDirs(ent, excludeReverse){
   const cx = Math.round(ent.x), cy = Math.round(ent.y);
-  const out = [];
+  const out = OPEN_DIRS_BUF;
+  out.length = 0;
   for (const key in DIRS){
     const d = DIRS[key];
     if (excludeReverse && ent.dir.x===-d.x && ent.dir.y===-d.y && (ent.dir.x||ent.dir.y)) continue;
@@ -989,21 +1070,23 @@ function checkPortal(ent){
 
   // 只有**同色**的门在冷却里才拦；另一种颜色不受影响
   if (ent.warpCd > 0 && ent.warpCdCh === ch) return;
-  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
-    if (grid[y][x]===ch && !(x===cx&&y===cy)){
-      ent.x = x; ent.y = y;
-      ent.warpCd = PORTAL_COOLDOWN_SECONDS;
-      ent.warpCdCh = ch;               // 记下是哪种颜色在冷却
-      ent.warpStandingOn = { x, y };    // 站在这扇门上不再触发，见上面的说明
-      orientAfterWarp(ent);
-      if (ent===player){
-        Audio2.warp();
-        // 第一次用到才讲。写在说明里没人看，而这一刻他刚被传走，正想知道
-        // 发生了什么 —— 同一句话在这个时候的效果，比放在文档里高得多。
-        hintOnce('portal', '传送门：四角成对，颜色相同的两个互通', 500);
-      }
-      return;
+  /* 门的坐标在建关时就存好了（portalTiles），不用再每帧全图扫 399 格。 */
+  const pair = portalTiles[ch];
+  if (!pair) return;
+  for (const p of pair){
+    if (p.x===cx && p.y===cy) continue;
+    ent.x = p.x; ent.y = p.y;
+    ent.warpCd = PORTAL_COOLDOWN_SECONDS;
+    ent.warpCdCh = ch;               // 记下是哪种颜色在冷却
+    ent.warpStandingOn = { x: p.x, y: p.y };    // 站在这扇门上不再触发，见上面的说明
+    orientAfterWarp(ent);
+    if (ent===player){
+      Audio2.warp();
+      // 第一次用到才讲。写在说明里没人看，而这一刻他刚被传走，正想知道
+      // 发生了什么 —— 同一句话在这个时候的效果，比放在文档里高得多。
+      hintOnce('portal', '传送门：四角成对，颜色相同的两个互通', 500);
     }
+    return;
   }
 }
 
@@ -1019,8 +1102,8 @@ function checkPortal(ent){
  * The expiry window is measured in tiles rather than seconds so the feel stays
  * identical if the player's speed is ever retuned.
  */
-const TURN_ASSIST_TILES = 0.45;  // how early a perpendicular turn may start
-const TURN_BUFFER_TILES = 3;     // how far a pending press stays alive
+const TURN_ASSIST_TILES = 0.22;  // enough to catch a near miss, too small to look like a jump
+const TURN_BUFFER_TILES = 2.2;   // catches a planned turn without surviving several junctions
 
 /** Current cell along an axis. Not Math.round: past the halfway point that
  *  flips to the destination tile early and breaks the distance maths. */
@@ -1102,7 +1185,8 @@ function ghostTarget(g){
   if (g.state==='eaten') return HOUSE_EXIT_TILE;
   if (g.state==='house' || g.state==='exiting') return HOUSE_DOOR;
   const px = player.x, py = player.y;
-  const dist = Math.hypot(px-g.x, py-g.y);
+  const ddx = px-g.x, ddy = py-g.y;
+  const dist2 = ddx*ddx + ddy*ddy;   // 热点路径用平方距离，不开根号
   switch(g.id){
     case 'chaser':
       // The level-2 second chaser aims to one SIDE of the player (perpendicular
@@ -1120,11 +1204,16 @@ function ghostTarget(g){
       return {x:px+player.dir.x*reach, y:py+player.dir.y*reach};
     }
     case 'shy':
-      return dist > 7 ? {x:px,y:py} : {x:1,y:ROWS-2};
+      return dist2 > 49 ? {x:px,y:py} : {x:1,y:ROWS-2};
     case 'patrol': {
       const route = g.reverseRoute ? PATROL_ROUTE_REV : PATROL_ROUTE;
       const wp = route[g.routeIdx % route.length];
-      if (Math.hypot(g.x-wp.x, g.y-wp.y) < 0.6) g.routeIdx++;
+      /* 副作用说明：routeIdx 在"取目标"这里推进，是有意的。ghostTarget 每帧
+         至多被 chooseGhostDir 调一次、且只在格点上触发，所以每个路点恰好
+         数到一次；挪去 onArrive 反而要处理传送瞬移造成的误触发，风险更大。
+         知道它在这儿就行，别"顺手"搬走。 */
+      const pdx = g.x-wp.x, pdy = g.y-wp.y;
+      if (pdx*pdx + pdy*pdy < 0.36) g.routeIdx++;
       return wp;
     }
   }
@@ -1144,7 +1233,7 @@ function chooseGhostDir(g){
      封闭小盒子，不许掉头反而容易顶在墙角。 */
   if (g.state!=='eaten' && g.state!=='exiting' &&
       tileAt(Math.round(g.x), Math.round(g.y))==='g'){
-    return bestDirTo({...g,kind:'ghost'}, HOUSE_DOOR, false);
+    return bestDirTo(g, HOUSE_DOOR, false);
   }
 
   if (g.state==='exiting'){
@@ -1156,7 +1245,7 @@ function chooseGhostDir(g){
       applySpeedModifiers();
     }
     const target = HOUSE_DOOR;
-    return bestDirTo({...g,kind:'ghost'}, target, true);
+    return bestDirTo(g, target, true);
   }
   if (g.state==='eaten'){
     const target = EYE_HOME;
@@ -1174,23 +1263,24 @@ function chooseGhostDir(g){
       return null;
     }
     // 走回家地图；万一没建好，退回原来的贪心走法（会卡，但总比不动强）
-    return eyeDir(g) || bestDirTo({...g,kind:'ghost'}, target, true);
+    return eyeDir(g) || bestDirTo(g, target, true);
   }
   if (g.state==='frightened'){
-    const opts = openDirs({...g,kind:'ghost'}, true);
+    const opts = openDirs(g, true);
     if (!opts.length) return g.dir;
     // mostly flee (maximize distance from player), with some randomness
     if (Math.random() < 0.28) return opts[Math.floor(Math.random()*opts.length)];
     let best=opts[0], bestD=-1;
     for (const d of opts){
       const nx=Math.round(g.x)+d.x, ny=Math.round(g.y)+d.y;
-      const dist = Math.hypot(nx-player.x, ny-player.y);
-      if (dist>bestD){ bestD=dist; best=d; }
+      const ddx=nx-player.x, ddy=ny-player.y;
+      const dist2 = ddx*ddx + ddy*ddy;
+      if (dist2>bestD){ bestD=dist2; best=d; }
     }
     return best;
   }
   const target = ghostTarget(g);
-  return bestDirTo({...g,kind:'ghost'}, target, true);
+  return bestDirTo(g, target, true);
 }
 
 /* ---------- 眼睛回巢：一张最短路地图 ----------
@@ -1256,6 +1346,138 @@ function buildWallEdges(){
     }
   }
   wallEdges = e;
+}
+
+/* 传送门坐标表。一共就四格，原来 checkPortal 和每帧的绘制都要做 399 格
+   全图扫描才能找到它们 —— 建关时存下来，之后都是 O(4)。 */
+let portalTiles = { '1': [], '2': [] };
+function buildPortals(){
+  portalTiles = { '1': [], '2': [] };
+  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
+    const ch = grid[y][x];
+    if (ch==='1' || ch==='2') portalTiles[ch].push({x, y});
+  }
+}
+
+/* 墙的离屏缓存。墙（含 shadowBlur 光晕）一整关都不变，原来却每帧把几百条
+   线段带阴影重描一遍 —— shadowBlur 是 canvas 2D 里最贵的操作。建关/换关时
+   渲染到一块离屏画布，之后每帧一次 drawImage；resize/DPR 变化由
+   fitMazeCanvas 标脏重建。离屏造不出来（微信垫片等）就退回每帧现画，
+   行为和原来一模一样。鬼门那两条线从不变色，一并进缓存。
+   穿墙期间不走缓存：那时墙要变淡变虚线，是每帧都在变的少数时刻。 */
+function drawWallsNormal(c2){
+  c2.save();
+  c2.lineCap = 'round';
+  /* 一条路径画完整张墙。原来是每个墙格 beginPath + stroke，第一关就是 200 次
+     带阴影的描边 —— 而墙一整关都不动，每帧重算邻居、重描一遍纯属白干。 */
+  c2.beginPath();
+  for (let i=0;i<wallEdges.length;i+=4){
+    c2.moveTo(wallEdges[i], wallEdges[i+1]);
+    c2.lineTo(wallEdges[i+2], wallEdges[i+3]);
+  }
+  /* 先用不发光的暗边把墙从路面里切出来，再叠主色与细高光。
+     旧版四层都带 4~18px shadowBlur，紫光合在一起就变成一片雾；
+     这里保留霓虹识别度，但让轮廓本身始终是锐的。 */
+  c2.strokeStyle = '#09031f';
+  c2.lineWidth = 12;
+  c2.shadowBlur = 0;
+  c2.globalAlpha = 1;
+  c2.stroke();
+  c2.strokeStyle = cssVar('--wall-core');
+  c2.lineWidth = 8;
+  c2.shadowColor = cssVar('--wall-cyan');
+  c2.shadowBlur = 5;
+  c2.globalAlpha = .95;
+  c2.stroke();
+  c2.strokeStyle = cssVar('--wall');
+  c2.lineWidth = 4.25;
+  c2.shadowColor = cssVar('--wall');
+  c2.shadowBlur = 3;
+  c2.globalAlpha = .98;
+  c2.stroke();
+  c2.strokeStyle = cssVar('--wall-hi');
+  c2.lineWidth = 1;
+  c2.shadowBlur = 0;
+  c2.globalAlpha = .76;
+  c2.stroke();
+  c2.restore();
+
+  // ghost house door
+  c2.save();
+  c2.strokeStyle = cssVar('--pink');
+  c2.lineWidth = 2;
+  [[9,8],[9,12]].forEach(([x,y])=>{
+    c2.beginPath();
+    c2.moveTo(x*TILE+3, y*TILE+TILE/2);
+    c2.lineTo(x*TILE+TILE-3, y*TILE+TILE/2);
+    c2.stroke();
+  });
+  c2.restore();
+}
+
+function rebuildWallCache(){
+  wallCacheDirty = false;
+  if (!CAN_OWN_CANVAS || wallCacheFailed) return;
+  try {
+    if (!wallCache) wallCache = document.createElement('canvas');
+    if (!wallCache || typeof wallCache.getContext !== 'function') throw new Error('no offscreen');
+    wallCache.width = canvas.width; wallCache.height = canvas.height;
+    const wctx = wallCache.getContext('2d');
+    if (!wctx || !wctx.arc) throw new Error('no 2d');
+    wctx.setTransform(canvas.width / (COLS*TILE), 0, 0, canvas.height / (ROWS*TILE), 0, 0);
+    drawWallsNormal(wctx);
+  } catch (e) {
+    // 造不出离屏画布就退回每帧现画 —— 慢一点，但画面和原来一模一样
+    wallCache = null; wallCacheFailed = true;
+  }
+}
+
+/* 普通豆子不需要每帧重建 175 个圆弧。它们和墙一样先画进离屏层；吃掉一颗时
+   只清掉那颗周围的一小块。最后十颗为了保留“呼吸提示”才退回动态绘制。 */
+function drawRegularDots(c2, glow){
+  const r = PELLET_R;
+  const amber = cssVar('--amber');
+  const TAU = Math.PI * 2;
+  let any = false;
+  c2.save();
+  c2.fillStyle = amber;
+  c2.shadowColor = amber;
+  c2.shadowBlur = glow;
+  c2.beginPath();
+  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
+    if (grid[y][x] !== '.') continue;
+    const cxp=x*TILE+TILE/2, cyp=y*TILE+TILE/2;
+    c2.moveTo(cxp+r,cyp); c2.arc(cxp,cyp,r,0,TAU); any=true;
+  }
+  if (any) c2.fill();
+  c2.restore();
+}
+
+function rebuildDotCache(){
+  dotCacheDirty = false;
+  if (!CAN_OWN_CANVAS || dotCacheFailed) return;
+  try {
+    if (!dotCache) dotCache = document.createElement('canvas');
+    if (!dotCache || typeof dotCache.getContext !== 'function') throw new Error('no offscreen');
+    dotCache.width = canvas.width; dotCache.height = canvas.height;
+    const dctx = dotCache.getContext('2d');
+    if (!dctx || !dctx.arc) throw new Error('no 2d');
+    dctx.setTransform(canvas.width/(COLS*TILE),0,0,canvas.height/(ROWS*TILE),0,0);
+    drawRegularDots(dctx, PELLET_GLOW);
+  } catch (e) {
+    dotCache = null; dotCacheFailed = true;
+  }
+}
+
+function eraseDotCache(x,y){
+  if (!dotCache || dotCacheDirty || dotCache.width !== canvas.width) return;
+  const dctx = dotCache.getContext('2d');
+  if (!dctx) { dotCacheDirty = true; return; }
+  const cxp=x*TILE+TILE/2, cyp=y*TILE+TILE/2;
+  dctx.save();
+  dctx.setTransform(canvas.width/(COLS*TILE),0,0,canvas.height/(ROWS*TILE),0,0);
+  dctx.clearRect(cxp-10,cyp-10,20,20);
+  dctx.restore();
 }
 
 function buildEyeField(){
@@ -1361,12 +1583,12 @@ function comboWindow(){
  *     小豆最大光晕     <  能量豆光晕
  */
 const PELLET_R          = 2.6;   // 小豆半径，恒定 —— 不许再随呼吸变化
-const PELLET_GLOW       = 4;     // 小豆平时的光晕
-const PELLET_GLOW_SWING = 8;     // 呼吸最猛时额外加的光晕（再乘 urgency）
-const PELLET_GLOW_BASE_SWING = 2;// 呼吸的固定部分
+const PELLET_GLOW       = 2;     // 小豆平时的紧致光晕
+const PELLET_GLOW_SWING = 4.5;   // 最后几颗仍会呼吸，但不再糊成光团
+const PELLET_GLOW_BASE_SWING = 1;// 呼吸的固定部分
 const POWER_R           = 5.0;   // 能量豆半径中心值
 const POWER_R_SWING     = 0.7;   // 能量豆脉动幅度 → 4.3 ~ 5.7
-const POWER_GLOW        = 16;    // 能量豆光晕，恒定且高于小豆的最大值
+const POWER_GLOW        = 9;     // 能量星仍比小豆更亮，但边界清楚
 
 const LAST_PELLET_HINT = 10;
 // 剩三颗才转成明显跳动：那时候才真的开始「到底在哪」，五颗时一般还看得见
@@ -1409,21 +1631,24 @@ function addPelletScore(base){
  * 玩家没有理由为了保住 x47 而绷紧。给它几个台阶，让"别断"这件事自己有分量。
  *
  * 三条规矩：
- *   1 反馈只升不降：音高一档比一档亮，到 x100 是最响的一次
- *   2 **绝不挡住迷宫**。这时候玩家正贴着幽灵跑，屏幕中间糊一层特效等于害他送命。
- *     所以只有声音 + HUD 上那行字变色，画面上一个像素都不加。
- *   3 每档一局只响一次，攒到 x50 的路上不会把 x10 那档反复触发。
+ *   1 反馈只升不降：音高一档比一档亮，toast 的语气一档比一档激动
+ *   2 彩带**轻而短**：一把小彩点从上沿飘下来，一秒多就散 —— 是个道贺，
+ *     不是烟花秀。绝不在迷宫中间炸开：玩家这时候正贴着小夜枭跑，
+ *     屏幕中间糊一层特效等于害他送命。
+ *   3 每档**每局**只响一次：断了重连不再重复报，comboMilestoneHit 只在
+ *     开新一局（fullReset）时清零。
  */
-const COMBO_MILESTONES = [10, 25, 50, 100];
-let comboMilestoneHit = 0;   // 本轮连击已经报到哪一档
+const COMBO_MILESTONES = [10, 20, 50];
 
 function checkComboMilestone(){
   for (const m of COMBO_MILESTONES){
     if (combo >= m && comboMilestoneHit < m){
       comboMilestoneHit = m;
       Audio2.comboMilestone(m);
-      // 只在够高的两档给一句话，x10/x25 光靠声音就够了，不打扰
-      if (m >= 50) toast(`连击 x${m}！`);
+      startComboFx();
+      toast(m >= 50 ? `连击 x${m}！全场为你鼓掌`
+          : m >= 20 ? `连击 x${m}！停不下来了`
+          :           `连击 x${m}！好节奏`);
     }
   }
 }
@@ -1435,9 +1660,18 @@ function checkComboMilestone(){
  * 无痕模式下读写都会抛，包一层 try 就当没提示过，不影响游戏。
  */
 const HINT_KEY = 'doudou.hints.v1';
+/* 已提示过的 id 加载时读进内存，之后 hintSeen 不再碰 localStorage ——
+   它被 checkPowerPelletNearby 每帧调用，每次都 getItem + split 一遍不值得。
+   写的时候才落盘（markHintSeen）。 */
+let hintSeenCache = null;
 function hintSeen(id){
-  try { return (localStorage.getItem(HINT_KEY) || '').split(',').indexOf(id) >= 0; }
-  catch (e) { return false; }
+  if (hintSeenCache === null){
+    hintSeenCache = {};
+    try {
+      (localStorage.getItem(HINT_KEY) || '').split(',').forEach(s=>{ if (s) hintSeenCache[s] = true; });
+    } catch (e) { /* 无痕模式：每次都当没提示过 */ }
+  }
+  return !!hintSeenCache[id];
 }
 /* ---------- 开局的滑动手势 ----------
  *
@@ -1471,8 +1705,9 @@ function checkPowerPelletNearby(){
   for (let y = py-r; y <= py+r; y++){
     for (let x = px-r; x <= px+r; x++){
       if (tileAt(x, y) !== 'o') continue;
-      if (Math.hypot(x-player.x, y-player.y) <= POWER_HINT_TILES){
-        hintOnce('power', '大颗的能量豆：吃掉它，就能反过来吃幽灵', 0);
+      const pdx = x-player.x, pdy = y-player.y;
+      if (pdx*pdx + pdy*pdy <= POWER_HINT_TILES*POWER_HINT_TILES){
+        hintOnce('power', '能量星：收集后就能反击敌人', 0);
         return;
       }
     }
@@ -1539,6 +1774,8 @@ function drawSwipeHint(){
 }
 
 function markHintSeen(id){
+  hintSeen(id);                 // 确保缓存已建
+  hintSeenCache[id] = true;     // 内存先记，本帧起就生效
   try {
     const seen = (localStorage.getItem(HINT_KEY) || '').split(',').filter(Boolean);
     if (seen.indexOf(id) < 0) seen.push(id);
@@ -1578,8 +1815,8 @@ function eatProgress(){
   return pelletsTotal ? 1 - pelletsLeft / pelletsTotal : 0;
 }
 
-/** One full open-and-close of the mouth per pellet swallowed. */
-const CHOMP_SECONDS = 0.16;
+/** One compact bite per pellet. It must finish before the next high-speed pellet. */
+const CHOMP_SECONDS = 0.10;
 function triggerChomp(){
   player.chompT = 0;
 }
@@ -1587,6 +1824,7 @@ function triggerChomp(){
 function eatPelletAt(x,y){
   const ch = grid[y][x];
   if (ch==='.'){
+    eraseDotCache(x,y);
     grid[y][x]=' '; pelletsLeft--; addPelletScore(10);
     Audio2.pellet(eatProgress());
     triggerChomp();
@@ -1596,12 +1834,12 @@ function eatPelletAt(x,y){
     triggerChomp();
     startPowerMode();
     ghostEatChain = 0;
-    toast('能量豆！幽灵受惊 ×' + combo);
+    /* 恐惧时长不乘连击（见 frightSeconds），原来的「幽灵受惊 ×combo」会让玩家
+       以为连击越高恐惧越久 —— 不是。toast 只报告真正发生的事。 */
+    toast('能量星！现在可以反击敌人');
     Audio2.power();
   }
 }
-
-let ghostEatChain = 0;
 
 /* ---------- power mode ----------
  * Fright is tracked as ONE global timer rather than a per-ghost countdown.
@@ -1640,7 +1878,8 @@ const FRIGHT_GHOST_SPEED_MULT = 0.85;
  */
 const FRIGHT_BY_LEVEL = [9, 8, 7, 6, 6, 5];
 function frightSeconds(){
-  return FRIGHT_BY_LEVEL[level-1] ?? FRIGHT_BY_LEVEL[FRIGHT_BY_LEVEL.length-1];
+  const row = FRIGHT_BY_LEVEL[level-1];   // 微信基础库没有 ??，一律三元
+  return row === undefined ? FRIGHT_BY_LEVEL[FRIGHT_BY_LEVEL.length-1] : row;
 }
 
 function startPowerMode(){
@@ -1695,6 +1934,17 @@ const MOMENTUM_MAX = 1.22;
    穿墙比无敌更慢，因为它持续 10 秒而无敌只有 1.6~2.4 秒 —— 越长越要温和。 */
 const PHASE_PULSE_HZ = 2;
 const INVULN_PULSE_HZ = 3;
+/* 能量结束的小夜枭警示也保持温和：2Hz 足够醒目，不再每秒四次硬闪。 */
+const GHOST_WARNING_HZ = 2;
+/* 穿墙结束时整张迷宫只做轻微呼吸；红色倒计时条负责真正的警示。 */
+const PHASE_WALL_WARNING_HZ = 2;
+/* 游戏内豆豆必须给通道留出读路空间。30px 图框里的实色角色约 23px，
+   和 26px 通道、小游戏的矢量豆豆尺寸相配；不再使用原来的 38px 大头像。 */
+const PLAYER_SPRITE_SIZE = 30;
+const PLAYER_GAIT_TILES = 0.85; // 每走 0.85 格完成一步，速度越快动作自然越快
+const PLAYER_HOP_PX = 0.38;
+const PLAYER_SWAY_PX = 0.22;
+const PLAYER_LEAN_RAD = 0.045;
 /* 尾迹：间距和点数。压到这一档是业主看过三档对比之后选的（方案 B）——
    最大的一个只有本体 60%、最亮 0.18，速度感留着，但不再和角色抢。 */
 const TRAIL_SPACING = 0.34;   // 每隔多少格留一个点
@@ -1722,7 +1972,7 @@ function applySpeedModifiers(){
     * (powered ? FRIGHT_PLAYER_SPEED_MULT : 1)
     * (phasing ? FRUIT_PHASE_SPEED_MULT : momentumMult());
   ghosts.forEach(g=>{
-    g.speed = g.baseSpeed * (powered ? FRIGHT_GHOST_SPEED_MULT : 1) * (g.isFusionHost ? 1.15 : 1);
+    g.speed = g.baseSpeed * (powered ? FRIGHT_GHOST_SPEED_MULT : 1) * (g.isFusionHost ? 1.15 : 1) * mercySpeedMult;
   });
 }
 
@@ -1757,8 +2007,8 @@ function isEdible(g){
 function handleGhostCollisions(){
   for (const g of ghosts){
     if (g.state==='house' || g.state==='eaten' || g.state==='fused-hidden') continue;
-    const dist = Math.hypot(g.x-player.x, g.y-player.y);
-    if (dist >= 0.55) continue;
+    const cdx = g.x-player.x, cdy = g.y-player.y;
+    if (cdx*cdx + cdy*cdy >= 0.3025) continue;   // 0.55 格，平方比较不开根号
 
     if (isEdible(g)){
       ghostEatChain++;
@@ -1778,11 +2028,11 @@ function handleGhostCollisions(){
       g.eatenThisFright = true;   // 这轮不能再吃第二次，见 isEdible
       ghostsEatenThisRun++;       // 结算页要报这一局吃了几只
       applySpeedModifiers();
-      toast((wasHost?'超级幽灵! +':'幽灵! +') + fmtNum(pts));
+      toast((wasHost?'超级能量体! +':'反击! +') + fmtNum(pts));
       /* 悬赏是阶梯式的，可玩家第一次只看到"+10,000"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
-      hintOnce('bounty', '同一颗能量豆里：第 2 只 2 万，第 3 只 3 万，越吃越值钱', 1400);
+      hintOnce('bounty', '同一颗能量星里：第 2 只 2 万，第 3 只 3 万，越吃越值钱', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
 
@@ -1796,7 +2046,7 @@ function handleGhostCollisions(){
       if (ghostEatChain >= ghosts.length){
         sweepsThisRun++;
         Audio2.sweep();
-        toast('全灭幽灵！+' + fmtNum(awardBonus('全灭幽灵', BONUS.GHOST_SWEEP, true)));
+        toast('全灭对手！+' + fmtNum(awardBonus('全灭对手', BONUS.GHOST_SWEEP, true)));
       }
     } else if (invuln<=0){
       loseLife();
@@ -1810,7 +2060,8 @@ function handleFusion(){
   const fr = ghosts.filter(g=>g.state==='frightened' && !g.fusedWith);
   for (let i=0;i<fr.length;i++) for (let j=i+1;j<fr.length;j++){
     const a=fr[i], b=fr[j];
-    if (Math.hypot(a.x-b.x, a.y-b.y) < 0.5){
+    const fdx = a.x-b.x, fdy = a.y-b.y;
+    if (fdx*fdx + fdy*fdy < 0.25){   // 0.5 格，平方比较不开根号
       a.fusedWith = b; b.fusedWith = a; a.isFusionHost = true;
       b.state = 'fused-hidden';
       frightTimer += 2; // fusing buys the player a little extra hunting time
@@ -1819,7 +2070,7 @@ function handleFusion(){
          记一个时间戳，让 drawGhost 在接下来半秒里自己放大、闪一下白光；
          游戏一帧都不停，孩子却看得见"咦，它俩合体了"。 */
       a.fuseFlashUntil = elapsed + 0.5;
-      toast('幽灵融合！超级幽灵出现');
+      toast('能量融合！超级能量体出现');
       Audio2.fusion();
       return;
     }
@@ -1864,7 +2115,6 @@ function unfuseNow(g){
  */
 const DEATH_PAUSE_SECONDS = 0.55;
 const DEATH_FLASH_SECONDS = 0.13;
-let deathPause = 0, deathFlash = 0;
 
 function drawDeathFlash(){
   if (deathFlash <= 0) return;
@@ -1873,7 +2123,6 @@ function drawDeathFlash(){
   ctx.save();
   /* 只在四周描一圈内发光，不铺满整屏 —— 铺满会盖住幽灵和主角，
      而这一刻玩家最需要看清的恰恰是"我是被谁碰到的"。 */
-  const g = ctx.createLinearGradient(0, 0, 0, H);
   ctx.globalAlpha = 0.55 * k;
   ctx.strokeStyle = cssVar('--danger');
   ctx.shadowColor = cssVar('--danger');
@@ -1886,12 +2135,19 @@ function drawDeathFlash(){
 function loseLife(){
   lives--;
   deathsThisLevel++; deathsThisRun++;
+  /* 温柔降难：同一关连续死到第 3 次，本关幽灵放慢一成。不是送分 —— 只是
+     让卡住的人多一点反应时间；过关或重开就复位（resetLevel 里 mercySpeedMult=1）。
+     提示挑最温和的说法，不点破"你死太多次了"。 */
+  if (deathsThisLevel === 3 && mercySpeedMult === 1){
+    mercySpeedMult = 0.9;
+    toast('对手们放慢脚步啦');
+  }
   updateHud();
   Audio2.death();
   deathFlash = DEATH_FLASH_SECONDS;
   deathPause = DEATH_PAUSE_SECONDS;
   // 第一次死掉的那一刻，正是最想知道"还能怎么办"的时候
-  hintOnce('power', '吃大颗的能量豆，可以反过来吃幽灵！', 900);
+  hintOnce('power', '收集能量星，可以反击敌人！', 900);
   if (lives<=0){ endGame(false); return; }
   player.x=SPAWN.player.x; player.y=SPAWN.player.y; player.dir={x:0,y:0}; player.want={x:0,y:0};
   player.warpCd=0; player.warpCdCh=null; player.warpChoiceUntil=0; player.warpStandingOn=null;
@@ -1920,7 +2176,7 @@ const fxCanvas = document.getElementById('fxCanvas');
 const fxCtx = fxCanvas.getContext('2d');
 let fxParticles = [], fxRunning = false, fxNextBurst = 0, fxUntil = 0, fxBigLeft = 0;
 
-const FX_COLORS = ['#ffcf5c','#ff4d6d','#ff8fd0','#5be3ff','#ffa552','#ffffff'];
+const FX_COLORS = ['#ffd166','#ff5a6e','#ff9ad5','#7ee0c9','#ffb26b','#ffffff'];
 
 /* 每种颜色预渲染一张"发光点"贴图，粒子直接贴图，不再逐个算阴影。
  *
@@ -1943,19 +2199,6 @@ const FX_REF = 3;            // 贴图按这个粒子半径渲染，画的时候
 const FX_PAD = 14;           // 给 shadowBlur 留的边距（blur 8，尾巴到不了 14）
 let fxSprites = null;        // 颜色 -> canvas；null 表示还没生成
 let fxSpritesFailed = false; // 环境造不出离屏画布时退回老路径
-
-/* 内存吃紧时把能放的都放掉。
-
-   小游戏跑在别人的手机上，低端机内存告警是常事 —— 收到 onMemoryWarning 却
-   什么都不做，下一步就是被系统杀掉，玩家看到的是"闪退"。
-   能放的就两样：烟花贴图（每种颜色一块离屏画布）和调色板缓存。两样都会在
-   下次需要时自动重建，所以放掉是安全的，代价只是那一帧稍慢一点。 */
-function releaseCaches(){
-  fxSprites = null;
-  fxSpritesFailed = false;   // 给它一次重建的机会，别因为一次告警就永久退化
-  CSSVAR.clear();
-  return true;
-}
 
 function fxGetSprites(){
   if (fxSprites || fxSpritesFailed) return fxSprites;
@@ -1983,12 +2226,39 @@ let fxSpriteR = FX_REF + FX_PAD;
 const prefersReducedMotion = () =>
   window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* 内存吃紧时把能放的都放掉。
+
+   小游戏跑在别人的手机上，低端机内存告警是常事 —— 收到 onMemoryWarning 却
+   什么都不做，下一步就是被系统杀掉，玩家看到的是"闪退"。
+   能放的就两样：烟花贴图（每种颜色一块离屏画布）和调色板缓存。两样都会在
+   下次需要时自动重建，所以放掉是安全的，代价只是那一帧稍慢一点。 */
+function releaseCaches(){
+  fxSprites = null;
+  fxSpritesFailed = false;   // 给它一次重建的机会，别因为一次告警就永久退化
+  wallCache = null;          // 墙的离屏缓存也放掉，下一帧自动重建
+  wallCacheDirty = true;
+  wallCacheFailed = false;
+  dotCache = null;           // 普通豆的离屏层同样可以随时重建
+  dotCacheDirty = true;
+  dotCacheFailed = false;
+  CSSVAR.clear();
+  return true;
+}
+
 function fxResize(){
   const r = fxCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  fxCanvas.width = Math.round(r.width * dpr);
-  fxCanvas.height = Math.round(r.height * dpr);
-  fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  /* 和迷宫画布用同一个上限。3 倍和 2 倍在这种发光圆点上肉眼分不出，而烟花
+     期间同屏粒子最多，高 DPR 设备上白涨一倍多的像素面积很不划算。 */
+  const cap = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+  fxCanvas.width = Math.round(r.width * cap);
+  fxCanvas.height = Math.round(r.height * cap);
+  /* 用 scale 而不是 setTransform。给 canvas 赋 width 之后变换本来就是单位矩阵，
+     两者等价，而老基础库的 2d context 不一定实现 setTransform —— 迷宫那边早就
+     因为这个改用 scale 了，烟花这条一直没跟上。
+     而它**只在通关时才跑**：普通启动、普通试玩全都碰不到，真机上一崩就是
+     打穿六关那一刻，最难复现的时机。留个兜底，两条路都走得通。 */
+  if (typeof fxCtx.setTransform === 'function') fxCtx.setTransform(cap, 0, 0, cap, 0, 0);
+  else fxCtx.scale(cap, cap);
   return { w: r.width, h: r.height };
 }
 
@@ -2024,19 +2294,9 @@ function fxBurst(w, h, big){
   }
 }
 
-/** @param ms 放多久。通关是大事（默认 18 秒），破纪录小庆祝一下就够（6 秒）。 */
-function startFireworks(ms){
-  if (prefersReducedMotion()) return;
-  fxCanvas.classList.add('on');
-  const { w, h } = fxResize();
-  fxParticles = [];
-  fxNextBurst = 0;
-  // 12s, up from 6s. Clearing all six levels is a rare event — level 6 was
-  // unwinnable until recently, so almost nobody had ever seen this — and six
-  // seconds of it was over before the player had finished reading their score.
-  const dur = ms || 18000;
-  fxUntil = performance.now() + dur;
-  fxBigLeft = dur >= 12000 ? 5 : 2;   // 开场连放几发大的，气势要一上来就有
+/** 粒子循环本体。startFireworks 和 startComboFx 共用 —— 两条入口只差在
+ *  "要不要继续产生新的爆发"，更新与绘制只有一份。 */
+function fxLoopStart(w, h){
   if (fxRunning) return;
   fxRunning = true;
 
@@ -2098,6 +2358,50 @@ function startFireworks(ms){
   requestAnimationFrame(step);
 }
 
+/** @param ms 放多久。通关是大事（默认 18 秒），破纪录小庆祝一下就够（6 秒）。 */
+function startFireworks(ms){
+  if (prefersReducedMotion()) return;
+  fxCanvas.classList.add('on');
+  const { w, h } = fxResize();
+  fxParticles = [];
+  fxNextBurst = 0;
+  // 12s, up from 6s. Clearing all six levels is a rare event — level 6 was
+  // unwinnable until recently, so almost nobody had ever seen this — and six
+  // seconds of it was over before the player had finished reading their score.
+  const dur = ms || 18000;
+  fxUntil = performance.now() + dur;
+  fxBigLeft = dur >= 12000 ? 5 : 2;   // 开场连放几发大的，气势要一上来就有
+  fxLoopStart(w, h);
+}
+
+/* 连击里程碑的一小把彩带：轻、短、只从上沿往下飘。
+ *
+ * 和通关礼花的区别就两点：粒子只有一小把（26 颗对 60+），而且**不再产生新的
+ * 爆发**（fxUntil=0）——飘完这一把就自己收场，全程一秒多。粒子从画布上沿外
+ * 出发往下飘，不在迷宫中间炸开：玩家正贴着幽灵跑，中间必须永远是清楚的。
+ * 礼花正在放的时候不抢画布（里程碑只在游玩中触发，正常撞不上，兜底而已）。 */
+function startComboFx(){
+  if (prefersReducedMotion()) return;
+  if (fxRunning) return;
+  fxCanvas.classList.add('on');
+  const { w, h } = fxResize();
+  fxParticles = [];
+  fxUntil = 0;   // 不产生新爆发，这把彩带飘完就结束
+  const n = 26;
+  for (let i=0;i<n;i++){
+    fxParticles.push({
+      x: w * (0.08 + Math.random()*0.84),
+      y: -4 - Math.random()*10,
+      vx: (Math.random()-0.5)*36,
+      vy: 30 + Math.random()*50,
+      life: 1.1,
+      color: FX_COLORS[Math.floor(Math.random()*FX_COLORS.length)],
+      size: 1.8 + Math.random()*1.8,
+    });
+  }
+  fxLoopStart(w, h);
+}
+
 function stopFireworks(){
   fxUntil = 0;
   fxParticles = [];
@@ -2115,6 +2419,7 @@ const NAME_KEY = 'doudou.name';
 const BOARD_SIZE = 8;
 const NAME_MAX = 8;
 const DEFAULT_NAME = '无名豆豆';
+let bestScoreCache = null, bestComboCache = null;
 
 /**
  * v1 rows were earned before SCORE_MULT existed, so ranking them against new
@@ -2145,20 +2450,65 @@ function migrateLegacy(){
   } catch { return null; }
 }
 
+/* 逐条校验存进来的纪录。
+
+   存档是**外部输入** —— 它可能被上一版写坏、被别的工具改过、或者存到一半
+   断电截断。原来只判了"是不是数组"，一条 score 是 NaN 的记录就能让排行榜
+   排序变得毫无意义（NaN 参与比较永远返回 false），而 name 是对象的话
+   渲染时直接抛。这些都不报错，只是榜单突然变得莫名其妙。 */
+function sanitizeScore(r){
+  if (!r || typeof r !== 'object') return null;
+  const num = (v, lo, hi) => {
+    /* null / undefined / 空串要先挡掉。Number(null) 是 **0** 不是 NaN，
+       Number('') 也是 0 —— 直接 Number() 的话，一条 score 缺失的坏记录会变成
+       "0 分"混进榜单，看起来还挺正常。这是 JS 里最容易被忽略的一处强制转换。 */
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.min(hi, Math.max(lo, Math.round(n)));
+  };
+  const score = num(r.score, 0, 1e12);
+  if (score === null) return null;              // 分数是这条记录存在的理由，没有就丢
+  const lv = num(r.level, 1, MAX_LEVEL), cb = num(r.combo, 1, 1e6);
+  return {
+    id: typeof r.id === 'string' ? r.id.slice(0, 64) : ('r' + score + '-' + Math.random().toString(36).slice(2, 8)),
+    name: cleanName(r.name) || DEFAULT_NAME,
+    score,
+    level: lv === null ? 1 : lv,   // 微信基础库没有 ??，一律三元
+    combo: cb === null ? 1 : cb,
+    won: !!r.won,
+    date: typeof r.date === 'string' ? r.date.slice(0, 32) : '',
+    legacy: !!r.legacy,
+  };
+}
+
 function loadScores(){
-  try {
-    const raw = localStorage.getItem(SCORE_KEY);
-    if (raw === null){
-      const migrated = migrateLegacy();
-      if (migrated) return migrated;
-    }
-    const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list : [];
-  } catch { return []; }
+  let raw = null;
+  try { raw = localStorage.getItem(SCORE_KEY); } catch (e) { return []; }
+  if (raw === null){
+    try { const migrated = migrateLegacy(); if (migrated) return migrated; } catch (e) {}
+    return [];
+  }
+  let list;
+  try { list = JSON.parse(raw); }
+  catch (e) {
+    /* JSON 坏了。原来直接返回空数组 —— 玩家的纪录就这么无声清零了，而且
+       下一次保存会把坏值覆盖掉，再也找不回来。先留一份原始副本再清空：
+       占不了多少空间，万一是可修复的，人还有得救。 */
+    try { localStorage.setItem(SCORE_KEY + '.corrupt.' + Date.now(), String(raw).slice(0, 20000)); } catch (e2) {}
+    return [];
+  }
+  if (!Array.isArray(list)) return [];
+  return list.map(sanitizeScore).filter(Boolean);
 }
 
 function saveScores(list){
-  try { localStorage.setItem(SCORE_KEY, JSON.stringify(list)); return true; }
+  try {
+    localStorage.setItem(SCORE_KEY, JSON.stringify(list));
+    bestScoreCache = list.length ? Math.max.apply(null,list.map(r=>r.score||0)) : 0;
+    bestComboCache = list.reduce((m,r)=>Math.max(m,r.combo||0),0);
+    return true;
+  }
   catch { return false; }
 }
 
@@ -2216,8 +2566,10 @@ function renameScore(id, name){
  * 返回 0 表示还没有任何记录（第一次玩），调用方据此决定要不要显示。
  */
 function bestScore(){
+  if (bestScoreCache !== null) return bestScoreCache;
   const list = loadScores();
-  return list.length ? (list[0].score || 0) : 0;
+  bestScoreCache = list.length ? (list[0].score || 0) : 0;
+  return bestScoreCache;
 }
 
 /**
@@ -2226,7 +2578,9 @@ function bestScore(){
  * 小孩不需要一张 Excel。分数管"打得多好"，连击管"打得多顺"，两个够了。
  */
 function bestCombo(){
-  return loadScores().reduce((m, r)=> Math.max(m, r.combo || 0), 0);
+  if (bestComboCache !== null) return bestComboCache;
+  bestComboCache = loadScores().reduce((m, r)=> Math.max(m, r.combo || 0), 0);
+  return bestComboCache;
 }
 
 /** 开始页的关卡选择。只在解锁了第二关之后才出现——第一次玩的人屏幕上
@@ -2265,7 +2619,7 @@ function renderWelcome(){
   if (!el) return;
   let played = false;
   try { played = loadScores().length > 0; } catch (e) {}
-  el.textContent = played ? '欢迎回来，再闯一次迷宫吧。' : '准备好了吗？一起出发吧。';
+  el.textContent = played ? '欢迎回来，豆豆等你再闯一次。' : '豆豆已就位，准备进入霓虹迷宫！';
 
   /* 老玩家不再显示"滑动转向 · 吃光豆子即可过关"。
      他早就会走了，而这一行占掉的高度，正是那句故事需要的 —— 有纪录的人屏幕上
@@ -2537,7 +2891,7 @@ function buildPracticeSummary(cleared){
   lines.push('<div class="sum-grid">'
     + `<div class="sum-row"><span class="sum-k">关卡</span> <span class="sum-v">第 ${level} 关 · ${levelName(level)}</span></div>`
     + `<div class="sum-row"><span class="sum-k">最高连击</span> <span class="sum-v">x${maxComboSeen}</span></div>`
-    + `<div class="sum-row"><span class="sum-k">幽灵击杀</span> <span class="sum-v">${ghostsEatenThisRun} 只</span></div>`
+    + `<div class="sum-row"><span class="sum-k">反击敌人</span> <span class="sum-v">${ghostsEatenThisRun} 只</span></div>`
     + '</div>');
   lines.push(cleared
     ? '<span style="color:var(--cyan)">这一关拿下了，回去正式挑战试试</span>'
@@ -2562,15 +2916,15 @@ function buildSummary(won, rank, prevBest, isNewBest){
   const stats = [
     ['到达关卡', won ? `全 ${MAX_LEVEL} 关通关` : `第 ${level} 关 · ${levelName(level)}`],
     ['最高连击', `x${maxComboSeen}`],
-    ['幽灵击杀', `${ghostsEatenThisRun} 只`],
+    ['反击敌人', `${ghostsEatenThisRun} 只`],
   ];
   if (won) stats.push(['无伤关卡', `${perfectLevelsThisRun} / ${MAX_LEVEL}`]);
-  if (sweepsThisRun) stats.push(['全灭幽灵', `${sweepsThisRun} 次`]);
+  if (sweepsThisRun) stats.push(['全灭对手', `${sweepsThisRun} 次`]);
   if (prevBest > 0)  stats.push(['最高纪录', fmtNum(prevBest)]);
   /* 每一行**必须**自己包一个 div，不能把 span 直接摊在网格里。
      微信那两个版本读的是 stripTags 之后的纯文本，而 stripTags 只把 <br> 和
      </div> 换成换行，<span> 是直接删掉的 —— 摊着写出来就是
-     "到达关卡第 3 关 · 虫洞交错最高连击x1幽灵击杀0 只" 这样一长串糊在一起。
+     "到达关卡第 3 关 · 虫洞交错最高连击x1吃掉小夜枭0 只" 这样一长串糊在一起。
      display:contents 让这层 div 在网页版布局上等于不存在，两列网格照常，
      但 HTML 里它是真实存在的，纯文本那边就有换行了。
      k 和 v 之间那个空格同理，不然纯文本里两者会贴死。 */
@@ -2643,10 +2997,22 @@ function updateComboBar(){
   // 分母要用**当前**窗口：窗口会随连击变宽，拿固定值当分母的话，
   // 高连击时条永远填不满，看起来像刚吃就快断了。
   const left = combo > 1 ? Math.max(0, comboTimer) / comboWindow() : 0;
-  const fill = document.getElementById('comboFill');
-  fill.style.width = (left * 100) + '%';
-  fill.classList.toggle('urgent', left > 0 && left < 0.35);   // 快断了变红
+  /* 去抖：这函数每帧都跑，元素引用缓存一次；变化不到 1% 不写入。
+     用 transform 而不是 width，避免每帧 layout invalidate；urgent 类
+     也记住上次状态，变了才 toggle。 */
+  if (!comboFillEl) comboFillEl = document.getElementById('comboFill');
+  const scale = Math.round(left * 100) / 100;
+  if (Math.abs(scale - comboBarLastScale) >= 0.01){
+    comboFillEl.style.transform = 'scaleX(' + scale + ')';
+    comboBarLastScale = scale;
+  }
+  const urgent = left > 0 && left < 0.35;   // 快断了变红
+  if (urgent !== comboBarLastUrgent){
+    comboFillEl.classList.toggle('urgent', urgent);
+    comboBarLastUrgent = urgent;
+  }
 }
+let comboFillEl = null, comboBarLastScale = -1, comboBarLastUrgent = null;
 
 /* 幽灵悬赏把分数推到了六七位数，"1283000" 这种一长串瞟一眼是读不出来的。
    自己加千分位，不用 toLocaleString('en-US')：那个要靠 Intl，微信小游戏在
@@ -2661,23 +3027,35 @@ function fmtNum(n){
 }
 
 let lastComboShown = 1;   // 只在连击真的变了时才弹，见下面
+let comboBumpFlip = false;
+let hudScoreEl=null,hudLevelEl=null,hudLivesEl=null,hudHighEl=null,hudComboEl=null;
+let hudLastScore='',hudLastLevel='',hudLastLives=null,hudLastHigh='';
 function updateHud(){
-  document.getElementById('scoreVal').textContent = fmtNum(score);
-  document.getElementById('levelVal').textContent = level + '/' + MAX_LEVEL;
-  document.getElementById('livesVal').innerHTML = Array.from({length:Math.max(lives,0)}).map(()=>
-    '<svg width="14" height="14" viewBox="0 0 20 20"><path d="M10 3 A7 7 0 1 1 3 12 L10 17 L17 12 A7 7 0 0 1 10 3 Z" fill="'+cssVar('--amber')+'"/></svg>'
-  ).join('');
-  const cl = document.getElementById('comboLabel');
-  cl.textContent = '连击 x' + combo;
+  if (!hudScoreEl){
+    hudScoreEl=document.getElementById('scoreVal');hudLevelEl=document.getElementById('levelVal');
+    hudLivesEl=document.getElementById('livesVal');hudHighEl=document.getElementById('highScoreVal');
+    hudComboEl=document.getElementById('comboLabel');
+  }
+  const scoreText=fmtNum(score),levelText=level+'/'+MAX_LEVEL;
+  if (scoreText!==hudLastScore){hudScoreEl.textContent=scoreText;hudLastScore=scoreText;}
+  if (levelText!==hudLastLevel){hudLevelEl.textContent=levelText;hudLastLevel=levelText;}
+  if (lives!==hudLastLives){
+    hudLivesEl.innerHTML=Array.from({length:Math.max(lives,0)}).map(()=>
+      '<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17.2 3.1 10.8C-.4 7.5 1.9 2.2 6.3 2.2c1.6 0 3 .8 3.7 2 0.7-1.2 2.1-2 3.7-2 4.4 0 6.7 5.3 3.2 8.6L10 17.2Z" fill="'+cssVar('--pink')+'"/></svg>'
+    ).join('');
+    hudLastLives=lives;
+  }
+  const highText=fmtNum(Math.max(score,bestScore()));
+  if (hudHighEl&&highText!==hudLastHigh){hudHighEl.textContent=highText;hudLastHigh=highText;}
+  const cl=hudComboEl;
+  if (combo!==lastComboShown) cl.textContent='连击 x'+combo;
   /* 连击的画面反馈**只在 HUD 上**：玩家这时候正贴着幽灵跑，在迷宫上糊特效
      等于害他送命。一行字变个色，看得见又挡不着。 */
-  /* 连击涨一级就轻轻弹一下。只加一个 class，动画交给 CSS：
-     每次都要重新触发，所以先摘掉、强制回流、再加上 —— 不这么做的话
-     连续涨级时动画只播第一次。 */
+  /* 两个同形动画交替，不再用 offsetWidth 强制同步回流。 */
   if (combo > 1 && combo !== lastComboShown){
-    cl.classList.remove('bump');
-    void cl.offsetWidth;
-    cl.classList.add('bump');
+    comboBumpFlip=!comboBumpFlip;
+    cl.classList.remove('bump-a','bump-b');
+    cl.classList.add(comboBumpFlip?'bump-a':'bump-b');
   }
   lastComboShown = combo;
   cl.style.color = combo >= 100 ? cssVar('--amber')
@@ -2697,13 +3075,13 @@ function updateFruit(dt){
   }
   fruit.timer -= dt;
   if (fruit.timer<=0){ fruit.active=false; return; }
-  const dist = Math.hypot(fruit.x-player.x, fruit.y-player.y);
-  if (dist < 0.6){
+  const fdx = fruit.x-player.x, fdy = fruit.y-player.y;
+  if (fdx*fdx + fdy*fdy < 0.36){   // 0.6 格，平方比较不开根号
     fruit.active = false;
     addScore(300*combo);
     sustainCombo();   // 水果原先只拿 combo 当倍率却不续期，等于只吃不喂
     player.phase = FRUIT_PHASE_SECONDS;
-    toast('神秘水果！' + FRUIT_PHASE_SECONDS + ' 秒穿墙');
+    toast('相位晶石！' + FRUIT_PHASE_SECONDS + ' 秒穿墙');
     Audio2.fruit();
   }
 }
@@ -2711,6 +3089,9 @@ function maybeSpawnFruit(){
   if (fruit.active) return;
   if (fruit.nextAt<=0){
     fruit.active = true; fruit.timer = 10; fruit.x=9; fruit.y=13;
+    /* 9999 秒 ≈ 不会再到 —— 每关只刷一次是**设计意图**，不是随手填的大数：
+       穿墙是最强道具，一关给第二次，"什么时候吃"这条决策就不值钱了。
+       resetLevel 会把 nextAt 重置回 60，下一关重新计。 */
     fruit.nextAt = 9999;
   }
 }
@@ -2828,7 +3209,7 @@ document.addEventListener('touchend', (e)=>{
   lastTouchEnd = now;
 }, { passive:false });
 
-const SWIPE_MIN_PX = 24;
+const SWIPE_MIN_PX = 14;
 let swipeFrom = null;
 const stage = document.getElementById('mazeCanvas').parentElement;
 
@@ -2893,27 +3274,6 @@ muteBtn.addEventListener('click', ()=>{
   paintMute();
 });
 paintMute();
-
-/* ---------- 方向键显隐 ----------
- * 习惯了滑动操作的人不需要那四个键，藏起来能把棋盘下方的空间还回去。
- * 记进 localStorage，不然每开一局都得重按一次 —— 那样这个开关就成了负担。
- * 存储在无痕模式下会直接抛异常而不是返回 null，所以照例包一层 try。
- */
-const PAD_KEY = 'doudou.padHidden';
-const cabinet = document.querySelector('.cabinet');
-const padBtn = document.getElementById('padBtn');
-function setPadHidden(hidden){
-  cabinet.classList.toggle('pad-hidden', hidden);
-  padBtn.classList.toggle('off', hidden);
-  padBtn.title = hidden ? '显示方向键' : '隐藏方向键';
-  try { localStorage.setItem(PAD_KEY, hidden ? '1' : '0'); } catch {}
-}
-padBtn.addEventListener('click', ()=>{
-  Audio2.unlock();
-  setPadHidden(!cabinet.classList.contains('pad-hidden'));
-});
-try { setPadHidden(localStorage.getItem(PAD_KEY) === '1'); }
-catch { setPadHidden(false); }
 
 /* ---------- 玩法说明 ----------
  * 读说明的时候幽灵不能还在追 —— 否则玩家一边看字一边掉命，而且是看不见的
@@ -3076,8 +3436,8 @@ function challengeURL(){
 function shareText(){
   const won = document.getElementById('overTitle').textContent.indexOf('通关') >= 0;
   const s = fmtNum(lastFinalScore);
-  const head = won ? `我通关了《豆豆迷宫》全 6 关，${s} 分！敢不敢来超？`
-                   : `我在《豆豆迷宫》拿了 ${s} 分，来比比？`;
+  const head = won ? `我和豆豆通关了 Neon Maze 全 6 关，${s} 分！敢不敢来超？`
+                   : `我在 Neon Maze 拿了 ${s} 分，来比比？`;
   return head + '\n' + challengeURL();
 }
 
@@ -3166,6 +3526,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 document.getElementById('helpCloseBtn').addEventListener('click', closeHelp);
 
 /** 开打时收起标题，回到任何弹层时再露出来。 */
+let chromeInGame = null;
 function syncChrome(){
   /* 说明盖着的时候，**什么都别动**。
    *
@@ -3178,7 +3539,10 @@ function syncChrome(){
    * 根本看不见，压根没有理由跟着变。开之前什么样，关掉还是什么样，
    * 零动画、零位移。 */
   if (docPanelOpen()) return;
-  document.body.classList.toggle('in-game', gameState === 'playing');
+  const next = gameState === 'playing';
+  if (next === chromeInGame) return;
+  document.body.classList.toggle('in-game', next);
+  chromeInGame = next;
 }
 
 /* ---------- 切走标签页自动暂停 ----------
@@ -3274,7 +3638,7 @@ function update(dt){
     // 在跑就慢扣，停下就快扣 —— 见 COMBO_WINDOW 上面那段说明
     const moving = !!(player.dir.x || player.dir.y);
     comboTimer -= dt * (moving ? 1 : COMBO_IDLE_DECAY);
-    if (comboTimer<=0){ combo=1; comboMilestoneHit=0; updateHud(); }
+    if (comboTimer<=0){ combo=1; updateHud(); }
   }
 
   // one global fright countdown for every ghost — see the power mode block
@@ -3344,7 +3708,7 @@ function update(dt){
     if (g.state==='house'){
       g.wobble += dt*3;
       // homeY 是它自己走进来停下的位置；开局时没有这个值，就用出生点
-      g.y = (g.homeY ?? SPAWN.ghosts[i].y) + Math.sin(g.wobble)*0.18;
+      g.y = (g.homeY === null ? SPAWN.ghosts[i].y : g.homeY) + Math.sin(g.wobble)*0.18;
       if (elapsed >= g.releaseAt){
         /* 出巢前必须先回到格子正中。
            上一行的上下浮动会把 y 停在 ±0.18 的任意位置，而 stepEntity 只在
@@ -3359,7 +3723,6 @@ function update(dt){
       return;
     }
     if (g.state==='fused-hidden') return;
-    g.kind='ghost';
     /* 兜底：没有方向、又不在格子正中的幽灵是**动不了**的——stepEntity 只在正中
        重新选方向，其余时候没方向就直接 break，于是永远僵在那里。
        上面出巢那处已经堵掉了已知的来源，这里再兜一道：这种"幽灵定住不动"的
@@ -3404,45 +3767,60 @@ function update(dt){
 function drawMaze(){
   // 逻辑尺寸，不是 canvas.width —— 加了缩放变换之后那个数是设备像素
   ctx.clearRect(0, 0, COLS*TILE, ROWS*TILE);
-  /* 穿墙期间墙自己"虚掉"：变淡、变虚线、颜色偏向主角的青。
+  /* 穿墙期间墙自己"虚掉"：变淡、变虚线、颜色偏向穿墙紫。
      这是这个道具最值钱的一秒 —— 玩家真正要看懂的不是"我获得了穿墙"，而是
      **"墙不算数了"**。让墙自己变样，比在角色身上加特效直接得多：他一眼看到
      的是整张地图的规则变了，而不是自己身上多了层光。
-     最后 2 秒开始闪回实线，等于用墙本身做倒计时——不用再多一个提示条。 */
+     最后 2 秒只轻轻提高亮度；红色倒计时条和 3/2/1 音效已经足够说明时间，
+     整张迷宫不该再用硬切闪烁抢走玩家视线。 */
   const phasing = player && player.phase > 0;
-  const ending  = phasing && player.phase < 2 && Math.floor(elapsed*6)%2===0;
-  const wallColor = (phasing && !ending) ? cssVar('--cyan') : cssVar('--wall');
-  ctx.save();
-  if (phasing && !ending){
-    ctx.globalAlpha = 0.42;
+  const ending  = phasing && player.phase < 2;
+  const wallPulse = ending && !prefersReducedMotion()
+    ? 0.48 + 0.10 * (0.5 + 0.5 * Math.sin(elapsed * PHASE_WALL_WARNING_HZ * Math.PI * 2))
+    : 0.48;
+  if (phasing){
+    // 穿墙这几秒墙是虚线并带轻微呼吸，不走缓存，现画
+    const wallColor = cssVar('--phase');
+    ctx.save();
+    ctx.globalAlpha = ending ? wallPulse : 0.42;
     ctx.setLineDash([4, 5]);
-  }
-  ctx.strokeStyle = wallColor;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = wallColor;
-  ctx.shadowBlur = 8;
-  ctx.lineCap = 'round';
-  /* 一条路径画完整张墙。原来是每个墙格 beginPath + stroke，第一关就是 200 次
-     带阴影的描边 —— 而墙一整关都不动，每帧重算邻居、重描一遍纯属白干。 */
-  ctx.beginPath();
-  for (let i=0;i<wallEdges.length;i+=4){
-    ctx.moveTo(wallEdges[i], wallEdges[i+1]);
-    ctx.lineTo(wallEdges[i+2], wallEdges[i+3]);
-  }
-  ctx.stroke();
-  ctx.restore();
-
-  // ghost house door
-  ctx.save();
-  ctx.strokeStyle = cssVar('--pink');
-  ctx.lineWidth = 2;
-  [[9,8],[9,12]].forEach(([x,y])=>{
+    ctx.strokeStyle = wallColor;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = wallColor;
+    ctx.shadowBlur = 4;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(x*TILE+3, y*TILE+TILE/2);
-    ctx.lineTo(x*TILE+TILE-3, y*TILE+TILE/2);
+    for (let i=0;i<wallEdges.length;i+=4){
+      ctx.moveTo(wallEdges[i], wallEdges[i+1]);
+      ctx.lineTo(wallEdges[i+2], wallEdges[i+3]);
+    }
     ctx.stroke();
-  });
-  ctx.restore();
+    ctx.restore();
+
+    // ghost house door（穿墙时门不变样，照画）
+    ctx.save();
+    ctx.strokeStyle = cssVar('--pink');
+    ctx.lineWidth = 2;
+    [[9,8],[9,12]].forEach(([x,y])=>{
+      ctx.beginPath();
+      ctx.moveTo(x*TILE+3, y*TILE+TILE/2);
+      ctx.lineTo(x*TILE+TILE-3, y*TILE+TILE/2);
+      ctx.stroke();
+    });
+    ctx.restore();
+  } else {
+    /* 常态：墙走离屏缓存，每帧一次 drawImage（见 buildWallEdges 旁的说明）。
+       缓存按设备像素渲染，所以贴的时候要回到单位矩阵。 */
+    if (wallCacheDirty || !wallCache || wallCache.width !== canvas.width) rebuildWallCache();
+    if (wallCache){
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(wallCache, 0, 0);
+      ctx.restore();
+    } else {
+      drawWallsNormal(ctx);   // 离屏不可用时的退路
+    }
+  }
 
   /* ---------- 豆子 ----------
      所有小豆子的半径和光晕是**同一个值** —— 它们只跟"还剩几颗"和时间有关，
@@ -3453,9 +3831,8 @@ function drawMaze(){
      每段 arc 之前必须先 moveTo：arc 会从当前点连一条线过来，不另起子路径
      就会在豆子之间连出线段。
      唯一的差别是光晕重叠处：分开画时两团光会叠加变亮，合成一条路径则不会。
-     正常间距（26px）下光晕只有 4px，根本碰不到；只有剩最后几颗、光晕涨到
-     20px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
-  const r = PELLET_R;          // 恒定：大小是区分小豆和能量豆的第一条线索
+     正常间距（26px）下光晕只有 2px，根本碰不到；只有剩最后几颗、光晕涨到
+     7.5px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
   let glow = PELLET_GLOW;
   if (pelletsLeft <= LAST_PELLET_HINT){
     /* 剩最后几颗时让豆子自己"喘气"。
@@ -3472,36 +3849,55 @@ function drawMaze(){
   }
   const amber = cssVar('--amber');
   const pulse = POWER_R + Math.sin(elapsed*6) * POWER_R_SWING;
-  const TAU = Math.PI*2;
+  let anyPower = false;
 
-  let anyDot = false, anyPower = false;
-  ctx.fillStyle = amber; ctx.shadowColor = amber;
-
-  ctx.shadowBlur = glow;
-  ctx.beginPath();
-  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
-    if (grid[y][x] !== '.') continue;
-    const cxp = x*TILE+TILE/2, cyp = y*TILE+TILE/2;
-    ctx.moveTo(cxp+r, cyp); ctx.arc(cxp,cyp,r,0,TAU); anyDot = true;
+  /* 大多数时间普通豆子直接贴离屏层；最后十颗才需要每帧改变光晕。 */
+  if (pelletsLeft > LAST_PELLET_HINT){
+    if (dotCacheDirty || !dotCache || dotCache.width !== canvas.width) rebuildDotCache();
+    if (dotCache){
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.drawImage(dotCache,0,0);
+      ctx.restore();
+    } else {
+      drawRegularDots(ctx, PELLET_GLOW);
+    }
+  } else {
+    drawRegularDots(ctx, glow);
   }
-  if (anyDot) ctx.fill();
 
+  /* 能量星：五角形轮廓与参考界面一致，机制仍是原来的能量豆。
+     数量很少，但仍合并到同一条路径中，只做一次 fill + stroke。 */
+  ctx.fillStyle = amber; ctx.shadowColor = amber;
   ctx.shadowBlur = POWER_GLOW;
   ctx.beginPath();
   for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
     if (grid[y][x] !== 'o') continue;
     const cxp = x*TILE+TILE/2, cyp = y*TILE+TILE/2;
-    ctx.moveTo(cxp+pulse, cyp); ctx.arc(cxp,cyp,pulse,0,TAU); anyPower = true;
+    for (let i=0;i<10;i++){
+      const a = -Math.PI/2 + i*Math.PI/5;
+      const sr = i%2===0 ? pulse*1.24 : pulse*.54;
+      const sx = cxp + Math.cos(a)*sr, sy = cyp + Math.sin(a)*sr;
+      if (i===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+    }
+    ctx.closePath(); anyPower = true;
   }
-  if (anyPower) ctx.fill();
+  if (anyPower){
+    ctx.fillStyle = amber;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.globalAlpha = .68 + .2*Math.sin(elapsed*6);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
 
-  // 传送门只有四格，而且每个都要单独旋转，攒路径没有意义，照旧一个一个画。
-  for (let y=0;y<ROWS;y++){
-    for (let x=0;x<COLS;x++){
-      const ch = grid[y][x];
-      const cxp = x*TILE+TILE/2, cyp = y*TILE+TILE/2;
-      if (ch==='1' || ch==='2'){
-        const col = ch==='1' ? cssVar('--cyan') : cssVar('--pink');
+  // 传送门只有四格，而且每个都要单独旋转，照旧一个一个画；
+  // 但坐标从建关时存好的 portalTiles 取，不再每帧全图扫描。
+  for (const ch of ['1','2']){
+    for (const p of portalTiles[ch]){
+      const cxp = p.x*TILE+TILE/2, cyp = p.y*TILE+TILE/2;
+      const col = ch==='1' ? cssVar('--cyan') : cssVar('--pink');
         /* 冷却中的传送门画暗、且不再旋转。
            踩上去之后有 1 秒冷却，这期间再踩没反应 —— 之前门看起来一切正常，
            玩家只会以为卡住了或者门坏了。让"暂时不能用"这件事看得见。 */
@@ -3511,7 +3907,7 @@ function drawMaze(){
         ctx.save();
         ctx.translate(cxp,cyp);
         if (cooling) ctx.globalAlpha = 0.32;
-        ctx.strokeStyle = col; ctx.shadowColor=col; ctx.shadowBlur = cooling ? 0 : 9;
+        ctx.strokeStyle = col; ctx.shadowColor=col; ctx.shadowBlur = cooling ? 0 : 5;
         ctx.lineWidth=1.6;
         ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.stroke();
         // 外圈画一段随冷却缩短的弧，等于一个小进度条
@@ -3532,7 +3928,6 @@ function drawMaze(){
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(0,0,1.8,0,Math.PI*2); ctx.fill();
         ctx.restore();
-      }
     }
   }
   ctx.shadowBlur=0;
@@ -3542,11 +3937,40 @@ function drawFruit(){
   if (!fruit.active) return;
   const cxp = fruit.x*TILE+TILE/2, cyp = fruit.y*TILE+TILE/2 + Math.sin(elapsed*8)*2;
   ctx.save();
-  ctx.fillStyle = '#7CFF6B';
-  ctx.shadowColor = '#7CFF6B'; ctx.shadowBlur=14;
-  ctx.beginPath(); ctx.arc(cxp,cyp,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#3f8f2e';
-  ctx.fillRect(cxp-1.5,cyp-11,3,6);
+  ctx.translate(cxp,cyp);
+  ctx.fillStyle = cssVar('--cyan');
+  ctx.strokeStyle = '#e9ffff';
+  ctx.shadowColor = cssVar('--cyan'); ctx.shadowBlur=8;
+  ctx.lineWidth=1.2;
+  ctx.beginPath();
+  ctx.moveTo(0,-10);ctx.lineTo(8,-3);ctx.lineTo(0,10);ctx.lineTo(-8,-3);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;ctx.globalAlpha=.62;
+  ctx.beginPath();
+  ctx.moveTo(0,-10);ctx.lineTo(0,10);
+  ctx.moveTo(-8,-3);ctx.lineTo(8,-3);
+  ctx.moveTo(-8,-3);ctx.lineTo(0,2);ctx.lineTo(8,-3);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* 吃豆的动作放在角色前方，不再靠把整只豆豆撑大。
+   两粒小能量点既能在 20px 左右的小角色上看清，也不会遮住前面的路。 */
+function drawPlayerBiteSpark(bite){
+  if (bite <= 0.12) return;
+  let dx=player.dir.x, dy=player.dir.y;
+  if (!dx && !dy) dy=-1;
+  const sideX=-dy, sideY=dx;
+  const reach=PLAYER_SPRITE_SIZE*0.42;
+  const spread=1.7+bite*1.1;
+  ctx.save();
+  ctx.globalAlpha*=bite*0.72;
+  ctx.fillStyle=cssVar('--amber');
+  ctx.shadowColor=cssVar('--amber');ctx.shadowBlur=3;
+  ctx.beginPath();
+  ctx.arc(dx*reach+sideX*spread,dy*reach+sideY*spread,0.62+bite*0.24,0,Math.PI*2);
+  ctx.arc(dx*reach-sideX*spread,dy*reach-sideY*spread,0.48+bite*0.18,0,Math.PI*2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -3560,7 +3984,7 @@ function drawPlayer(){
   const wind = (momentumMult() - 1) / (MOMENTUM_MAX - 1); // 0..1
   if (wind > 0.15 && player.trail && player.trail.length){
     ctx.save();
-    const col = player.phase>0 ? cssVar('--cyan') : cssVar('--amber');
+    const col = player.phase>0 ? cssVar('--phase') : cssVar('--amber');
     player.trail.forEach((p, i)=>{
       const k = (i + 1) / player.trail.length;      // oldest -> newest
       ctx.globalAlpha = (0.04 + k * 0.14) * wind;
@@ -3572,25 +3996,13 @@ function drawPlayer(){
     ctx.restore();
   }
 
-  // The bite is driven by pellets swallowed, not by a free-running timer:
-  // triggerChomp() restarts chompT, and one chomp is a single open-and-close.
-  // Coasting through empty corridor keeps a slower idle flap so the character
-  // never looks frozen mid-stride.
-  let openness;
+  /* 吃豆只做一记短促动作。高速时两颗豆间隔约 104ms，动作比它更长就会被
+     不停重置，看起来像一直肿着；所以 100ms 内完整收回。 */
+  let joy=0;
   if (player.chompT !== undefined && player.chompT < 1){
-    player.chompT = Math.min(1, player.chompT + (1/60)/CHOMP_SECONDS);
-    openness = Math.sin(player.chompT * Math.PI);
-  } else {
-    if (moving) player.mouth += 0.11;
-    openness = Math.abs(Math.sin(player.mouth)) * 0.45;
+    player.chompT = Math.min(1, player.chompT + visualFrameDt/CHOMP_SECONDS);
+    joy = Math.sin(player.chompT * Math.PI);
   }
-  const MOUTH_CLOSED = 0.03, MOUTH_WIDE = 0.55;
-  const mouthAngle = MOUTH_CLOSED + openness * (MOUTH_WIDE - MOUTH_CLOSED);
-  let ang = 0;
-  if (player.dir.x===1) ang=0; else if (player.dir.x===-1) ang=Math.PI;
-  else if (player.dir.y===1) ang=Math.PI/2; else if (player.dir.y===-1) ang=-Math.PI/2;
-  ctx.save();
-  ctx.translate(cxp,cyp); ctx.rotate(ang);
   /* 无敌和穿墙都靠"闪"来表示，但原来两处都是**硬切**：穿墙 5Hz、无敌 7Hz，
      在 0.4 和 1 之间跳。WCAG 给的上限是每秒 3 次，而穿墙状态一持续就是 10 秒 ——
      十秒钟的 5Hz 频闪盯着看，人是会不舒服的（业主说"看起来有点晕"，当时我
@@ -3600,35 +4012,108 @@ function drawPlayer(){
      用 sin 而不是方波，是因为方波的边沿本身就是刺激源，同样频率下方波比正弦
      难受得多。 */
   const pulse = (hz, lo) => lo + (1 - lo) * (0.5 + 0.5 * Math.sin(elapsed * hz * 2 * Math.PI));
+  /* 步态跟走过的距离绑定，而不是跟屏幕刷新率或绝对时间绑定。
+     同一段路在 30/60/120Hz 上都是同样两三步，高关跑快时动作才自然加快。 */
+  const gaitPhase = player.distTravelled * Math.PI * 2 / PLAYER_GAIT_TILES;
+  const stride = moving ? Math.sin(gaitPhase) : 0;
+  const hop = moving ? -Math.abs(stride)*PLAYER_HOP_PX : 0;
+  const sway = moving ? stride*PLAYER_SWAY_PX : 0;
+  const leanTarget = player.dir.x*PLAYER_LEAN_RAD;
+  if (!Number.isFinite(player.visualLean)) player.visualLean=0;
+  player.visualLean += (leanTarget-player.visualLean) * (1-Math.exp(-visualFrameDt*14));
+  const body = player.phase>0 ? cssVar('--phase') : cssVar('--lantern');
+  const lookX = player.dir.x*.48, lookY = player.dir.y*.38;
+  ctx.save();
+  ctx.translate(cxp-player.dir.y*sway,
+                cyp+player.dir.x*sway*.35+hop-joy*.45);
+  ctx.rotate(player.visualLean);
+  /* 吃豆时微微收窄、向上伸展：有反馈，但绝不会再横向挤进墙里。 */
+  ctx.scale(1-joy*.018,1+joy*.025);
   ctx.globalAlpha = player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62)
                   : invuln > 0       ? pulse(INVULN_PULSE_HZ, 0.45)
                   : 1;
-  ctx.fillStyle = player.phase>0 ? cssVar('--cyan') : cssVar('--amber');
-  ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14 + wind*16; // hotter at full momentum
+
+  if (drawCharacterSprite('player',PLAYER_SPRITE_SIZE)){
+    if (player.phase>0 || invuln>0){
+      ctx.globalAlpha=.82;
+      ctx.strokeStyle=player.phase>0?cssVar('--phase'):cssVar('--amber');
+      ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(0,0,PLAYER_SPRITE_SIZE*.49,0,Math.PI*2);ctx.stroke();
+    }
+    drawPlayerBiteSpark(joy);
+    ctx.restore();
+    return;
+  }
+
+  /* 手脚先画在身体后面，轮廓不超过半格，碰撞判定不变。 */
+  ctx.fillStyle='#168f96';
+  ctx.beginPath();ctx.arc(-6.1,7.7,2.7,0,Math.PI*2);ctx.arc(6.1,7.7,2.7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=body;
+  ctx.beginPath();ctx.arc(-9.1,1.5,2.35,0,Math.PI*2);ctx.arc(9.1,1.5,2.35,0,Math.PI*2);ctx.fill();
+
+  ctx.shadowColor=body;ctx.shadowBlur=14+wind*15;
   ctx.beginPath();
-  const r = TILE*0.42;
-  ctx.arc(0,0,r, mouthAngle*Math.PI, (2-mouthAngle)*Math.PI);
-  ctx.lineTo(0,0);
-  ctx.closePath();
+  ctx.moveTo(0,-9.1);
+  ctx.bezierCurveTo(6.4,-9.2,9.5,-4.9,9.2,1.2);
+  ctx.bezierCurveTo(8.9,7.4,5.3,9.3,0,9.25);
+  ctx.bezierCurveTo(-5.3,9.3,-8.9,7.4,-9.2,1.2);
+  ctx.bezierCurveTo(-9.5,-4.9,-6.4,-9.2,0,-9.1);
   ctx.fill();
+
+  /* 三片能量芽是 Doudou 的剪影识别点。 */
+  ctx.shadowBlur=5;ctx.fillStyle='#78f3bc';
+  [[0,-10.1,1.7,3.1,0],[-3,-9.4,1.55,2.7,-.65],[3,-9.4,1.55,2.7,.65]].forEach(([x,y,rx,ry,a])=>{
+    ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(rx/ry,1);
+    ctx.beginPath();ctx.arc(0,0,ry,0,Math.PI*2);ctx.fill();ctx.restore();
+  });
+
+  /* 脸不跟方向旋转；眼珠和身体倾斜负责表达转向。 */
+  ctx.shadowBlur=0;ctx.fillStyle='#07152b';
+  [[-3.45,-2.05],[3.45,-2.05]].forEach(([x,y])=>{
+    ctx.save();ctx.translate(x,y);ctx.scale(.8,1);
+    ctx.beginPath();ctx.arc(0,0,2.05,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(x-.42+lookX,y-.62+lookY,.55,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#07152b';
+  });
+  ctx.fillStyle=cssVar('--pink');ctx.globalAlpha*=.82;
+  ctx.beginPath();ctx.arc(-6.2,1.3,1.25,0,Math.PI*2);ctx.arc(6.2,1.3,1.25,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62) : invuln > 0 ? pulse(INVULN_PULSE_HZ, 0.45) : 1;
+
+  if (joy>.28){
+    ctx.fillStyle='#4d1235';ctx.beginPath();ctx.arc(0,1.8,1.85,0,Math.PI);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ff739b';ctx.beginPath();ctx.arc(0,2.5,.8,0,Math.PI);ctx.fill();
+  } else {
+    ctx.strokeStyle='#123449';ctx.lineWidth=1.15;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(0,1.2,2.0,.15*Math.PI,.85*Math.PI);ctx.stroke();
+  }
+
+  /* 胸前发光菱形和开始页的 3D 角色共用一个 IP 记忆点。 */
+  ctx.save();ctx.translate(0,5.1);ctx.rotate(Math.PI/4);
+  ctx.fillStyle='#dffcff';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=7;
+  ctx.fillRect(-1.25,-1.25,2.5,2.5);ctx.restore();
+  drawPlayerBiteSpark(joy);
   ctx.restore();
 }
 
 function drawGhost(g){
-  if (g.state==='house' && g===ghosts[0]) {} // no-op, keep for clarity
   if (g.state==='fused-hidden') return;
   const cxp = g.x*TILE+TILE/2, cyp = g.y*TILE+TILE/2;
-  let color = cssVar(GHOST_DEFS.find(d=>d.id===g.id).color);
-  let eyesOnly=false;
+  /* 颜色在 spawn 时就从 GHOST_DEFS 铺到了 g.color 上，cssVar 自己也有缓存 ——
+     不再需要每帧 GHOST_DEFS.find 一次。 */
+  let color = cssVar(g.color);
+  let eyesOnly=false, dozing=false, edibleVisual=false;
   if (g.state==='eaten'){
-    eyesOnly=true;                      // 只剩眼睛飘回老巢，不参与变色
+    eyesOnly=true;                      // 只剩一根羽毛飘回老巢，不参与变色
   } else if (isEdible(g)){
+    edibleVisual=true;
     /* 颜色跟着 isEdible 走，而不是跟着 state。
        按 state==='frightened' 上色时，刚从老巢出来（state 还是 'exiting'）
        的幽灵明明已经可以吃了，却画成原来的颜色 —— 玩家看到一只红幽灵冲出来
-       会本能躲开，白白错过。画面必须和判定同源。 */
-    const ending = frightTimer < 1.8 && Math.floor(elapsed*8)%2===0;
-    color = ending ? '#ffffff' : cssVar('--cyan');
+       会本能躲开，白白错过。画面必须和判定同源。
+       受惊的小夜枭是打瞌睡的奶白色（--doze），最后 1.8 秒以 2Hz 柔和提示。 */
+    const ending = frightTimer < 1.8 && Math.sin(elapsed * GHOST_WARNING_HZ * Math.PI * 2) > 0;
+    color = ending ? '#ffffff' : cssVar('--doze');
+    dozing = !ending;
   }
   /* 刚合体那半秒：先"胀"一下再落回，外面套一圈向外扩散的白光环。
      半秒之内演完，游戏一帧都不停 —— 为一个动画卡住节奏不值得，何况这时候
@@ -3653,35 +4138,117 @@ function drawGhost(g){
   ctx.translate(cxp,cyp);
   ctx.scale(scale,scale);
   const r = TILE*0.42;
+  const R = r*.88;
+  if (!eyesOnly && drawCharacterSprite(g.id,35)){
+    if (edibleVisual){
+      ctx.globalAlpha=.42;
+      ctx.fillStyle=dozing?'#bdefff':'#ffffff';
+      ctx.beginPath();ctx.arc(0,0,16.2,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='#27305f';ctx.lineWidth=1.9/scale;ctx.lineCap='round';
+      [[-4.2,-1.5],[4.2,-1.5]].forEach(([ex,ey])=>{
+        ctx.beginPath();ctx.moveTo(ex-2,ey-2);ctx.lineTo(ex+2,ey+2);
+        ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
+      });
+    }
+    if (g.isFusionHost){
+      ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.4/scale;
+      ctx.beginPath();ctx.arc(0,0,17.2,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.restore();
+    return;
+  }
   if (!eyesOnly){
     ctx.fillStyle = color;
     ctx.shadowColor = color; ctx.shadowBlur = g.isFusionHost?18:10;
-    ctx.beginPath();
-    ctx.arc(0,-2,r,Math.PI,0,false);
-    const waveN=4;
-    ctx.lineTo(r, r*0.6);
-    for (let i=0;i<waveN;i++){
-      const x0 = r - (2*r/waveN)*i;
-      const xm = r - (2*r/waveN)*(i+0.5);
-      const x1 = r - (2*r/waveN)*(i+1);
-      ctx.quadraticCurveTo(xm, i%2===0? r*1.05 : r*0.55, x1, r*0.6);
+    /* 四种 AI 不只换颜色，轮廓也能一眼认出。这里只是表现层，id 和 AI 状态机完全不动。 */
+    if (g.id==='chaser'){
+      /* 闪闪：圆润独眼能量兽 + 天线。 */
+      ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;ctx.strokeStyle=color;ctx.lineWidth=1.8/scale;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(0,-R*.88);ctx.quadraticCurveTo(R*.08,-R*1.18,R*.32,-R*1.16);ctx.stroke();
+      ctx.beginPath();ctx.arc(R*.34,-R*1.16,1.35/scale,0,Math.PI*2);ctx.fill();
+    } else if (g.id==='ambush'){
+      /* 狐狐：两只尖耳与宽额，适合表达“预判截路”。 */
+      ctx.beginPath();
+      ctx.moveTo(-R*.78,-R*.42);ctx.lineTo(-R*.62,-R*1.08);ctx.lineTo(-R*.18,-R*.78);
+      ctx.lineTo(R*.18,-R*.78);ctx.lineTo(R*.62,-R*1.08);ctx.lineTo(R*.78,-R*.42);
+      ctx.quadraticCurveTo(R*.92,R*.65,0,R*.92);ctx.quadraticCurveTo(-R*.92,R*.65,-R*.78,-R*.42);
+      ctx.closePath();ctx.fill();
+    } else if (g.id==='shy'){
+      /* 软软：圆角方块身体 + 小芽，跟其他圆形彻底拉开。 */
+      ctx.beginPath();
+      ctx.moveTo(-R*.78,-R*.78);ctx.quadraticCurveTo(-R,-R*.78,-R,-R*.55);
+      ctx.lineTo(-R,R*.62);ctx.quadraticCurveTo(-R,R*.9,-R*.72,R*.9);
+      ctx.lineTo(R*.72,R*.9);ctx.quadraticCurveTo(R,R*.9,R,R*.62);
+      ctx.lineTo(R,-R*.55);ctx.quadraticCurveTo(R,-R*.78,R*.78,-R*.78);ctx.closePath();ctx.fill();
+      ctx.shadowBlur=0;ctx.fillStyle=color;
+      ctx.save();ctx.translate(-1,-R*.95);ctx.rotate(-.7);ctx.scale(.45,1);
+      ctx.beginPath();ctx.arc(0,0,R*.3,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.save();ctx.translate(2,-R*.96);ctx.rotate(.7);ctx.scale(.45,1);
+      ctx.beginPath();ctx.arc(0,0,R*.3,0,Math.PI*2);ctx.fill();ctx.restore();
+    } else {
+      /* 慢慢：水母般的半圆顶和波浪底，对应循环巡逻。 */
+      ctx.beginPath();ctx.arc(0,-R*.08,R,Math.PI,0,false);
+      ctx.lineTo(R,R*.55);
+      for (let i=0;i<4;i++){
+        const x0=R-(2*R/4)*i,xm=R-(2*R/4)*(i+.5),x1=R-(2*R/4)*(i+1);
+        ctx.quadraticCurveTo(xm,i%2===0?R*.95:R*.56,x1,R*.55);
+      }
+      ctx.closePath();ctx.fill();
     }
-    ctx.closePath();
-    ctx.fill();
     if (g.isFusionHost){
+      ctx.shadowBlur=0;
       ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.arc(0,-2,r*0.7,0,Math.PI*2); ctx.stroke();
     }
   }
-  // eyes
-  const lookX = g.dir.x, lookY=g.dir.y;
   ctx.shadowBlur=0;
-  [[-r*0.42,0],[r*0.42,0]].forEach(([ex,ey])=>{
-    ctx.fillStyle='#fff';
-    ctx.beginPath(); ctx.ellipse(ex,ey-2,4.2,5.2,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = eyesOnly ? '#4444ff' : '#26205a';
-    ctx.beginPath(); ctx.arc(ex+lookX*1.8, ey-2+lookY*1.8, 2.1,0,Math.PI*2); ctx.fill();
-  });
+  if (eyesOnly){
+    /* 被吃掉后只剩能量核返回老巢，状态读取清楚且不再是幽灵眼睛。 */
+    ctx.save();ctx.rotate(elapsed*2.4);
+    ctx.fillStyle='#ffffff';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(5,0);ctx.lineTo(0,6);ctx.lineTo(-5,0);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=cssVar('--cyan');ctx.lineWidth=1/scale;ctx.stroke();ctx.restore();
+  } else if (dozing){
+    /* 能量模式统一用“晕晕眼”，轮廓仍保留各自类型。 */
+    ctx.strokeStyle = '#26205a';
+    ctx.lineWidth = 1.6/scale;
+    ctx.lineCap = 'round';
+    [[-r*.34,-1],[r*.34,-1]].forEach(([ex,ey])=>{
+      ctx.beginPath();ctx.moveTo(ex-2,ey-2);ctx.lineTo(ex+2,ey+2);ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
+    });
+  } else {
+    const lookX = g.dir.x, lookY=g.dir.y;
+    if (g.id==='chaser'){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,-1,R*.43,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#1c1744';ctx.beginPath();ctx.arc(lookX*1.5,-1+lookY*1.5,R*.2,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#4f1533';ctx.lineWidth=1.1/scale;ctx.beginPath();ctx.arc(0,R*.47,R*.28,.12*Math.PI,.88*Math.PI);ctx.stroke();
+    } else {
+      const spread=g.id==='shy'?R*.32:R*.38;
+      [[-spread,0],[spread,0]].forEach(([ex,ey])=>{
+      ctx.fillStyle='#fff';
+      ctx.beginPath();
+      /* 老微信基础库没有 ctx.ellipse：用 scale 压出同一个椭圆兜底。 */
+      if (typeof ctx.ellipse === 'function'){
+        ctx.ellipse(ex,ey-2,4.2,5.2,0,0,Math.PI*2);
+      } else {
+        ctx.save(); ctx.translate(ex,ey-2); ctx.scale(4.2/5.2,1);
+        ctx.arc(0,0,5.2,0,Math.PI*2); ctx.restore();
+      }
+      ctx.fill();
+      ctx.fillStyle = '#26205a';
+        ctx.beginPath(); ctx.arc(ex+lookX*1.5, ey-2+lookY*1.5, 2.0,0,Math.PI*2); ctx.fill();
+      });
+      if (g.id==='ambush'){
+        ctx.strokeStyle='#5c2a17';ctx.lineWidth=1.2/scale;
+        ctx.beginPath();ctx.moveTo(-R*.65,-R*.52);ctx.lineTo(-R*.14,-R*.36);ctx.moveTo(R*.65,-R*.52);ctx.lineTo(R*.14,-R*.36);ctx.stroke();
+      } else if (g.id==='patrol'){
+        ctx.strokeStyle='#30205d';ctx.lineWidth=1.3/scale;
+        ctx.beginPath();ctx.moveTo(-R*.72,-R*.37);ctx.lineTo(-R*.08,-R*.32);ctx.moveTo(R*.72,-R*.37);ctx.lineTo(R*.08,-R*.32);ctx.stroke();
+      }
+    }
+  }
   ctx.restore();
 }
 
@@ -3750,6 +4317,7 @@ function drawPhaseBar(){
 
 /* ---------- main loop ---------- */
 let lastT = performance.now();
+let visualFrameDt = 1/60;
 /* 一帧要做的事全在这儿，loop 只负责算 dt 和排下一帧。
  *
  * 抽出来是为了让测试能跑**同一份代码**。之前测试里手抄了一份一模一样的
@@ -3757,6 +4325,9 @@ let lastT = performance.now();
  * 同样的坑连着踩了三次（syncChrome、键盘作用域、死亡定格），根子都是
  * "测试验的不是真实路径"。共用一个函数，这类假绿就不可能再发生。 */
 function stepFrame(dt){
+  visualFrameDt = Math.max(0,Math.min(0.05,dt));
+  const wasPlaying = gameState === 'playing';
+  const hadDeathFlash = deathFlash > 0;
   if (gameState==='playing'){
     // 关卡卡片期间整局冻住：不跑 update，elapsed 就不走，幽灵、恐惧倒计时、
     // 复活计时全部停在原地。玩家有个空拍看清这是哪一关。
@@ -3766,7 +4337,10 @@ function stepFrame(dt){
   }
   // 红闪自己走，不受定格影响 —— 它就是用来填这段定格的
   if (deathFlash > 0) deathFlash -= dt;
-  render();
+  if (wasPlaying || gameState==='playing' || hadDeathFlash || deathFlash>0 || staticFrameDirty){
+    render();
+    staticFrameDirty = false;
+  }
 }
 
 function loop(t){
@@ -3795,7 +4369,7 @@ requestAnimationFrame(loop);
     get player(){ return player; },
     get ghosts(){ return ghosts; },
     MAX_LEVEL,
-    requestDir, togglePause, fullNewGame, render, update, Audio2,
+    requestDir, togglePause, fullNewGame, render, update, Audio2, releaseCaches,
     renderScoreboard, loadScores, recordScore, renameScore, cleanName,
     // 玩法说明的开关。小游戏的 game.js 会调它们来响应「?」和「知道了」——
     // 漏导出的话点下去就是 undefined is not a function，游戏直接崩。
@@ -3807,8 +4381,6 @@ requestAnimationFrame(loop);
     // 挂的那些 click 监听在垫片上根本不会触发），所以点中之后要能直接调进来。
     // maxLevelReached 一起导出：哪几关解锁了只有逻辑层知道。
     startPractice, maxLevelReached,
-    // 内存告警时外壳调它把可重建的缓存放掉
-    releaseCaches,
   };
 }
 

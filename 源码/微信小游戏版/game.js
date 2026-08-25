@@ -1,4 +1,4 @@
-/* 豆豆迷宫 — 微信小游戏入口
+/* Neon Maze · 豆豆 — 微信小游戏入口
  *
  * 启动顺序是有讲究的，顺序错了就是一片黑屏而且没有任何提示：
  *   0. 先把"能把错误画到屏幕上"这件事准备好 —— 见下方引导段。
@@ -45,13 +45,13 @@ sctx.scale(DPR, DPR);
 /* 立刻铺一层底色。从这里到第一帧之间要走完 require(core.js)（130KB）、装垫片、
    createGame —— 低端机上是几百毫秒，这期间画布是透明的，玩家看到的是一闪的
    黑。先涂成游戏自己的深紫，那一下就不明显了。一行的事。 */
-sctx.fillStyle = '#0a0612';
+sctx.fillStyle = '#020218';
 sctx.fillRect(0, 0, W, H);
 
 /** 把错误直接写在屏幕上，拍张照就能知道是哪一句崩的。 */
 function paintError(err, where){
   try {
-    sctx.fillStyle = '#0a0612';
+    sctx.fillStyle = '#020218';
     sctx.fillRect(0, 0, W, H);
     sctx.fillStyle = '#ff4d6d';
     sctx.font = 'bold 16px sans-serif';
@@ -82,7 +82,7 @@ function fatal(err, where){
   if (crashed) return;      // 只认第一个错，后面的多半是它的连锁反应
   crashed = true;
   paintError(err, where);
-  try { console.error('[豆豆迷宫] ' + where, err); } catch (e) {}
+  try { console.error('[Neon Maze] ' + where, err); } catch (e) {}
 }
 
 // 兜住任何漏网的异步异常（游戏自己那条 rAF 循环里的异常也走这里）
@@ -477,7 +477,7 @@ try {
    能放的是烟花贴图和调色板缓存，两样都会在下次需要时自动重建。 */
 try {
   wx.onMemoryWarning && wx.onMemoryWarning((res) => {
-    console.warn('[豆豆迷宫] 内存告警 level=' + (res && res.level));
+    console.warn('[Neon Maze] 内存告警 level=' + (res && res.level));
     if (game && game.releaseCaches) game.releaseCaches();
     if (wx.triggerGC) wx.triggerGC();
   });
@@ -506,14 +506,14 @@ try {
 
 /** 分享文案带上当前成绩 —— 光一个游戏名没什么点开的理由，"我打了多少分"才有。 */
 function shareContent(){
-  let title = '豆豆迷宫 — 连吃 · 闪避 · 穿越';
+  let title = 'Neon Maze · 豆豆 — 收集 · 强化 · 智取';
   let onResult = false;
   try {
     const score = Number(el('scoreVal').textContent) || 0;
     onResult = !el('overOverlay').classList.contains('hidden');
     const won = onResult && el('overTitle').textContent.indexOf('通关') >= 0;
     if (won)            title = `我通关了全 6 关，${score} 分！你能吗？`;
-    else if (score > 0) title = `我在豆豆迷宫拿了 ${score} 分，来比比？`;
+    else if (score > 0) title = `我在 Neon Maze 拿了 ${score} 分，来比比？`;
   } catch (e) { /* 取不到就用默认文案 */ }
   /* 分享出去带上挑战：对方打开就看到「你 向他挑战 多少分」，打完还会被告知
      超没超过。网页版一直有这个玩法（那边靠 URL 查询串），小游戏这边此前
@@ -533,7 +533,7 @@ function shareContent(){
      可能是一张暂停页、一张开始页，甚至是死掉的瞬间。分享是这游戏唯一的传播
      途径，那张图就是第一印象，不该交给运气。
      500×400 是微信建议的 5:4。 */
-  return { title, query, imageUrl: 'images/share.jpg' };
+  return { title, query, imageUrl: 'images/share-neon.jpg' };
 }
 
 try { wx.onShareAppMessage && wx.onShareAppMessage(shareContent); } catch (e) {}

@@ -12,13 +12,15 @@
  */
 
 const PALETTE = {
-  '--void': '#0a0612', '--void-deep': '#050308',
-  '--panel': '#130b26', '--panel-border': '#2f2058',
-  '--wall': '#8a6bff', '--wall-core': '#4b2fce',
-  '--amber': '#ffcf5c', '--amber-glow': 'rgba(255,207,92,.55)',
-  '--danger': '#ff4d6d', '--pink': '#ff8fd0', '--tang': '#ffa552',
-  '--cyan': '#5be3ff', '--text': '#ece7fb', '--text-dim': '#9c8fc9',
-  '--mega': '#ffffff',
+  '--void': '#060624', '--void-deep': '#010119',
+  '--panel': '#090a27', '--panel-border': '#343b70',
+  '--wall': '#7b35ef', '--wall-core': '#351096', '--wall-hi': '#d39aff', '--wall-cyan': '#168cff',
+  '--amber': '#ffd447', '--amber-glow': 'rgba(255,212,71,.55)',
+  '--danger': '#ff5277', '--pink': '#ff5eae', '--tang': '#ff9f43',
+  '--cyan': '#31e7ff', '--lime': '#8cdf3f', '--lantern': '#35e3d1',
+  '--doze': '#a7ecff', '--phase': '#55e8ff',
+  '--text': '#f7f4ff', '--text-dim': '#9ca2c7', '--mega': '#ffffff',
+  '--font-display': 'sans-serif',
 };
 
 class ClassList {

@@ -1,5 +1,5 @@
 {
-  "description": "豆豆迷宫 — 微信小游戏版",
+  "description": "Neon Maze · 豆豆 — 微信小游戏版",
   "packOptions": {
     "ignore": [
       {
@@ -41,7 +41,7 @@
   "compileType": "game",
   "libVersion": "2.20.0",
   "appid": "",
-  "projectname": "豆豆迷宫",
+  "projectname": "Neon Maze · 豆豆",
   "simulatorType": "wan",
   "condition": {},
   "simulatorPluginLibVersion": {},

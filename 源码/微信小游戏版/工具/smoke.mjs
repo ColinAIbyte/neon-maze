@@ -8,6 +8,10 @@
 import { fileURLToPath } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 
+const shareImage = fileURLToPath(new URL('../images/share-neon.jpg', import.meta.url));
+if (!existsSync(shareImage)) throw new Error('缺少原创分享封面 images/share-neon.jpg');
+if (readFileSync(shareImage).byteLength < 10_000) throw new Error('分享封面文件异常：小于 10KB');
+
 // ---- 假 canvas ----
 const noop = () => {};
 function fakeCtx(){
@@ -397,9 +401,9 @@ try {
 
   if (新玩家.indexOf(line) < 0 || 老玩家.indexOf(line) < 0)
     throw new Error('welcomeLine 的内容没画到开始页上 —— 欢迎语这根线没接');
-  if (新玩家.indexOf('手指滑动屏幕') < 0)
+  if (新玩家.indexOf('手指在迷宫上滑动转向') < 0)
     throw new Error('新玩家看不到操作说明了');
-  if (老玩家.indexOf('手指滑动屏幕') >= 0)
+  if (老玩家.indexOf('手指在迷宫上滑动转向') >= 0)
     throw new Error('有纪录的老玩家还在看操作说明，网页版这行该收起来');
   if (老玩家.indexOf('吃豆连击叠加倍率') >= 0)
     throw new Error('开始页还留着写死的那两行说明');
@@ -791,7 +795,7 @@ try {
   if (el('pauseOverlay').classList.contains('hidden'))
     throw new Error('关掉关于页后没有露出暂停页，玩家会看到一个静止的棋盘不知道该点哪');
 
-  ok('关于《豆豆迷宫》（入口热区 ' + Math.round(start.about.w) + 'x' + Math.round(start.about.h)
+  ok('关于 Neon Maze（入口热区 ' + Math.round(start.about.w) + 'x' + Math.round(start.about.h)
      + '，不与按钮重叠 / 独占屏幕 / 玩到一半打开会暂停，关掉停在暂停页不自动继续）');
 } catch(e){
   fail('关于这个游戏', e);

@@ -42,8 +42,13 @@ if (/drawCharacterSprite\('player'/.test(draw))
   fail.push('玩家又退回正面静态贴图，四方向转身会看不出来');
 if (/drawCharacterSprite\('player',\s*38\)/.test(draw))
   fail.push('旧的 38px 大头像又回来了');
-if (!/updateDoudouFacing\(\)/.test(draw) || !/drawDirectionalDoudouFace\(facing,joy\)/.test(draw))
+if (!/updateDoudouFacing\(\)/.test(draw) || !/drawDirectionalDoudouFace\(facing,joy,powered\)/.test(draw))
   fail.push('豆豆没有使用四方向脸型或 120ms 转身状态');
+if (!/const\s+powered\s*=\s*frightTimer\s*>\s*0/.test(draw)
+    || !/const\s+body\s*=\s*powered\s*\?\s*cssVar\(['"]--amber['"]\)/.test(draw))
+  fail.push('吃到能量星后豆豆没有整只切换成金色能量形态');
+if (!/drawDoudouPowerAura\(powered,powerAura\)/.test(draw))
+  fail.push('能量星的金色状态环丢了，前后状态会不够醒目');
 if (!/drawDoudouTurnSwoosh\(turning\)/.test(draw))
   fail.push('豆豆转身的短弧提示丢了，高速转弯会不够醒目');
 if (!/gaitPhase\s*=\s*player\.distTravelled/.test(draw))

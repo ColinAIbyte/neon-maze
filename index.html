@@ -5908,14 +5908,16 @@ function updateDoudouFacing(){
   return player.visualFacing;
 }
 
-/* 尾焰永远拖在身后，是四方向最醒目的不对称标记。 */
-function drawDoudouTail(facing){
+/* 尾焰永远拖在身后，是四方向最醒目的不对称标记。能量星期间尾焰也一起
+   变成金色，避免只有身体中央换色、移动时仍被读成普通形态。 */
+function drawDoudouTail(facing,powered){
   const f = DOUDOU_FACING[facing] || DOUDOU_FACING.down;
   const bx=-f.x*8.1, by=-f.y*7.1+1.2;
   const sx=-f.y, sy=f.x;
   ctx.save();
   ctx.globalAlpha*=.9;
-  ctx.fillStyle='#86ffe2';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=5;
+  ctx.fillStyle=powered?'#fff0a2':'#86ffe2';
+  ctx.shadowColor=powered?cssVar('--amber-hot'):cssVar('--cyan');ctx.shadowBlur=5;
   ctx.beginPath();
   ctx.moveTo(bx+sx*2.1,by+sy*2.1);
   ctx.quadraticCurveTo(bx-f.x*5.4,by-f.y*5.4,bx-sx*1.6,by-sy*1.6);
@@ -5924,9 +5926,10 @@ function drawDoudouTail(facing){
   ctx.restore();
 }
 
-function drawDoudouDiamond(x,y,size){
+function drawDoudouDiamond(x,y,size,powered){
   ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);
-  ctx.fillStyle='#e9ffff';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=5;
+  ctx.fillStyle=powered?'#fff9db':'#e9ffff';
+  ctx.shadowColor=powered?cssVar('--amber-hot'):cssVar('--cyan');ctx.shadowBlur=5;
   ctx.fillRect(-size/2,-size/2,size,size);ctx.restore();
 }
 
@@ -5935,19 +5938,20 @@ function fillDoudouOval(x,y,rx,ry){
   ctx.beginPath();ctx.arc(0,0,ry,0,Math.PI*2);ctx.fill();ctx.restore();
 }
 
-/* 正面、背面和侧面不是同一张脸平移：这样一转弯，玩家不用看尾迹也知道朝向。 */
-function drawDirectionalDoudouFace(facing, joy){
+/* 正面、背面和侧面不是同一张脸平移：这样一转弯，玩家不用看尾迹也知道朝向。
+   powered 会把背影和侧脸的青色块同步换成金色，四个方向都不会漏回普通配色。 */
+function drawDirectionalDoudouFace(facing, joy, powered){
   ctx.save();ctx.shadowBlur=0;
   if (facing==='up'){
-    ctx.fillStyle='#157c86';
+    ctx.fillStyle=powered?'#d7781d':'#157c86';
     fillDoudouOval(0,-.4,5.6,6.6);
-    ctx.strokeStyle='#9fffea';ctx.lineWidth=.85;ctx.lineCap='round';
+    ctx.strokeStyle=powered?'#fff1a6':'#9fffea';ctx.lineWidth=.85;ctx.lineCap='round';
     ctx.beginPath();ctx.arc(0,-.3,4.1,.15*Math.PI,.85*Math.PI);ctx.stroke();
-    drawDoudouDiamond(0,2.2,2.6);
+    drawDoudouDiamond(0,2.2,2.6,powered);
   } else if (facing==='left' || facing==='right'){
     const side=facing==='right'?1:-1;
     /* 向前突出的脸和单眼让左右转向一眼可读；另一只眼被身体挡住。 */
-    ctx.fillStyle='#45d9c7';
+    ctx.fillStyle=powered?'#ffc933':'#45d9c7';
     ctx.beginPath();ctx.arc(side*7.2,-.2,2.5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#07152b';fillDoudouOval(side*3.1,-2.1,1.8,2.25);
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(side*3.65,-2.75,.55,0,Math.PI*2);ctx.fill();
@@ -5959,7 +5963,7 @@ function drawDirectionalDoudouFace(facing, joy){
     if (joy>.28) ctx.arc(side*6.7,1.7,1.45,side>0?.55*Math.PI:-.45*Math.PI,side>0?1.45*Math.PI:.45*Math.PI);
     else {ctx.moveTo(side*5.9,1.7);ctx.lineTo(side*7.5,1.55);}
     ctx.stroke();
-    drawDoudouDiamond(-side*1.4,4.9,2.15);
+    drawDoudouDiamond(-side*1.4,4.9,2.15,powered);
   } else {
     [[-3.45,-2.05],[3.45,-2.05]].forEach(([x,y])=>{
       ctx.fillStyle='#07152b';fillDoudouOval(x,y,1.65,2.05);
@@ -5975,7 +5979,7 @@ function drawDirectionalDoudouFace(facing, joy){
       ctx.strokeStyle='#123449';ctx.lineWidth=1.15;ctx.lineCap='round';
       ctx.beginPath();ctx.arc(0,1.2,2.0,.15*Math.PI,.85*Math.PI);ctx.stroke();
     }
-    drawDoudouDiamond(0,5.1,2.5);
+    drawDoudouDiamond(0,5.1,2.5,powered);
   }
   ctx.restore();
 }
@@ -6003,9 +6007,28 @@ function drawDoudouTurnSwoosh(turning){
   ctx.restore();
 }
 
+/* 大星星不能只改变敌人：豆豆自身先出现一圈紧致金光，配合整只角色换成金色。
+   最后 1.8 秒只让这圈光柔和呼吸，不用频闪，也不扩大角色的碰撞视觉。 */
+function drawDoudouPowerAura(powered,powerAura){
+  if (!powered) return;
+  const gold=cssVar('--amber');
+  ctx.save();
+  ctx.globalAlpha*=.48+.34*powerAura;
+  ctx.strokeStyle=gold;ctx.shadowColor=gold;ctx.shadowBlur=5;
+  ctx.lineWidth=1.15;
+  ctx.beginPath();ctx.arc(0,0,11.7,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#fff4ad';ctx.shadowBlur=3;
+  [[0,-11.8],[11.8,0],[0,11.8],[-11.8,0]].forEach(([x,y])=>{
+    ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);
+    ctx.fillRect(-.75,-.75,1.5,1.5);ctx.restore();
+  });
+  ctx.restore();
+}
+
 function drawPlayer(){
   const cxp = player.x*TILE+TILE/2, cyp = player.y*TILE+TILE/2;
   const moving = player.dir.x||player.dir.y;
+  const powered = frightTimer > 0;
 
   // Momentum has to be legible, or a silent speed change just reads as the
   // controls being inconsistent. The trail lengthens and the glow tightens as
@@ -6013,7 +6036,7 @@ function drawPlayer(){
   const wind = (momentumMult() - 1) / (MOMENTUM_MAX - 1); // 0..1
   if (wind > 0.15 && player.trail && player.trail.length){
     ctx.save();
-    const col = player.phase>0 ? cssVar('--phase') : cssVar('--amber');
+    const col = player.phase>0 ? cssVar('--phase') : powered ? '#fff1a0' : cssVar('--amber');
     player.trail.forEach((p, i)=>{
       const k = (i + 1) / player.trail.length;      // oldest -> newest
       ctx.globalAlpha = (0.04 + k * 0.14) * wind;
@@ -6050,7 +6073,10 @@ function drawPlayer(){
   const leanTarget = player.dir.x*PLAYER_LEAN_RAD;
   if (!Number.isFinite(player.visualLean)) player.visualLean=0;
   player.visualLean += (leanTarget-player.visualLean) * (1-Math.exp(-visualFrameDt*14));
-  const body = player.phase>0 ? cssVar('--phase') : cssVar('--lantern');
+  /* 能量星的金色优先级最高；若同时拥有相位能力，外层青色状态环仍会保留。 */
+  const body = powered ? cssVar('--amber') : player.phase>0 ? cssVar('--phase') : cssVar('--lantern');
+  const powerEnding = powered && frightTimer < 1.8;
+  const powerAura = powerEnding ? pulse(GHOST_WARNING_HZ,.35) : 1;
   const facing = updateDoudouFacing();
   const turning = player.visualTurnT < 1 ? Math.sin(player.visualTurnT*Math.PI) : 0;
   ctx.save();
@@ -6064,9 +6090,10 @@ function drawPlayer(){
                   : 1;
 
   /* 手脚先画在身体后面，轮廓不超过半格，碰撞判定不变。 */
+  drawDoudouPowerAura(powered,powerAura);
   drawDoudouTurnSwoosh(turning);
-  drawDoudouTail(facing);
-  ctx.fillStyle='#168f96';
+  drawDoudouTail(facing,powered);
+  ctx.fillStyle=powered?'#d97920':'#168f96';
   ctx.beginPath();ctx.arc(-6.1,7.7,2.7,0,Math.PI*2);ctx.arc(6.1,7.7,2.7,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=body;
   ctx.beginPath();ctx.arc(-9.1,1.5,2.35,0,Math.PI*2);ctx.arc(9.1,1.5,2.35,0,Math.PI*2);ctx.fill();
@@ -6079,17 +6106,17 @@ function drawPlayer(){
   ctx.bezierCurveTo(-5.3,9.3,-8.9,7.4,-9.2,1.2);
   ctx.bezierCurveTo(-9.5,-4.9,-6.4,-9.2,0,-9.1);
   ctx.fill();
-  ctx.shadowBlur=0;ctx.strokeStyle='rgba(207,255,247,.72)';ctx.lineWidth=.72;
+  ctx.shadowBlur=0;ctx.strokeStyle=powered?'rgba(255,249,215,.96)':'rgba(207,255,247,.72)';ctx.lineWidth=.72;
   ctx.stroke();
 
   /* 三片能量芽是 Doudou 的剪影识别点。 */
-  ctx.shadowBlur=5;ctx.fillStyle='#78f3bc';
+  ctx.shadowBlur=5;ctx.fillStyle=powered?'#fff0a0':'#78f3bc';
   [[0,-10.1,1.7,3.1,0],[-3,-9.4,1.55,2.7,-.65],[3,-9.4,1.55,2.7,.65]].forEach(([x,y,rx,ry,a])=>{
     ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(rx/ry,1);
     ctx.beginPath();ctx.arc(0,0,ry,0,Math.PI*2);ctx.fill();ctx.restore();
   });
 
-  drawDirectionalDoudouFace(facing,joy);
+  drawDirectionalDoudouFace(facing,joy,powered);
   if (player.phase>0 || invuln>0){
     ctx.globalAlpha=.82;
     ctx.strokeStyle=player.phase>0?cssVar('--phase'):cssVar('--amber');

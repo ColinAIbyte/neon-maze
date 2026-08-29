@@ -19,6 +19,7 @@ const lean = num('PLAYER_LEAN_RAD');
 const turn = num('PLAYER_TURN_SECONDS');
 const threat = num('ENEMY_THREAT_TILES');
 const threatBase = num('ENEMY_THREAT_BASE');
+const enemySize = num('ENEMY_SPRITE_SIZE');
 
 if (Number.isFinite(size) && (size < 28 || size > 30))
   fail.push(`豆豆图框是 ${size}px；应保持 28~30px，旧版 38px 会跨出 ${tile}px 通道`);
@@ -36,6 +37,8 @@ if (Number.isFinite(threat) && (threat < 3.5 || threat > 5))
   fail.push(`敌人追猎表情从 ${threat} 格开始；应保持 3.5~5 格的近距离压力`);
 if (Number.isFinite(threatBase) && (threatBase < 0.3 || threatBase > 0.5))
   fail.push(`敌人基础凶相 ${threatBase}；追击时应始终可见，再由距离增强`);
+if (Number.isFinite(enemySize) && (enemySize < 36 || enemySize > 40))
+  fail.push(`恶魔图框是 ${enemySize}px；应保持 36~40px，既看清犄角又不能严重遮住通道`);
 
 const draw = src.slice(src.indexOf('function drawPlayer(){'), src.indexOf('function drawGhost(g){'));
 if (/drawCharacterSprite\('player'/.test(draw))
@@ -62,15 +65,20 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
   fail.push('吃豆的小能量点反馈丢了');
 
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
-const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size){'), src.indexOf('function fitMazeCanvas(){'));
-if (!/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite) || !/id!==['"]player['"]/.test(sprite))
-  fail.push('小尺寸怪物图集没有二次提亮，暗部会重新融进迷宫背景');
-if (!/drawEnemyReadabilityRim\(g,edibleVisual\?color:null,scale\)/.test(enemies))
-  fail.push('怪物的小尺寸分段轮廓光丢了');
+const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size'), src.indexOf('function fitMazeCanvas(){'));
+if (!src.includes("assets/neon-demons-v1.png") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
+  fail.push('四只霓虹恶魔的 2×2 图集没有接入');
+if (/\.arc\(0,0,size\*\.53[\s\S]{0,40}?\.clip\(\)/.test(sprite))
+  fail.push('恶魔仍被旧的圆形裁切限制，角、翼或尾巴会被切掉');
+if (!/CHARACTER_DRAW\[id\]/.test(sprite) || !/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite))
+  fail.push('恶魔的小尺寸比例校准或轻量提亮丢了');
+if (!/visualMode===['"]doze['"]/.test(sprite) || !/visualMode===['"]warning['"]/.test(sprite)
+    || !/drawCharacterSprite\(g\.id,ENEMY_SPRITE_SIZE,spriteMode\)/.test(enemies))
+  fail.push('能量星没有让整只恶魔进入冰蓝/白色可反击形态');
 if (!/drawEnemyThreatFace\(g,threat,scale\)/.test(enemies))
-  fail.push('敌人接近玩家时没有叠加压眉、尖牙追猎表情');
+  fail.push('恶魔接近玩家时没有追击锁定框');
 if (!/drawEnemyThreatAura\(g,threat,scale\)/.test(enemies))
-  fail.push('追击敌人的红色尖刺剪影丢了');
+  fail.push('追击恶魔的方向尾流丢了');
 if (!/g\.state!==['"]chase['"]/.test(enemies) || !/frightTimer>0/.test(enemies))
   fail.push('追猎表情没有限制在正常追击状态，可能在可反击时仍显得凶');
 
@@ -86,4 +94,4 @@ if (fail.length){
 }
 
 console.log(`玩家视觉：${size}px 图框 / ${tile}px 通道，吃豆 ${chomp}s，步态每 ${gait} 格一轮。`);
-console.log(`动作上限：上跳 ${hop}px，倾斜 ${lean}rad，转身 ${turn}s；敌人基础凶相 ${threatBase}，${threat} 格内继续增强。`);
+console.log(`动作上限：上跳 ${hop}px，倾斜 ${lean}rad，转身 ${turn}s；${enemySize}px 恶魔，基础凶相 ${threatBase}，${threat} 格内继续增强。`);

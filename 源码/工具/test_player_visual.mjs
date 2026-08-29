@@ -62,6 +62,11 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
   fail.push('吃豆的小能量点反馈丢了');
 
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
+const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size){'), src.indexOf('function fitMazeCanvas(){'));
+if (!/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite) || !/id!==['"]player['"]/.test(sprite))
+  fail.push('小尺寸怪物图集没有二次提亮，暗部会重新融进迷宫背景');
+if (!/drawEnemyReadabilityRim\(g,edibleVisual\?color:null,scale\)/.test(enemies))
+  fail.push('怪物的小尺寸分段轮廓光丢了');
 if (!/drawEnemyThreatFace\(g,threat,scale\)/.test(enemies))
   fail.push('敌人接近玩家时没有叠加压眉、尖牙追猎表情');
 if (!/drawEnemyThreatAura\(g,threat,scale\)/.test(enemies))

@@ -59,7 +59,7 @@ const assets = [
   'doudou-hero.png',
   'neon-logo-v2.jpg',
   'neon-space-bg-v2.jpg',
-  'neon-enemies-v3.png',
+  'neon-characters-v2.jpg',
 ];
 for (const name of assets){
   copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);

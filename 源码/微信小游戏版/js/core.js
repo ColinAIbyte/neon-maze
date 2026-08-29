@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: f7c61c9ce4f1   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 4a85887be082   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -252,32 +252,32 @@ if (typeof Image === 'function'){
   characterAtlas = new Image();
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
-  characterAtlas.src = 'assets/neon-characters-v2.jpg';
+  characterAtlas.src = 'assets/neon-enemies-v3.png';
 }
 const CHARACTER_CELL = {
-  player:[0,0], chaser:[1,0], ambush:[2,0], shy:[0,1], patrol:[1,1]
+  chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
 };
-/* 图集原图在大尺寸下很亮，但压到迷宫里的 30px 左右后，暗部会被深色背景吃掉。
-   同一张图再以低透明度走一次 screen，能抬起角色本身的中间调，同时黑色底仍接近
-   透明；比给整只怪物套一团大光晕清楚，也不会把通道照糊。 */
-const ENEMY_SPRITE_BRIGHT_PASS_ALPHA = .36;
+/* 新图集四格的轮廓比例不同：巡逻兽横向有翼，不能再被圆形 clip 截掉。这里保持
+   逻辑中心和碰撞体不变，只针对源图留白校准最终可见尺寸。 */
+const CHARACTER_DRAW = {
+  chaser:{w:1,h:1}, ambush:{w:1.04,h:1.04}, shy:{w:.98,h:.98}, patrol:{w:1.08,h:1.24}
+};
+const ENEMY_SPRITE_BRIGHT_PASS_ALPHA = .14;
 
 function drawCharacterSprite(id,size){
   if (!characterAtlasReady || !characterAtlas || !CHARACTER_CELL[id]) return false;
   const cell=CHARACTER_CELL[id];
-  const aw=characterAtlas.naturalWidth||characterAtlas.width||1536;
-  const ah=characterAtlas.naturalHeight||characterAtlas.height||1024;
-  const sw=aw/3,sh=ah/2;
+  const fit=CHARACTER_DRAW[id] || {w:1,h:1};
+  const aw=characterAtlas.naturalWidth||characterAtlas.width||1254;
+  const ah=characterAtlas.naturalHeight||characterAtlas.height||1254;
+  const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
-  ctx.beginPath();ctx.arc(0,0,size*.53,0,Math.PI*2);ctx.clip();
-  /* 图集是深蓝背景 JPG。screen 会把接近黑的底色变成视觉中性，
-     只把高饱和角色留在迷宫上，避免移动时带着一块黑色圆盘挡住豆子。 */
+  /* 图集是纯黑背景；screen 让黑色在迷宫上视觉消失，同时保留角、腿、刺和翅膀。 */
   ctx.globalCompositeOperation='screen';
-  ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-size/2,-size/2,size,size);
-  if (id!=='player'){
-    ctx.globalAlpha=ENEMY_SPRITE_BRIGHT_PASS_ALPHA;
-    ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-size/2,-size/2,size,size);
-  }
+  ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-dw/2,-dh/2,dw,dh);
+  /* 很轻的第二遍只补偿 30px 缩小时丢掉的中间调；新素材本身够亮，不能再过曝。 */
+  ctx.globalAlpha=ENEMY_SPRITE_BRIGHT_PASS_ALPHA;
+  ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-dw/2,-dh/2,dw,dh);
   ctx.restore();
   return true;
 }
@@ -4251,85 +4251,43 @@ function enemyThreatLevel(g){
   return ENEMY_THREAT_BASE+(1-ENEMY_THREAT_BASE)*near;
 }
 
-/* 小尺寸角色不能只靠原画里的细轮廓。两段亮弧留出左右缺口，所以读起来是轮廓光，
-   不是把每只怪物关进圆泡泡；右上角的小高光还能在紫色怪物上标出头部边界。 */
-const ENEMY_RIM_COLORS = {
-  chaser:'#ff9ab1', ambush:'#ffd06f', shy:'#c5ff72', patrol:'#d5a6ff'
-};
-function drawEnemyReadabilityRim(g,color,scale){
-  const rim=color || ENEMY_RIM_COLORS[g.id] || '#ffffff';
-  ctx.save();
-  ctx.globalAlpha=.82;
-  ctx.strokeStyle=rim;ctx.shadowColor=rim;ctx.shadowBlur=4.5;
-  ctx.lineWidth=1.15/scale;ctx.lineCap='round';
-  ctx.beginPath();
-  ctx.arc(0,0,15.7,-.88*Math.PI,-.12*Math.PI);
-  ctx.arc(0,0,15.7,.12*Math.PI,.88*Math.PI);
-  ctx.stroke();
-  ctx.globalAlpha=.62;ctx.strokeStyle='#fff9ed';ctx.shadowBlur=1.5;
-  ctx.lineWidth=.72/scale;
-  ctx.beginPath();ctx.arc(0,0,14.8,-.72*Math.PI,-.39*Math.PI);ctx.stroke();
-  ctx.restore();
-}
-
-/* 追击状态先用尖锐背光改变剪影，再画角色本体。红刺只露出几像素，不会把怪物
-   画得像占满通道，也不会让玩家误判碰撞范围。 */
+/* 新怪物已经各有尖角轮廓，追击态不再额外套一顶同形红刺。三道短尾流画在运动
+   反方向，只表达“它正在扑来”，不盖住角色本体。 */
 function drawEnemyThreatAura(g,threat,scale){
   if (threat<=0) return;
   const hot=cssVar('--danger');
-  const spike=2.2+threat*2.4;
+  let dx=g.dir.x||0,dy=g.dir.y||0;
+  if (!dx&&!dy) dy=1;
+  const sx=-dy,sy=dx;
   ctx.save();
-  ctx.globalAlpha=.20+threat*.30;
-  ctx.fillStyle=hot;ctx.shadowColor=hot;ctx.shadowBlur=4+threat*6;
+  ctx.globalAlpha=.22+threat*.28;
+  ctx.strokeStyle=hot;ctx.shadowColor=hot;ctx.shadowBlur=3+threat*5;
+  ctx.lineWidth=1.15/scale;ctx.lineCap='round';
   ctx.beginPath();
-  [[-8.2,-10.7,-1],[-3.8,-13.1,-.35],[0,-13.8,0],[3.8,-13.1,.35],[8.2,-10.7,1]].forEach(([x,y,lean])=>{
-    ctx.moveTo(x-2.15,y+1.4);
-    ctx.lineTo(x+lean*1.4,y-spike-(Math.abs(x)<1?1.5:0));
-    ctx.lineTo(x+2.15,y+1.4);
+  [-1,0,1].forEach((lane)=>{
+    const off=lane*4.2;
+    ctx.moveTo(-dx*9+sx*off,-dy*9+sy*off);
+    ctx.lineTo(-dx*(14+threat*3)+sx*off*.82,-dy*(14+threat*3)+sy*off*.82);
   });
-  /* 两侧短刺让圆形敌人也有进攻方向，但总宽度仍小于一格。 */
-  ctx.moveTo(-12.2,-5.2);ctx.lineTo(-15.1-spike*.35,-3.2);ctx.lineTo(-12.1,-.8);
-  ctx.moveTo(12.2,-5.2);ctx.lineTo(15.1+spike*.35,-3.2);ctx.lineTo(12.1,-.8);
-  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
-/* 越靠近豆豆，眉眼越压低、嘴越张开。只叠表情与一圈紧光，
-   不放大碰撞体，也不把整张迷宫染红。 */
+/* 四张新脸已经自带眼睛、牙齿和表情，追击时只在轮廓外叠四角准星。任何通用
+   眉眼都会破坏独眼、装甲和电翼各自的脸型，所以绝不再覆盖角色内部。 */
 function drawEnemyThreatFace(g,threat,scale){
   if (threat<=0) return;
   const hot=cssVar('--danger');
   ctx.save();
-  ctx.globalAlpha=.52+threat*.48;
-  ctx.strokeStyle='#16020b';ctx.shadowColor='rgba(255,245,232,.78)';ctx.shadowBlur=1.5;
-  ctx.lineWidth=(1.45+threat*.75)/scale;ctx.lineCap='round';
-  if (g.id==='chaser'){
-    ctx.beginPath();ctx.moveTo(-5.4,-6.1);ctx.lineTo(0,-4.4);ctx.lineTo(5.4,-6.1);ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(-6.8,-6.2);ctx.lineTo(-1.6,-4.4);
-    ctx.moveTo(6.8,-6.2);ctx.lineTo(1.6,-4.4);ctx.stroke();
-  }
-  /* 红色锁定瞳孔让“它正在盯我”先于距离被读到。 */
-  ctx.shadowBlur=0;ctx.fillStyle='#fff7e7';
-  const pupils=g.id==='chaser'?[0]:[-3.6,3.6];
-  pupils.forEach(x=>{ctx.beginPath();ctx.arc(x,-1.7,1.35+threat*.2,0,Math.PI*2);ctx.fill();});
-  ctx.fillStyle=hot;ctx.shadowColor=hot;ctx.shadowBlur=3+threat*4;
-  pupils.forEach(x=>{ctx.beginPath();ctx.arc(x,-1.7,.72+threat*.28,0,Math.PI*2);ctx.fill();});
-  /* 深色咬合口 + 两颗白牙；距离越近张得越大。 */
-  const open=1.7+threat*3.2;
-  ctx.shadowBlur=0;ctx.fillStyle='#1c020b';
-  ctx.beginPath();ctx.moveTo(-5.8,2.5);ctx.quadraticCurveTo(0,2.5+open,5.8,2.5);
-  ctx.quadraticCurveTo(0,6.4+open,-5.8,2.5);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=hot;ctx.lineWidth=.72/scale;ctx.globalAlpha=.7+threat*.3;ctx.stroke();
-  ctx.fillStyle='#fff4df';
-  [-2.35,2.35].forEach(x=>{
-    ctx.beginPath();ctx.moveTo(x-1.25,2.9);ctx.lineTo(x+1.25,2.9);
-    ctx.lineTo(x,6.0+threat*1.35);ctx.closePath();ctx.fill();
-  });
-  ctx.strokeStyle=hot;ctx.globalAlpha=.22+threat*.36;ctx.lineWidth=1/scale;
+  const lock=15.1+threat*1.5,arm=3.4;
+  ctx.strokeStyle=hot;ctx.globalAlpha=.30+threat*.40;ctx.lineWidth=1/scale;
+  ctx.lineCap='round';
   ctx.shadowColor=hot;ctx.shadowBlur=4+threat*6;
-  ctx.beginPath();ctx.arc(0,0,15.4+threat*1.4,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();
+  [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([x,y])=>{
+    ctx.moveTo(x*lock,y*(lock-arm));ctx.lineTo(x*lock,y*lock);ctx.lineTo(x*(lock-arm),y*lock);
+  });
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -4395,7 +4353,6 @@ function drawGhost(g){
         ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
       });
     }
-    drawEnemyReadabilityRim(g,edibleVisual?color:null,scale);
     if (g.isFusionHost){
       ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.4/scale;
       ctx.beginPath();ctx.arc(0,0,17.2,0,Math.PI*2);ctx.stroke();

@@ -11,7 +11,7 @@ const assets = [
   'doudou-hero.png',
   'neon-logo-v2.jpg',
   'neon-space-bg-v2.jpg',
-  'neon-characters-v2.jpg',
+  'neon-enemies-v3.png',
 ];
 
 const fragment = readFileSync(fragmentUrl, 'utf8');

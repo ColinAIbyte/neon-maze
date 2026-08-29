@@ -63,12 +63,14 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
 
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
 const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size){'), src.indexOf('function fitMazeCanvas(){'));
-if (!/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite) || !/id!==['"]player['"]/.test(sprite))
-  fail.push('小尺寸怪物图集没有二次提亮，暗部会重新融进迷宫背景');
-if (!/drawEnemyReadabilityRim\(g,edibleVisual\?color:null,scale\)/.test(enemies))
-  fail.push('怪物的小尺寸分段轮廓光丢了');
+if (!src.includes("assets/neon-enemies-v3.png") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
+  fail.push('四只全新怪物的 2×2 图集没有接入');
+if (/\.arc\(0,0,size\*\.53[\s\S]{0,40}?\.clip\(\)/.test(sprite))
+  fail.push('新怪物仍被旧的圆形裁切限制，角、刺或翅膀会被切掉');
+if (!/CHARACTER_DRAW\[id\]/.test(sprite) || !/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite))
+  fail.push('新怪物的小尺寸比例校准或轻量提亮丢了');
 if (!/drawEnemyThreatFace\(g,threat,scale\)/.test(enemies))
-  fail.push('敌人接近玩家时没有叠加压眉、尖牙追猎表情');
+  fail.push('敌人接近玩家时没有叠加锁定瞳孔和追击准星');
 if (!/drawEnemyThreatAura\(g,threat,scale\)/.test(enemies))
   fail.push('追击敌人的红色尖刺剪影丢了');
 if (!/g\.state!==['"]chase['"]/.test(enemies) || !/frightTimer>0/.test(enemies))

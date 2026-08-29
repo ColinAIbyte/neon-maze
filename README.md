@@ -39,7 +39,7 @@ assets/
   doudou-hero.png          豆豆展示主视觉
   neon-logo-v2.jpg         Neon Maze 双行霓虹 Logo
   neon-space-bg-v2.jpg     深色宇宙背景
-  neon-characters-v2.jpg   豆豆与四位对手角色图集
+  neon-enemies-v3.png      四位原创对手的 2×2 高亮角色图集
 源码/
   pacman_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
   工具/                    构建、地图校验、回归测试、自动试玩

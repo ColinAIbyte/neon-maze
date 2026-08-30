@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: c30bd8d79c45   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 293475967143   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -258,8 +258,8 @@ if (makeCharacterImage){
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
   characterAtlas.src = IS_WECHAT_MINIGAME
-    ? 'images/neon-stalkers-contrast-v4.webp'
-    : 'assets/neon-stalkers-contrast-v4.webp';
+    ? 'images/neon-stalkers-harmony-v5.webp'
+    : 'assets/neon-stalkers-harmony-v5.webp';
 }
 const CHARACTER_CELL = {
   chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
@@ -281,7 +281,7 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   const ah=characterAtlas.naturalHeight||characterAtlas.height||256;
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
-  /* contrast-v4 是透明底的高对比硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
+  /* harmony-v5 是透明底的协调高对比硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
      被浏览器抹成一团；第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
      可反击时整张贴图统一变成冰蓝/白色；即使小程序端不支持 filter，下面仍会画
      睡眠光罩和叉眼，所以状态不会只靠颜色传达。 */
@@ -528,24 +528,24 @@ const HOUSE_DOOR = {x:9, y:8};
 const HOUSE_EXIT_TILE = {x:9, y:7};
 
 const GHOST_DEFS = [
-  {id:'chaser',  color:'--danger', label:'闪闪'},
-  {id:'ambush',  color:'--tang',   label:'狐狐'},
-  {id:'shy',     color:'--lime',   label:'软软'},
-  {id:'patrol',  color:'--cyan',   label:'慢慢'},
+  {id:'chaser',  color:'--cyan',   label:'闪闪'},
+  {id:'ambush',  color:'--danger', label:'狐狐'},
+  {id:'shy',     color:'--tang',   label:'软软'},
+  {id:'patrol',  color:'--pink',   label:'慢慢'},
 ];
 
 // 5th ghost, joins from level 2 on: a second chaser. Same id so every
 // id-keyed lookup (targeting AI, color) treats it exactly like the first,
 // but flagged `flank` so it aims beside the player instead of at them.
-const EXTRA_CHASER_DEF = {id:'chaser', color:'--danger', label:'闪闪', flank:true};
+const EXTRA_CHASER_DEF = {id:'chaser', color:'--cyan', label:'闪闪', flank:true};
 const FLANK_OFFSET_TILES = 4;
 
 // 6th ghost (level 3+): an ambusher that reads much further ahead, so it cuts
 // you off well before the regular ambusher would.
-const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--tang', label:'狐狐', lookahead:7};
+const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--danger', label:'狐狐', lookahead:7};
 // 7th ghost (final level only): a patroller running the loop backwards, so the
 // two patrollers sweep opposite halves instead of trailing each other.
-const EXTRA_PATROL_DEF = {id:'patrol', color:'--cyan', label:'慢慢', reverseRoute:true};
+const EXTRA_PATROL_DEF = {id:'patrol', color:'--pink', label:'慢慢', reverseRoute:true};
 
 /** Roster grows with the level: 4 -> 5 (L2) -> 6 (L3) -> 7 (final). */
 function ghostDefsForLevel(lvl){

@@ -72,9 +72,9 @@ Eat all the pellets to clear the maze.**
 - **Portals, dashes and wall-phasing** — paired portals at the corners, a speed boost
   for running straight, and a fruit that lets you walk through walls.
   **传送门 · 冲刺 · 穿墙** —— 四角成对的传送门，直线越跑越快，神秘水果让你穿墙。
-- **Four high-contrast stalkers** — light coral, vivid orange, electric green and
-  cyan blue stay readable against the dark maze.
-  **四色高对比追猎怪** —— 浅红、亮橙、荧光绿和亮蓝，在深色迷宫里依然醒目。
+- **Four high-contrast stalkers** — vivid cyan, light coral, warm orange and candy pink
+  stay readable against the dark maze.
+  **四色高对比追猎怪** —— 青蓝、浅珊瑚红、暖橙和糖果粉，在深色迷宫里依然醒目。
 - **Six levels, six mazes** — plus a practice mode, so you never have to restart from
   level one.
   **六关六张地图** —— 外加练习模式，不必每次都从第一关重来。

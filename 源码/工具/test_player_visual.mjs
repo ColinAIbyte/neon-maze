@@ -66,11 +66,11 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
 
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
 const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size'), src.indexOf('function fitMazeCanvas(){'));
-if (!src.includes("assets/neon-demons-pixel-v2.webp") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
-  fail.push('四只大眼像素怪物的 2×2 图集没有接入');
+if (!src.includes("assets/neon-stalkers-organic-v3.webp") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
+  fail.push('四只异形大眼追猎怪的 2×2 图集没有接入');
 if (!/ambush:\{w:1,h:1\}/.test(src) || /ambush:\{w:1\.22/.test(src))
   fail.push('拦拦仍被横向放大，30px 图框也会重新挤进墙体');
-if (!/wx\.createImage\(\)/.test(src) || !/images\/neon-demons-pixel-v2\.webp/.test(src))
+if (!/wx\.createImage\(\)/.test(src) || !/images\/neon-stalkers-organic-v3\.webp/.test(src))
   fail.push('微信小游戏没有使用本地 images/ 恶魔图集');
 if (!/imageSmoothingEnabled=false/.test(sprite) || !/globalCompositeOperation='source-over'/.test(sprite))
   fail.push('像素怪物没有关闭平滑或保留黑色粗轮廓，30px 下会重新发糊');

@@ -109,7 +109,7 @@ function stepToward(sx,sy,from,tx,ty){
 function dangerSet(radius){
   const s=new Set();
   for(const gh of g.ghosts){
-    if(gh.state==='eaten'||gh.state==='house'||gh.state==='fused-hidden') continue;
+    if(gh.state==='eaten'||gh.state==='house') continue;
     if(g.frightTimer>0) continue;
     const gx=Math.round(gh.x), gy=Math.round(gh.y);
     if(!walkable(gx,gy)) continue;
@@ -138,7 +138,7 @@ function policy(){
     if(g.frightTimer>0.6){
       let bg=null,bd=Infinity;
       for(const gh of g.ghosts){
-        if(gh.state==='eaten'||gh.state==='house'||gh.state==='fused-hidden') continue;
+        if(gh.state==='eaten'||gh.state==='house') continue;
         const gx=Math.round(gh.x),gy=Math.round(gh.y);
         if(gy<0||gy>=ROWS||gx<0||gx>=COLS) continue;
         if(dist[gy][gx]>=0&&dist[gy][gx]<bd){bd=dist[gy][gx];bg=[gx,gy];}

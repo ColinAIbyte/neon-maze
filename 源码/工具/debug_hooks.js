@@ -47,16 +47,8 @@ window.__dbg = {
     }
     return { 剩余小豆: dots.length - Math.max(0, dots.length-n), pelletsLeft };
   },
-  snap(){ return ghosts.map(g=>({id:g.id, st:g.state, host:!!g.isFusionHost, linked:!!g.fusedWith})); },
+  snap(){ return ghosts.map(g=>({id:g.id, st:g.state, x:+g.x.toFixed(2), y:+g.y.toFixed(2)})); },
   power(){ startPowerMode(); },
-  forceFuse(){ const f=ghosts.filter(g=>g.state==='frightened'&&!g.fusedWith); if(f.length<2) return 'need 2';
-               f[1].x=f[0].x; f[1].y=f[0].y; handleFusion(); return 'fused'; },
-  eatHost(){ const h=ghosts.find(g=>g.isFusionHost); if(!h) return 'no host';
-             player.x=h.x; player.y=h.y; handleGhostCollisions(); return 'ate host'; },
-  eatPartner(){ const p=ghosts.find(g=>g.fusedWith&&!g.isFusionHost); if(!p) return 'no partner';
-                player.x=p.x; player.y=p.y; handleGhostCollisions(); return 'ate partner'; },
-  movePartner(x,y){ const p=ghosts.find(g=>g.fusedWith&&!g.isFusionHost); if(!p) return 'no partner';
-                    p.x=x; p.y=y; return 'moved'; },
   endFright(){ endPowerMode(); },
   put(x,y,ph){ player.x=x; player.y=y; player.phase=ph; player.dir={x:0,y:0}; player.want={x:0,y:0};
                return tileAt(x,y); },
@@ -82,7 +74,7 @@ window.__dbg = {
       px:player.x, py:player.y, phase:player.phase,
       fright: frightTimer, lives, level, score, pelletsLeft,
       combo,
-      ghosts: ghosts.filter(g=>g.state!=='fused-hidden').map(g=>({
+      ghosts: ghosts.map(g=>({
         x:g.x, y:g.y, st:g.state, edible: frightTimer>0 && g.state!=='eaten' && g.state!=='house',
       })),
     };

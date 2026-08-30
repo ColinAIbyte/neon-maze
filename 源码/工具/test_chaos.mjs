@@ -53,7 +53,7 @@ const {createGame}=await import(mp);
 const g=createGame(shim.env); const el=shim.el;
 
 const VALID_STATE = new Set(['ready','playing','paused','over']);
-const VALID_GHOST = new Set(['chase','scatter','frightened','eaten','house','exiting','fused-hidden']);
+const VALID_GHOST = new Set(['chase','scatter','frightened','eaten','house','exiting']);
 const dirs=['left','right','up','down'];
 const problems=[];
 const seen=new Set();

@@ -72,7 +72,7 @@ for(let L=1;L<=6;L++){
         const span=Math.max(Math.max(...xs)-Math.min(...xs), Math.max(...ys)-Math.min(...ys));
         const states=[...new Set(hist[i].map(p=>p.s))];
         // 'house' 是设计好的停留，不算卡住
-        if(span<RADIUS && !states.includes('house') && !states.includes('fused-hidden')){
+        if(span<RADIUS && !states.includes('house')){
           findings.push(`第${L}关 ${(t/60).toFixed(0)}s 幽灵#${i}(${gh.id}) 状态[${states}] 8秒只动了 ${span.toFixed(2)} 格 @(${gh.x.toFixed(1)},${gh.y.toFixed(1)})`);
           hist[i].length=0;
         }

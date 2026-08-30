@@ -59,7 +59,7 @@ const assets = [
   'doudou-hero.webp',
   'neon-logo-v2.webp',
   'neon-space-bg-v2.webp',
-  'neon-stalkers-organic-v3.webp',
+  'neon-stalkers-contrast-v4.webp',
 ];
 for (const name of assets){
   copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);

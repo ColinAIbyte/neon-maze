@@ -1421,7 +1421,7 @@ body::before{
 .enemy-roster{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .enemy-thumb{
   display:block;width:38px;height:38px;justify-self:center;border-radius:10px;
-  background-image:url('assets/neon-stalkers-organic-v3.webp');
+  background-image:url('assets/neon-stalkers-contrast-v4.webp');
   background-size:200% 200%;background-repeat:no-repeat;background-color:#000;
   border:1px solid rgba(255,255,255,.22);
   box-shadow:0 0 12px color-mix(in srgb,currentColor 52%,transparent);
@@ -1723,7 +1723,7 @@ body::before{
             <dt>移动</dt><dd>手机在迷宫上<b>滑动</b>　电脑<b>方向键 / WASD</b></dd>
             <dt>吃豆</dt><dd>吃光豆子就过关；<b>连着吃</b>，倍率越叠越高</dd>
             <dt>躲开敌人</dt><dd>碰到少一条命；收集<b>能量星</b>就能反过来吃它们</dd>
-            <dt>还有</dt><dd>传送门 · 冲刺 · 穿墙 · 能量融合
+            <dt>还有</dt><dd>传送门 · 冲刺 · 穿墙
               <br><span class="dim">不用背，玩着就会</span></dd>
           </dl>
         </div>
@@ -1746,7 +1746,7 @@ body::before{
               <li><i style="color:var(--danger);background:var(--danger)"></i><b>闪闪</b>　锁定你的位置直接追踪</li>
               <li><i style="color:var(--tang);background:var(--tang)"></i><b>狐狐</b>　预判你的去向，提前拦截</li>
               <li><i style="color:var(--lime);background:var(--lime)"></i><b>软软</b>　你一靠近它就跑</li>
-              <li><i style="color:var(--wall);background:var(--wall)"></i><b>慢慢</b>　沿固定路线循环巡逻</li>
+              <li><i style="color:var(--cyan);background:var(--cyan)"></i><b>慢慢</b>　沿固定路线循环巡逻</li>
             </ul>
           </div>
           <div class="help-sec">
@@ -1756,7 +1756,6 @@ body::before{
               <dt>传送门</dt><dd>地图四角成对，颜色相同的两个互通</dd>
               <dt>冲刺</dt><dd>直线一直跑会越跑越快，一转弯就归零</dd>
               <dt>相位晶石</dt><dd>十秒之内可以穿墙走</dd>
-              <dt>能量融合</dt><dd>两只晕晕的敌人相撞会合成「超级能量体」</dd>
             </dl>
           </div>
           <div class="help-sec">
@@ -1780,7 +1779,6 @@ body::before{
               <dt>冲刺</dt><dd>直线连走 5 格提速到 <b>1.22 倍</b></dd>
               <dt>传送门</dt><dd>冷却 <b>0 秒</b>，落地会停一下等你选方向</dd>
               <dt>穿墙</dt><dd><b>10 秒</b>；期间移动放慢，转向随按随到</dd>
-              <dt>能量融合</dt><dd>吃掉超级能量体会放出里面那只，两只各算一档悬赏</dd>
               <dt>连击倍率</dt><dd>所有吃到的东西都乘这个倍率（敌人悬赏除外）</dd>
             </dl>
           </div>
@@ -2111,8 +2109,8 @@ if (makeCharacterImage){
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
   characterAtlas.src = IS_WECHAT_MINIGAME
-    ? 'images/neon-stalkers-organic-v3.webp'
-    : 'assets/neon-stalkers-organic-v3.webp';
+    ? 'images/neon-stalkers-contrast-v4.webp'
+    : 'assets/neon-stalkers-contrast-v4.webp';
 }
 const CHARACTER_CELL = {
   chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
@@ -2134,7 +2132,7 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   const ah=characterAtlas.naturalHeight||characterAtlas.height||256;
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
-  /* organic-v3 是透明底的硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
+  /* contrast-v4 是透明底的高对比硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
      被浏览器抹成一团；第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
      可反击时整张贴图统一变成冰蓝/白色；即使小程序端不支持 filter，下面仍会画
      睡眠光罩和叉眼，所以状态不会只靠颜色传达。 */
@@ -2384,7 +2382,7 @@ const GHOST_DEFS = [
   {id:'chaser',  color:'--danger', label:'闪闪'},
   {id:'ambush',  color:'--tang',   label:'狐狐'},
   {id:'shy',     color:'--lime',   label:'软软'},
-  {id:'patrol',  color:'--wall',   label:'慢慢'},
+  {id:'patrol',  color:'--cyan',   label:'慢慢'},
 ];
 
 // 5th ghost, joins from level 2 on: a second chaser. Same id so every
@@ -2398,7 +2396,7 @@ const FLANK_OFFSET_TILES = 4;
 const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--tang', label:'狐狐', lookahead:7};
 // 7th ghost (final level only): a patroller running the loop backwards, so the
 // two patrollers sweep opposite halves instead of trailing each other.
-const EXTRA_PATROL_DEF = {id:'patrol', color:'--wall', label:'慢慢', reverseRoute:true};
+const EXTRA_PATROL_DEF = {id:'patrol', color:'--cyan', label:'慢慢', reverseRoute:true};
 
 /** Roster grows with the level: 4 -> 5 (L2) -> 6 (L3) -> 7 (final). */
 function ghostDefsForLevel(lvl){
@@ -2410,6 +2408,13 @@ function ghostDefsForLevel(lvl){
 }
 const PATROL_ROUTE = [{x:2,y:2},{x:16,y:2},{x:16,y:18},{x:2,y:18}];
 const PATROL_ROUTE_REV = PATROL_ROUTE.slice().reverse();
+/* 老巢只有一个出口。四只同时出发会在门口排成同一个像素团，看起来像又发生了
+   一个色团。低关慢速时需要更大的时间差，高关速度快、数量多则缩短；换算成实际
+   路程始终约 1.5～2 格，只改变开局队形，不改 AI、碰撞范围或最高速度。 */
+const GHOST_RELEASE_GAP_BY_LEVEL = [0.90,0.75,0.65,0.55,0.45,0.40];
+function ghostReleaseGap(){
+  return GHOST_RELEASE_GAP_BY_LEVEL[level-1] || GHOST_RELEASE_GAP_BY_LEVEL[MAX_LEVEL-1];
+}
 
 /* 调色板全程不变，所以查一次就存下来。
  *
@@ -2536,7 +2541,6 @@ const Audio2 = (()=>{
         tone(f/2, t + i*0.07, 0.26, { type:'sine', gain:0.08 });
       });
     },
-    fusion(){ const t=now(); tone(160,t,0.5,{type:'sawtooth',gain:0.13,slideTo:60,slideDur:0.5}); tone(320,t+0.05,0.45,{type:'sawtooth',gain:0.1,slideTo:120,slideDur:0.45}); },
     warp(){ const t=now(); tone(300,t,0.22,{type:'sine',gain:0.14,slideTo:1200,slideDur:0.22}); },
     fruit(){ const t=now();
       // 吃到水果先"嗡"一下再叮 —— 那一声低频是"规则变了"的信号
@@ -2618,14 +2622,12 @@ function resetLevel(fullReset){
     x: SPAWN.ghosts[i].x, y: SPAWN.ghosts[i].y,
     dir:{x:0,y:-1},
     baseSpeed: ghostSpeed, speed: ghostSpeed,
-    // every ghost leaves home immediately — no staggered release. They still
-    // file out one at a time because the house has a single door.
-    state: 'exiting',
-    releaseAt: 0,
+    // 单门依次放行，避免同速敌人在出口永久叠成一团。
+    state: i===0 ? 'exiting' : 'house',
+    releaseAt: i * ghostReleaseGap(),
     warpCd:0, warpCdCh:null, warpStandingOn:null,
     eatenThisFright:false,   // 这一轮能量豆里已经被吃过一次，见 isEdible
     homeY:null,               // 走回老巢后停下的位置，见 'eaten' 分支
-    fusedWith:null, isFusionHost:false,
     routeIdx:0, wobble:Math.random()*Math.PI*2,
   }));
   fruit = { active:false, x:9, y:13, timer:0, nextAt: 60, path:0 };
@@ -3764,15 +3766,8 @@ function frightSeconds(){
 function startPowerMode(){
   frightTimer = frightSeconds();
   ghosts.forEach(g=>{
-    // A ghost already heading home stays 'eaten'. 'fused-hidden' must be left
-    // alone too: it is not a ghost on the board but one absorbed INTO a super
-    // ghost, and reviving it here pops it back out while both halves are still
-    // bonded. From there the pair desynchronises — the freed half can be eaten
-    // on its own, yet the host still points at it, so unfusing later drags the
-    // eaten ghost back to life on top of the player. Eating a second power
-    // pellet during a fusion is common enough that this was a routine unfair
-    // death, and it looks exactly like the fright timer failing.
-    if (g.state!=='house' && g.state!=='eaten' && g.state!=='fused-hidden'){
+    // 已被吃掉、正在回家的敌人保持 eaten；其余场上敌人统一进入可反击状态。
+    if (g.state!=='house' && g.state!=='eaten'){
       if (g.state!=='frightened') g.dir = opposite(g.dir);
       g.state = 'frightened';
     }
@@ -3785,7 +3780,7 @@ function startPowerMode(){
 function endPowerMode(){
   frightTimer = 0;
   ghosts.forEach(g=>{
-    if (g.state==='frightened'){ g.state='chase'; unfuseNow(g); }
+    if (g.state==='frightened') g.state='chase';
     g.eatenThisFright = false;
   });
   applySpeedModifiers();
@@ -3854,7 +3849,7 @@ function applySpeedModifiers(){
     * (powered ? FRIGHT_PLAYER_SPEED_MULT : 1)
     * (phasing ? FRUIT_PHASE_SPEED_MULT : momentumMult());
   ghosts.forEach(g=>{
-    g.speed = g.baseSpeed * (powered ? FRIGHT_GHOST_SPEED_MULT : 1) * (g.isFusionHost ? 1.15 : 1) * mercySpeedMult;
+    g.speed = g.baseSpeed * (powered ? FRIGHT_GHOST_SPEED_MULT : 1) * mercySpeedMult;
   });
 }
 
@@ -3888,7 +3883,7 @@ function isEdible(g){
 
 function handleGhostCollisions(){
   for (const g of ghosts){
-    if (g.state==='house' || g.state==='eaten' || g.state==='fused-hidden') continue;
+    if (g.state==='house' || g.state==='eaten') continue;
     const cdx = g.x-player.x, cdy = g.y-player.y;
     if (cdx*cdx + cdy*cdy >= 0.3025) continue;   // 0.55 格，平方比较不开根号
 
@@ -3904,13 +3899,11 @@ function handleGhostCollisions(){
       /* 悬赏本身不乘连击（要保住"整万"这个招牌数字），但这一口**必须续上连击**
          ——追幽灵是全场最难的操作，不该反过来砸掉自己的倍率。见 sustainCombo。 */
       sustainCombo();
-      const wasHost = g.isFusionHost;
-      unfuseNow(g); // release the partner before the host leaves play
       g.state='eaten';
       g.eatenThisFright = true;   // 这轮不能再吃第二次，见 isEdible
       ghostsEatenThisRun++;       // 结算页要报这一局吃了几只
       applySpeedModifiers();
-      toast((wasHost?'超级能量体! +':'反击! +') + fmtNum(pts));
+      toast('反击! +' + fmtNum(pts));
       /* 悬赏是阶梯式的，可玩家第一次只看到"+10,000"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
@@ -3935,54 +3928,6 @@ function handleGhostCollisions(){
       return;
     }
   }
-}
-
-/* ---------- fusion mechanic ---------- */
-function handleFusion(){
-  const fr = ghosts.filter(g=>g.state==='frightened' && !g.fusedWith);
-  for (let i=0;i<fr.length;i++) for (let j=i+1;j<fr.length;j++){
-    const a=fr[i], b=fr[j];
-    const fdx = a.x-b.x, fdy = a.y-b.y;
-    if (fdx*fdx + fdy*fdy < 0.25){   // 0.5 格，平方比较不开根号
-      a.fusedWith = b; b.fusedWith = a; a.isFusionHost = true;
-      b.state = 'fused-hidden';
-      frightTimer += 2; // fusing buys the player a little extra hunting time
-      applySpeedModifiers();
-      /* 融合是这游戏最有记忆点的一幕，但**不能为了动画停顿**。
-         记一个时间戳，让 drawGhost 在接下来半秒里自己放大、闪一下白光；
-         游戏一帧都不停，孩子却看得见"咦，它俩合体了"。 */
-      a.fuseFlashUntil = elapsed + 0.5;
-      toast('能量融合！超级能量体出现');
-      Audio2.fusion();
-      return;
-    }
-  }
-}
-
-/**
- * Splits a fused pair immediately, wherever it is in its lifecycle. Must be
- * called before a fusion host leaves play (eaten / fright ending), otherwise
- * its partner is stranded in 'fused-hidden' forever — invisible, untouchable,
- * and still counted as a live ghost.
- */
-function unfuseNow(g){
-  if (!g.isFusionHost) return;
-  const partner = g.fusedWith;
-  g.isFusionHost = false;
-  g.fusedWith = null;
-  if (partner){
-    const wasHidden = partner.state === 'fused-hidden';
-    partner.fusedWith = null;
-    // Only a ghost that was genuinely absorbed gets placed and revived. Anything
-    // else has a life of its own by now — an 'eaten' partner is walking home and
-    // must keep doing that. Reviving it would teleport it onto the player and
-    // turn a ghost they already ate back into a killer.
-    if (wasHidden){
-      partner.x = g.x; partner.y = g.y;
-      partner.state = frightTimer > 0 ? 'frightened' : 'chase';
-    }
-  }
-  applySpeedModifiers();
 }
 
 /* ---------- life / level ---------- */
@@ -4037,8 +3982,10 @@ function loseLife(){
   frightTimer = 0; // dying cancels the power pellet outright
   ghostEatChain = 0;
   ghosts.forEach((g,i)=>{
-    g.x=SPAWN.ghosts[i].x; g.y=SPAWN.ghosts[i].y; g.state='exiting';
-    g.fusedWith=null; g.isFusionHost=false; g.warpCd=0; g.warpCdCh=null; g.warpStandingOn=null; g.releaseAt = 0;
+    g.x=SPAWN.ghosts[i].x; g.y=SPAWN.ghosts[i].y;
+    g.state=i===0?'exiting':'house';
+    g.warpCd=0; g.warpCdCh=null; g.warpStandingOn=null;
+    g.releaseAt = elapsed + i * ghostReleaseGap();
     // 上面 frightTimer 已经清零，这两个是配套的每局状态，一起归位：
     // homeY 留着会让下次进巢停在上一条命的位置，eatenThisFright 留着会让
     // 新一轮能量豆里有幽灵莫名其妙吃不了。
@@ -5604,7 +5551,6 @@ function update(dt){
       }
       return;
     }
-    if (g.state==='fused-hidden') return;
     /* 兜底：没有方向、又不在格子正中的幽灵是**动不了**的——stepEntity 只在正中
        重新选方向，其余时候没方向就直接 break，于是永远僵在那里。
        上面出巢那处已经堵掉了已知的来源，这里再兜一道：这种"幽灵定住不动"的
@@ -5615,7 +5561,6 @@ function update(dt){
     stepEntity(g, dt, chooseGhostDir, checkPortal);
   });
 
-  handleFusion();
   handleGhostCollisions();
   updateFruit(dt);
   maybeSpawnFruit();
@@ -6160,7 +6105,6 @@ function drawEnemyThreatFace(g,threat,scale){
 }
 
 function drawGhost(g){
-  if (g.state==='fused-hidden') return;
   const cxp = g.x*TILE+TILE/2, cyp = g.y*TILE+TILE/2;
   /* 颜色在 spawn 时就从 GHOST_DEFS 铺到了 g.color 上，cssVar 自己也有缓存 ——
      不再需要每帧 GHOST_DEFS.find 一次。 */
@@ -6179,25 +6123,7 @@ function drawGhost(g){
     color = ending ? '#ffffff' : cssVar('--doze');
     dozing = !ending;
   }
-  /* 刚合体那半秒：先"胀"一下再落回，外面套一圈向外扩散的白光环。
-     半秒之内演完，游戏一帧都不停 —— 为一个动画卡住节奏不值得，何况这时候
-     玩家正在能量豆的倒计时里，每一秒都在算账。 */
-  const fusing = g.fuseFlashUntil && elapsed < g.fuseFlashUntil;
-  let pop = 1;
-  if (fusing){
-    const k = (g.fuseFlashUntil - elapsed) / 0.5;      // 1 -> 0
-    pop = 1 + Math.sin(k * Math.PI) * 0.45;
-    ctx.save();
-    ctx.globalAlpha = k * 0.75;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 18;
-    ctx.beginPath();
-    ctx.arc(cxp, cyp, TILE*0.5 + (1-k)*TILE*1.5, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
-  }
-  const scale = (g.isFusionHost ? 1.5 : 1) * pop;
+  const scale = 1;
   const threat = eyesOnly || edibleVisual ? 0 : enemyThreatLevel(g);
   ctx.save();
   ctx.translate(cxp,cyp);
@@ -6222,17 +6148,13 @@ function drawGhost(g){
         ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
       });
     }
-    if (g.isFusionHost){
-      ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.4/scale;
-      ctx.beginPath();ctx.arc(0,0,17.2,0,Math.PI*2);ctx.stroke();
-    }
     drawEnemyThreatFace(g,threat,scale);
     ctx.restore();
     return;
   }
   if (!eyesOnly){
     ctx.fillStyle = color;
-    ctx.shadowColor = color; ctx.shadowBlur = g.isFusionHost?18:10;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
     /* 四种 AI 不只换颜色，轮廓也能一眼认出。这里只是表现层，id 和 AI 状态机完全不动。 */
     if (g.id==='chaser'){
       /* 闪闪：圆润独眼能量兽 + 天线。 */
@@ -6268,11 +6190,6 @@ function drawGhost(g){
         ctx.quadraticCurveTo(xm,i%2===0?R*.95:R*.56,x1,R*.55);
       }
       ctx.closePath();ctx.fill();
-    }
-    if (g.isFusionHost){
-      ctx.shadowBlur=0;
-      ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(0,-2,r*0.7,0,Math.PI*2); ctx.stroke();
     }
   }
   ctx.shadowBlur=0;

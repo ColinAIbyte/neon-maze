@@ -52,7 +52,7 @@ for(let L=1;L<=6;L++){
   while(t<600 && g.frightTimer>0){
     let tgt=null, bd=1e9;
     for(const gh of g.ghosts){
-      if(gh.state==='eaten'||gh.state==='house'||gh.state==='exiting'||gh.state==='fused-hidden') continue;
+      if(gh.state==='eaten'||gh.state==='house'||gh.state==='exiting') continue;
       const d=Math.hypot(gh.x-g.player.x, gh.y-g.player.y);
       if(d<bd){bd=d;tgt=gh;}
     }

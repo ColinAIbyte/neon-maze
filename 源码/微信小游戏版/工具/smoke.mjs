@@ -185,8 +185,8 @@ try {
 } catch(e){ fail('入口 game.js 启动', e); process.exit(1); }
 
 try {
-  if (!imageSources.includes('images/neon-stalkers-organic-v3.webp'))
-    throw new Error('没有通过 wx.createImage() 加载 images/neon-stalkers-organic-v3.webp');
+  if (!imageSources.includes('images/neon-stalkers-contrast-v4.webp'))
+    throw new Error('没有通过 wx.createImage() 加载 images/neon-stalkers-contrast-v4.webp');
   ok('微信版加载与网页版相同的本地恶魔图集');
 } catch(e){ fail('微信恶魔图集', e); }
 
@@ -331,11 +331,10 @@ try {
   const bottom = draw(() => ui.drawOverlays(h.helpMaxScroll));
   /* 折行是把一句话切成几段画出去，字一个没少，所以**不加分隔**地拼回来
      就能还原原句，再去里面找。
-     锚点必须选**最后一行的正文**，而且要是全文只出现一次的那一句。第一版拿
-     「幽灵融合」当锚，它其实是左栏的词条、前面那节也有一个，永远看得见 ——
-     测试于是一直是绿的，把它想抓的 bug 整个放过去了。 */
+     锚点必须选**最后一行的正文**，而且要是全文只出现一次的那一句。这里用
+     参数表最后一项「连击倍率」的解释，确认最末尾没有被滚动高度截掉。 */
   const seen = rec.__rec.map(r => r.t).join('');
-  if (seen.indexOf('两只各算一档悬赏') < 0)
+  if (seen.indexOf('敌人悬赏除外') < 0)
     throw new Error('玩法说明滚到底，最后一行的正文仍然画不出来 —— '
                   + '总高算少了，末尾那截滚不到（maxScroll='
                   + bottom.helpMaxScroll.toFixed(0) + '）');

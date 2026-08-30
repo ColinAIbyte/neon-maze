@@ -185,8 +185,8 @@ try {
 } catch(e){ fail('入口 game.js 启动', e); process.exit(1); }
 
 try {
-  if (!imageSources.includes('images/neon-demons-v1.webp'))
-    throw new Error('没有通过 wx.createImage() 加载 images/neon-demons-v1.webp');
+  if (!imageSources.includes('images/neon-demons-pixel-v2.webp'))
+    throw new Error('没有通过 wx.createImage() 加载 images/neon-demons-pixel-v2.webp');
   ok('微信版加载与网页版相同的本地恶魔图集');
 } catch(e){ fail('微信恶魔图集', e); }
 

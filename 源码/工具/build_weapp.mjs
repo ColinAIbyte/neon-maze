@@ -11,12 +11,13 @@
 // 那一小片 DOM 补出来。改游戏只改网页版，跑一次这个脚本，小游戏版就跟上了。
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 
 const here = p => fileURLToPath(new URL(p, import.meta.url));
 /* 工程就在「源码/微信小游戏版」。旧路径多退了一层，会悄悄在仓库根目录
    新建另一份微信小游戏版，真正导入开发者工具的 core.js 反而一直不更新。 */
 const OUT_DIR = here('../微信小游戏版/js');
+const OUT_IMAGE_DIR = here('../微信小游戏版/images');
 const src = readFileSync(here('../pacman_fragment.html'), 'utf8');
 
 /* 用内容指纹而不是生成时间。
@@ -108,5 +109,8 @@ module.exports = { createGame };
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(`${OUT_DIR}/core.js`, out);
+mkdirSync(OUT_IMAGE_DIR, { recursive: true });
+copyFileSync(here('../../assets/neon-demons-v1.webp'), `${OUT_IMAGE_DIR}/neon-demons-v1.webp`);
 console.log(`已生成 微信小游戏版/js/core.js（${(out.length/1024).toFixed(0)} KB，${body.split('\n').length} 行逻辑）`);
+console.log('已同步 微信小游戏版/images/neon-demons-v1.webp（与网页版同一套恶魔美术）');
 console.log('提醒: 逻辑只在网页版维护，改完记得重跑本脚本。');

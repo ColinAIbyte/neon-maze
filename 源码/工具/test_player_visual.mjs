@@ -37,8 +37,8 @@ if (Number.isFinite(threat) && (threat < 3.5 || threat > 5))
   fail.push(`敌人追猎表情从 ${threat} 格开始；应保持 3.5~5 格的近距离压力`);
 if (Number.isFinite(threatBase) && (threatBase < 0.3 || threatBase > 0.5))
   fail.push(`敌人基础凶相 ${threatBase}；追击时应始终可见，再由距离增强`);
-if (Number.isFinite(enemySize) && (enemySize < 36 || enemySize > 40))
-  fail.push(`恶魔图框是 ${enemySize}px；应保持 36~40px，既看清犄角又不能严重遮住通道`);
+if (Number.isFinite(enemySize) && enemySize !== 30)
+  fail.push(`恶魔图框是 ${enemySize}px；必须保持 30px，避免跨出 ${tile}px 通道`);
 
 const draw = src.slice(src.indexOf('function drawPlayer(){'), src.indexOf('function drawGhost(g){'));
 if (/drawCharacterSprite\('player'/.test(draw))
@@ -66,8 +66,12 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
 
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
 const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size'), src.indexOf('function fitMazeCanvas(){'));
-if (!src.includes("assets/neon-demons-v1.png") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
+if (!src.includes("assets/neon-demons-v1.webp") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
   fail.push('四只霓虹恶魔的 2×2 图集没有接入');
+if (!/ambush:\{w:1,h:1\}/.test(src) || /ambush:\{w:1\.22/.test(src))
+  fail.push('拦拦仍被横向放大，30px 图框也会重新挤进墙体');
+if (!/wx\.createImage\(\)/.test(src) || !/images\/neon-demons-v1\.webp/.test(src))
+  fail.push('微信小游戏没有使用本地 images/ 恶魔图集');
 if (/\.arc\(0,0,size\*\.53[\s\S]{0,40}?\.clip\(\)/.test(sprite))
   fail.push('恶魔仍被旧的圆形裁切限制，角、翼或尾巴会被切掉');
 if (!/CHARACTER_DRAW\[id\]/.test(sprite) || !/ENEMY_SPRITE_BRIGHT_PASS_ALPHA/.test(sprite))

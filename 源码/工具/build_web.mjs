@@ -56,10 +56,10 @@ mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(`${OUT_DIR}/index.html`, html);
 mkdirSync(`${OUT_DIR}/assets`, { recursive: true });
 const assets = [
-  'doudou-hero.png',
-  'neon-logo-v2.jpg',
-  'neon-space-bg-v2.jpg',
-  'neon-demons-v1.png',
+  'doudou-hero.webp',
+  'neon-logo-v2.webp',
+  'neon-space-bg-v2.webp',
+  'neon-demons-v1.webp',
 ];
 for (const name of assets){
   copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);

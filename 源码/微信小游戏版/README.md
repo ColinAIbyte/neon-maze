@@ -52,6 +52,7 @@
     ui.js            HUD 和弹层的 canvas 绘制
     core.js          【自动生成，勿手改】游戏逻辑
   images/
+    neon-demons-v1.webp  与网页版共用的四只霓虹恶魔图集（构建时自动同步）
     share-neon.jpg  原创微信分享封面
   工具/
     smoke.mjs        无头冒烟测试

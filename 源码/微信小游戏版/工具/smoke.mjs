@@ -62,6 +62,7 @@ function fakeCanvas(w=300,h=150){
 
 // ---- 假 wx ----
 const store = new Map();
+const imageSources = [];
 let created = 0;
 globalThis.GameGlobal = globalThis;
 
@@ -94,6 +95,14 @@ globalThis.wx = {
   createCanvas: () => { created++; const cv = fakeCanvas(created===1?390:494, created===1?844:546);
                         if (created===1) globalThis.__screenCtx = cv.getContext();
                         return cv; },
+  createImage: () => {
+    const img = { width:256, height:256, naturalWidth:256, naturalHeight:256, onload:null };
+    Object.defineProperty(img, 'src', {
+      get(){ return img.__src || ''; },
+      set(v){ img.__src = String(v); imageSources.push(img.__src); },
+    });
+    return img;
+  },
   getSystemInfoSync: () => ({
     windowWidth:390, windowHeight:844, pixelRatio:3, statusBarHeight:47,
     safeArea:{ top:47, bottom:810, left:0, right:390, width:390, height:763 },
@@ -174,6 +183,12 @@ try {
   ({ shim, game, ui, el } = t);
   ok('入口 game.js 完整启动');
 } catch(e){ fail('入口 game.js 启动', e); process.exit(1); }
+
+try {
+  if (!imageSources.includes('images/neon-demons-v1.webp'))
+    throw new Error('没有通过 wx.createImage() 加载 images/neon-demons-v1.webp');
+  ok('微信版加载与网页版相同的本地恶魔图集');
+} catch(e){ fail('微信恶魔图集', e); }
 
 // 逻辑自启的那条 rAF 应该已经排队了
 try {

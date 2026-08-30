@@ -36,10 +36,10 @@
 index.html                 GitHub Pages 入口（构建产物）
 404.html                   静态站点错误页（构建产物）
 assets/
-  doudou-hero.png          豆豆展示主视觉
-  neon-logo-v2.jpg         Neon Maze 双行霓虹 Logo
-  neon-space-bg-v2.jpg     深色宇宙背景
-  neon-demons-v1.png       四只霓虹恶魔的 2×2 游戏图集
+  doudou-hero.webp         豆豆展示主视觉（512×512，桌面端按需加载）
+  neon-logo-v2.webp        Neon Maze 双行霓虹 Logo（380×380）
+  neon-space-bg-v2.webp    深色宇宙背景
+  neon-demons-v1.webp      四只霓虹恶魔的 2×2 游戏图集（256×256）
 源码/
   pacman_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
   工具/                    构建、地图校验、回归测试、自动试玩

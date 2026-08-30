@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 8ca3e0b8bb9b   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 77af112d238c   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -247,31 +247,38 @@ const ctx = canvas.getContext('2d');
 
 /* 敌人美术是一次加载、每帧 drawImage 的贴图；加载失败时下面仍保留完整的
    Canvas 矢量兜底。这样精细度不再依赖每帧堆 shadowBlur，弱机也更轻。 */
+const IS_WECHAT_MINIGAME =
+  typeof wx !== 'undefined' && typeof wx.createImage === 'function';
+const makeCharacterImage = IS_WECHAT_MINIGAME
+  ? ()=>wx.createImage()
+  : (typeof Image === 'function' ? ()=>new Image() : null);
 let characterAtlas = null, characterAtlasReady = false;
-if (typeof Image === 'function'){
-  characterAtlas = new Image();
+if (makeCharacterImage){
+  characterAtlas = makeCharacterImage();
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
-  characterAtlas.src = 'assets/neon-demons-v1.png';
+  characterAtlas.src = IS_WECHAT_MINIGAME
+    ? 'images/neon-demons-v1.webp'
+    : 'assets/neon-demons-v1.webp';
 }
 const CHARACTER_CELL = {
   chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
 };
-/* 四只恶魔的外轮廓差异很大。每格仍用同一高度，只有细长的诡计魔略微横向放宽，
-   让它缩到 30px 左右时脸和双臂不会细成一条线；碰撞体与 AI 坐标完全不变。 */
+/* 四格统一按 30px 图框绘制。旧版诡计魔额外放宽到 1.22 倍，视觉会跨进墙体；
+   这里把四只都收回同一通道尺度，碰撞体与 AI 坐标完全不变。 */
 const CHARACTER_DRAW = {
-  chaser:{w:1.05,h:1.05}, ambush:{w:1.22,h:1.05},
-  shy:{w:1.08,h:1.08}, patrol:{w:1.08,h:1.08}
+  chaser:{w:1,h:1}, ambush:{w:1,h:1},
+  shy:{w:1,h:1}, patrol:{w:1,h:1}
 };
-const ENEMY_SPRITE_SIZE = 38;
+const ENEMY_SPRITE_SIZE = 30;
 const ENEMY_SPRITE_BRIGHT_PASS_ALPHA = .26;
 
 function drawCharacterSprite(id,size,visualMode='normal'){
   if (!characterAtlasReady || !characterAtlas || !CHARACTER_CELL[id]) return false;
   const cell=CHARACTER_CELL[id];
   const fit=CHARACTER_DRAW[id] || {w:1,h:1};
-  const aw=characterAtlas.naturalWidth||characterAtlas.width||1254;
-  const ah=characterAtlas.naturalHeight||characterAtlas.height||1254;
+  const aw=characterAtlas.naturalWidth||characterAtlas.width||256;
+  const ah=characterAtlas.naturalHeight||characterAtlas.height||256;
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
   /* 图集底色是纯黑，screen 让背景在迷宫上自然消失，同时完整保留角、翼和尾巴。

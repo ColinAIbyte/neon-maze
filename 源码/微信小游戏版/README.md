@@ -52,7 +52,7 @@
     ui.js            HUD 和弹层的 canvas 绘制
     core.js          【自动生成，勿手改】游戏逻辑
   images/
-    neon-stalkers-smooth-v8.webp  与网页版共用的截图校色、圆润无尖刺、可爱小嘴异形大眼追猎怪图集（构建时自动同步）
+    neon-stalkers-tracking-eyes-v9.webp  与网页版共用的圆润留白眼球图集，黑瞳孔由游戏按方向实时绘制（构建时自动同步）
     share-neon.jpg  原创微信分享封面
   工具/
     smoke.mjs        无头冒烟测试

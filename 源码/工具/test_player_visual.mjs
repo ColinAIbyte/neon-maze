@@ -67,8 +67,8 @@ if (!/drawPlayerBiteSpark\(joy\)/.test(draw))
 const enemies = src.slice(src.indexOf('function enemyThreatLevel(g){'), src.indexOf('function render(){'));
 const sprite = src.slice(src.indexOf('function drawCharacterSprite(id,size'), src.indexOf('function fitMazeCanvas(){'));
 const ghostDefs = src.slice(src.indexOf('const GHOST_DEFS = ['), src.indexOf('function ghostDefsForLevel'));
-if (!src.includes("assets/neon-stalkers-smooth-v8.webp") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
-  fail.push('四只截图校色、圆润无尖刺、可爱小嘴异形大眼追猎怪的 2×2 图集没有接入');
+if (!src.includes("assets/neon-stalkers-tracking-eyes-v9.webp") || !/const\s+sw=aw\/2,sh=ah\/2/.test(sprite))
+  fail.push('四只留白眼球、圆润无尖刺的大眼追猎怪 2×2 图集没有接入');
 for (const [id,color] of [['chaser','--cyan'],['ambush','--danger'],['shy','--tang'],['patrol','--pink']]) {
   if (!new RegExp(`id:['"]${id}['"][^}]*color:['"]${color}['"]`).test(ghostDefs))
     fail.push(`${id} 的游戏提示色没有与新图集保持一致（应为 ${color}）`);
@@ -77,8 +77,16 @@ if (/color:['"]--lime['"]/.test(ghostDefs))
   fail.push('旧的荧光绿敌人提示色仍在角色定义中');
 if (!/ambush:\{w:1,h:1\}/.test(src) || /ambush:\{w:1\.22/.test(src))
   fail.push('拦拦仍被横向放大，30px 图框也会重新挤进墙体');
-if (!/wx\.createImage\(\)/.test(src) || !/images\/neon-stalkers-smooth-v8\.webp/.test(src))
+if (!/wx\.createImage\(\)/.test(src) || !/images\/neon-stalkers-tracking-eyes-v9\.webp/.test(src))
   fail.push('微信小游戏没有使用本地 images/ 恶魔图集');
+if (!/const\s+CHARACTER_EYES\s*=/.test(src) || !/function\s+drawCharacterTrackingEyes\(g,size,threat=0\)/.test(src))
+  fail.push('四种怪物各自的动态瞳孔锚点或绘制函数没有接入');
+if (!/targetX=moving\?g\.dir\.x/.test(src) || !/targetY=moving\?g\.dir\.y/.test(src) || !/Math\.exp\(-visualFrameDt\*15\)/.test(src))
+  fail.push('怪物黑瞳孔没有按移动方向平滑转向');
+if (!/fillStyle=['"]#05030f['"]/.test(src) || !/drawCharacterTrackingEyes\(g,ENEMY_SPRITE_SIZE,threat\)/.test(src))
+  fail.push('正常状态没有绘制清晰的大黑瞳孔');
+if (!/else\s*\{\s*drawCharacterTrackingEyes\(g,ENEMY_SPRITE_SIZE,threat\);\s*\}/.test(src))
+  fail.push('能量模式仍可能叠加正常黑瞳孔，叉眼状态会看不清');
 if (!/imageSmoothingEnabled=false/.test(sprite) || !/globalCompositeOperation='source-over'/.test(sprite))
   fail.push('像素怪物没有关闭平滑或保留黑色粗轮廓，30px 下会重新发糊');
 if (/fused-hidden|handleFusion|isFusionHost|fusedWith/.test(src))

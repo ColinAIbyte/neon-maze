@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 9921104f528f   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 5035b5140edc   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -258,8 +258,8 @@ if (makeCharacterImage){
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
   characterAtlas.src = IS_WECHAT_MINIGAME
-    ? 'images/neon-stalkers-smooth-v8.webp'
-    : 'assets/neon-stalkers-smooth-v8.webp';
+    ? 'images/neon-stalkers-tracking-eyes-v9.webp'
+    : 'assets/neon-stalkers-tracking-eyes-v9.webp';
 }
 const CHARACTER_CELL = {
   chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
@@ -273,6 +273,16 @@ const CHARACTER_DRAW = {
 const ENEMY_SPRITE_SIZE = 30;
 const ENEMY_SPRITE_BRIGHT_PASS_ALPHA = .26;
 
+/* 眼白留在贴图里，黑瞳孔由 Canvas 单独画。每种脸的两只眼睛大小和倾斜都不同，
+   所以这里记录各自的中心、瞳孔半径与可移动范围；坐标以 30px 游戏尺寸为基准。
+   大小眼的不对称继续保留，但四只怪都会明确看向自己的行进方向。 */
+const CHARACTER_EYES = {
+  chaser:[{x:-5.43,y:.60,r:1.78,tx:1.35,ty:1.35},{x:6.61,y:3.14,r:1.32,tx:1.08,ty:.62}],
+  ambush:[{x:-6.35,y:3.00,r:1.34,tx:1.08,ty:.62},{x:6.63,y:3.20,r:1.34,tx:1.08,ty:.62}],
+  shy:[{x:-5.36,y:.64,r:1.78,tx:1.30,ty:1.58},{x:6.41,y:2.38,r:1.45,tx:1.00,ty:1.12}],
+  patrol:[{x:-5.87,y:.61,r:1.82,tx:1.34,ty:1.58},{x:6.33,y:3.76,r:1.25,tx:.92,ty:.58}]
+};
+
 function drawCharacterSprite(id,size,visualMode='normal'){
   if (!characterAtlasReady || !characterAtlas || !CHARACTER_CELL[id]) return false;
   const cell=CHARACTER_CELL[id];
@@ -281,8 +291,10 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   const ah=characterAtlas.naturalHeight||characterAtlas.height||256;
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
-  /* smooth-v8 是透明底、按街机截图校色、圆润无尖刺并保留可爱小嘴的硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
-     被浏览器抹成一团；第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
+  /* tracking-eyes-v9 是透明底、截图校色、圆润无尖刺并保留可爱小嘴的硬边像素图；
+     贴图只留眼白，黑瞳孔由 drawCharacterTrackingEyes 按移动方向实时绘制。
+     关掉平滑，30px 时异形眼睛、轮廓和面罩才不会被浏览器抹成一团；
+     第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
      可反击时整张贴图统一变成冰蓝/白色；即使小程序端不支持 filter，下面仍会画
      睡眠光罩和叉眼，所以状态不会只靠颜色传达。 */
   ctx.imageSmoothingEnabled=false;
@@ -295,6 +307,36 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   ctx.drawImage(characterAtlas,cell[0]*sw,cell[1]*sh,sw,sh,-dw/2,-dh/2,dw,dh);
   ctx.restore();
   return true;
+}
+
+function drawCharacterTrackingEyes(g,size,threat=0){
+  const eyes=CHARACTER_EYES[g.id];
+  if (!eyes) return;
+  const moving=!!(g.dir.x||g.dir.y);
+  const targetX=moving?g.dir.x:(Number.isFinite(g.eyeLookX)?g.eyeLookX:0);
+  const targetY=moving?g.dir.y:(Number.isFinite(g.eyeLookY)?g.eyeLookY:-1);
+  if (!Number.isFinite(g.eyeLookX)) g.eyeLookX=targetX;
+  if (!Number.isFinite(g.eyeLookY)) g.eyeLookY=targetY;
+  /* 约 0.15 秒从旧方向滑到新方向，转弯时能清楚看到瞳孔穿过眼睛，而不是瞬移。 */
+  const follow=1-Math.exp(-visualFrameDt*15);
+  g.eyeLookX+=(targetX-g.eyeLookX)*follow;
+  g.eyeLookY+=(targetY-g.eyeLookY)*follow;
+  const sizeScale=size/ENEMY_SPRITE_SIZE;
+  ctx.save();
+  eyes.forEach(eye=>{
+    const px=(eye.x+g.eyeLookX*eye.tx)*sizeScale;
+    const py=(eye.y+g.eyeLookY*eye.ty)*sizeScale;
+    const radius=eye.r*(1+threat*.12)*sizeScale;
+    /* 几乎纯黑的大瞳孔是最主要的恐惧信号；离豆豆越近，红色暗光越明显。 */
+    ctx.fillStyle='#05030f';
+    ctx.shadowColor=threat>.35?'rgba(255,58,103,.88)':'rgba(0,0,0,.82)';
+    ctx.shadowBlur=(.55+threat*2.25)*sizeScale;
+    ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.82)';
+    ctx.beginPath();ctx.arc(px-radius*.30,py-radius*.33,Math.max(.30*sizeScale,radius*.18),0,Math.PI*2);ctx.fill();
+  });
+  ctx.restore();
 }
 
 /* 让画布的**内部像素**跟上它实际被显示的大小。
@@ -778,6 +820,7 @@ function resetLevel(fullReset){
     eatenThisFright:false,   // 这一轮能量豆里已经被吃过一次，见 isEdible
     homeY:null,               // 走回老巢后停下的位置，见 'eaten' 分支
     routeIdx:0, wobble:Math.random()*Math.PI*2,
+    eyeLookX:0, eyeLookY:-1,
   }));
   fruit = { active:false, x:9, y:13, timer:0, nextAt: 60, path:0 };
   comboTimer = 0; combo = 1;
@@ -4213,7 +4256,7 @@ function enemyThreatLevel(g){
   return ENEMY_THREAT_BASE+(1-ENEMY_THREAT_BASE)*near;
 }
 
-/* 新恶魔本身已有犄角、蝠翼和利爪，追击态不再给每只套同一圈假尖刺。三道短尾流
+/* 圆润怪物靠大眼、嘴形和颜色区分，追击态不再给每只套一圈假尖刺。三道短尾流
    放在运动反方向，只表达“它正在扑来”，不会遮住脸或改变碰撞范围。 */
 function drawEnemyThreatAura(g,threat,scale){
   if (threat<=0) return;
@@ -4235,8 +4278,8 @@ function drawEnemyThreatAura(g,threat,scale){
   ctx.restore();
 }
 
-/* 四只恶魔已经各有完整的燃烧眼睛、獠牙和脸型。追击时只在角色外画四角锁定框，
-   不用通用眉眼盖掉三眼魔或翼魔的原始表情。 */
+/* 四只怪物已经各有大小不一的眼睛和脸型。追击时只在角色外画四角锁定框，
+   不用额外眉眼盖掉实时转向的黑瞳孔。 */
 function drawEnemyThreatFace(g,threat,scale){
   if (threat<=0) return;
   const hot=cssVar('--danger');
@@ -4296,6 +4339,8 @@ function drawGhost(g){
         ctx.beginPath();ctx.moveTo(ex-2,ey-2);ctx.lineTo(ex+2,ey+2);
         ctx.moveTo(ex+2,ey-2);ctx.lineTo(ex-2,ey+2);ctx.stroke();
       });
+    } else {
+      drawCharacterTrackingEyes(g,ENEMY_SPRITE_SIZE,threat);
     }
     drawEnemyThreatFace(g,threat,scale);
     ctx.restore();

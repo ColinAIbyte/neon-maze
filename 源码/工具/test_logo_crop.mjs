@@ -8,6 +8,9 @@ import { readFileSync } from 'node:fs';
 const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
 const fail = [];
 
+if (/brand-sub|DOUDOU\s*·\s*豆豆/.test(src))
+  fail.push('Logo 下方重复的「DOUDOU · 豆豆」副标题又出现了');
+
 const lockup = src.match(/\.brand-lockup\s*\{([^}]*)\}/)?.[1] || '';
 if (!/overflow\s*:\s*hidden/.test(lockup))
   fail.push('Logo 容器的裁切条件变了，这条测试需要重新核对');

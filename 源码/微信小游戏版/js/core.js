@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 5cc78185b7b2   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 4c05931c0540   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -258,8 +258,8 @@ if (makeCharacterImage){
   characterAtlas.decoding = 'async';
   characterAtlas.onload = ()=>{ characterAtlasReady = true; staticFrameDirty = true; };
   characterAtlas.src = IS_WECHAT_MINIGAME
-    ? 'images/neon-stalkers-ghost-palette-v6.webp'
-    : 'assets/neon-stalkers-ghost-palette-v6.webp';
+    ? 'images/neon-stalkers-cute-mouths-v7.webp'
+    : 'assets/neon-stalkers-cute-mouths-v7.webp';
 }
 const CHARACTER_CELL = {
   chaser:[0,0], ambush:[1,0], shy:[0,1], patrol:[1,1]
@@ -281,7 +281,7 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   const ah=characterAtlas.naturalHeight||characterAtlas.height||256;
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
-  /* ghost-palette-v6 是透明底、按街机截图校色的硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
+  /* cute-mouths-v7 是透明底、按街机截图校色并换成可爱小嘴的硬边像素图。关掉平滑，30px 时异形眼睛、瞳孔和面罩才不会
      被浏览器抹成一团；第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
      可反击时整张贴图统一变成冰蓝/白色；即使小程序端不支持 filter，下面仍会画
      睡眠光罩和叉眼，所以状态不会只靠颜色传达。 */

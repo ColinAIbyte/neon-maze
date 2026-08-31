@@ -39,7 +39,7 @@ assets/
   doudou-hero.webp         豆豆展示主视觉（512×512，桌面端按需加载）
   neon-logo-v2.webp        Neon Maze 双行霓虹 Logo（380×380）
   neon-space-bg-v2.webp    深色宇宙背景
-  neon-stalkers-ghost-palette-v6.webp  四只截图校色异形大眼追猎怪图集（256×256）
+  neon-stalkers-cute-mouths-v7.webp  四只截图校色、可爱小嘴大眼追猎怪图集（256×256）
 源码/
   pacman_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
   工具/                    构建、地图校验、回归测试、自动试玩

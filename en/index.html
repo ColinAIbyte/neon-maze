@@ -1486,6 +1486,7 @@ body.in-game .marquee{
             <dt>Move</dt><dd>Phone: <b>swipe</b> on the maze　　Desktop: <b>arrows / WASD</b></dd>
             <dt>Eat</dt><dd>Clear every berry to finish the level.<br><b>Keep eating</b> and the multiplier keeps climbing</dd>
             <dt>The owls</dt><dd>Touching one costs a life. Eat a <b>Power Pellet</b> and you can eat them instead</dd>
+            <dt>This version</dt><dd><b>Every scoring item is 30% higher</b>; previous leaderboard scores are converted at 1.3×</dd>
             <dt>Also</dt><dd>Portal · Dash · Phasing · Owl Fusion
               <br><span class="dim">No need to memorize — you pick it up as you play</span></dd>
           </dl>
@@ -1524,20 +1525,21 @@ body.in-game .marquee{
           </div>
           <div class="help-sec">
             <h3>Scoring</h3>
+            <p><b>All scoring is 30% higher than before.</b> Half-points are rounded when banked.</p>
             <dl class="kv">
-              <dt>Berry</dt><dd><b>15</b> × Combo</dd>
-              <dt>Power Pellet</dt><dd><b>75</b> × Combo</dd>
-              <dt>Mystery Fruit</dt><dd><b>450</b> × Combo</dd>
-              <dt>owl</dt><dd><b>10k → 20k → 30k…</b><span class="dim">the nth owl inside one pellet is worth n × 10k</span></dd>
+              <dt>Berry</dt><dd><b>19.5</b> × Combo, then rounded</dd>
+              <dt>Power Pellet</dt><dd><b>97.5</b> × Combo, then rounded</dd>
+              <dt>Mystery Fruit</dt><dd><b>585</b> × Combo</dd>
+              <dt>Owl</dt><dd><b>13k → 26k → 39k…</b><span class="dim">the nth owl inside one pellet is worth n × 13k</span></dd>
             </dl>
           </div>
           <div class="help-sec">
             <h3>Full scoring & parameters</h3>
             <dl class="kv">
-              <dt>Perfect level</dt><dd><b>1500</b> × level number (9000 on Level 6)</dd>
-              <dt>Owl sweep</dt><dd><b>100k</b>　clear every owl within a single pellet</dd>
-              <dt>Lives left at clear</dt><dd><b>2250</b> × lives</dd>
-              <dt>Flawless run</dt><dd><b>15000</b></dd>
+              <dt>Perfect level</dt><dd><b>1950</b> × level number (11700 on Level 6)</dd>
+              <dt>Owl sweep</dt><dd><b>130k</b>　clear every owl within a single pellet</dd>
+              <dt>Lives left at clear</dt><dd><b>2925</b> × lives</dd>
+              <dt>Flawless run</dt><dd><b>19500</b></dd>
               <dt>Pellet duration</dt><dd><b>9s</b> to start, shorter each level, down to  <b>5s</b><br>
                 <span class="dim">you move 15% faster, the owls 15% slower</span></dd>
               <dt>Dash</dt><dd>5 straight tiles speeds you up to  <b>1.22×</b></dd>
@@ -1966,8 +1968,9 @@ let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
  * unexplained score jump just reads as noise.
  */
 /* GHOST_SWEEP 是**最终分**，不乘 SCORE_MULT（见 awardBonus 的 raw）。
-   其余三项仍是基础分，要乘 1.5。 */
-const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 100000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
+   所以它的常量直接提高 30%；其余三项仍是基础分，经 SCORE_MULT
+   从原来的 1.5 提到 1.95。 */
+const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 130000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
 
 /**
  * Ghost speed per level, written out rather than generated.
@@ -2040,29 +2043,30 @@ let mercySpeedMult = 1;
  * Raising a base constant instead would have meant touching four call sites and
  * every string that quotes one.
  */
-const SCORE_MULT = 1.5;
+/* 2026-08-31: every current payout is 30% higher than the previous version.
+   Non-raw scoring was 1.5× and is now 1.5 × 1.30 = 1.95×. */
+const SCORE_BOOST = 1.3;
+const SCORE_MULT = 1.95;
 
-/** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。 */
-const GHOST_BOUNTY_STEP = 10000;
+/** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。
+ *  独立最终分也同步提高 30%：10000 → 13000。 */
+const GHOST_BOUNTY_STEP = 13000;
 
 /**
  * Adds points at the current multiplier and returns what was actually banked.
- * Rounded because 1.5x turns odd base values into halves — a pellet eaten at an
- * odd combo would post "15" then "37.5", and a decimal point in an arcade score
- * looks like a bug even when the arithmetic is right.
+ * Rounded because SCORE_MULT can produce fractional points; an arcade score
+ * must still bank and display whole numbers. The help text states this rule.
  */
 function addScore(base, raw){
-  // raw=true 表示这个数字就是最终分，不再乘倍率。吃幽灵的悬赏是按"整数万"
-  // 设计的（1 万、2 万、3 万…），乘完 1.5 就成了 1.5 万，招牌数字一歪就不
-  // 好记了。除此之外的一切仍然走倍率，入口还是这一个。
+  // raw=true 表示这个数字就是最终分，不再乘倍率。敌人悬赏和全灭奖励已经各自
+  // 在常量里完成 30% 提升，不能再乘 1.95；除此之外的一切仍走统一倍率。
   const points = raw ? Math.round(base) : Math.round(base * SCORE_MULT);
   score += points;
   return points;
 }
 
 /** @param raw 传 true 表示这个数字就是最终分，不再乘 SCORE_MULT。
- *  全灭用它 —— 招牌数字要是整的（10 万），乘完 1.5 变成 15 万就不好记了，
- *  跟幽灵悬赏那套「整万」是同一个理由。 */
+ *  全灭用它：13 万已经是提高 30% 后的最终分，不能重复放大。 */
 function awardBonus(label, base, raw){
   const points = addScore(base, raw);
   levelBonuses.push({ label, points });
@@ -3526,7 +3530,7 @@ function handleGhostCollisions(){
       /* 悬赏是阶梯式的，可玩家第一次只看到"+10,000"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
-      hintOnce('bounty', 'Within one pellet: the 2nd owl is 20k, the 3rd is 30k — they keep getting richer', 1400);
+      hintOnce('bounty', 'Within one pellet: the 2nd owl is 26k, the 3rd is 39k — they keep getting richer', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
 
@@ -3904,7 +3908,8 @@ function stopFireworks(){
  * just returning null, so every access is guarded. A blocked board must never
  * take the game down with it — it simply stops persisting.
  */
-const SCORE_KEY = 'doudou.scores.v2';
+const SCORE_KEY = 'doudou.scores.v3';
+const PREVIOUS_SCORE_KEY = 'doudou.scores.v2';
 const LEGACY_SCORE_KEY = 'doudou.scores.v1';
 const NAME_KEY = 'doudou.name';
 const BOARD_SIZE = 8;
@@ -3918,7 +3923,7 @@ const DEFAULT_NAME = 'Anonymous';
  * scoring change is the rude option.
  *
  * The factor is pinned at 2 rather than reading SCORE_MULT: 2 is what the
- * migration actually applied when it shipped. Following SCORE_MULT down to 1.5
+ * migration actually applied when it shipped. Following later multiplier changes
  * would mean two players' legacy rows were converted at different rates
  * depending on when they happened to open the game, which is worse than being
  * slightly generous to everyone equally.
@@ -3934,6 +3939,24 @@ function migrateLegacy(){
     const list = old.map((r,i)=>({
       id: 'legacy-'+i, name: DEFAULT_NAME, score: (r.score||0) * LEGACY_SCALE,
       level: r.level||1, combo: r.combo||1, won: !!r.won, date: r.date||'', legacy: true,
+    }));
+    localStorage.setItem(SCORE_KEY, JSON.stringify(list));
+    return list;
+  } catch { return null; }
+}
+
+/* v2 is the leaderboard from immediately before the universal 30% increase.
+   New and old runs must stay comparable, so the first v3 read converts every
+   valid v2 score at the same 1.3× rate. Keep v2 intact as a recovery copy. */
+function migratePreviousScores(){
+  try {
+    const raw = localStorage.getItem(PREVIOUS_SCORE_KEY);
+    if (raw === null) return null;
+    const old = JSON.parse(raw);
+    if (!Array.isArray(old)) return null;
+    const list = old.map(sanitizeScore).filter(Boolean).map(row=>({
+      ...row,
+      score: Math.round(row.score * SCORE_BOOST),
     }));
     localStorage.setItem(SCORE_KEY, JSON.stringify(list));
     return list;
@@ -3976,6 +3999,7 @@ function loadScores(){
   let raw = null;
   try { raw = localStorage.getItem(SCORE_KEY); } catch (e) { return []; }
   if (raw === null){
+    try { const migrated = migratePreviousScores(); if (migrated) return migrated; } catch (e) {}
     try { const migrated = migrateLegacy(); if (migrated) return migrated; } catch (e) {}
     return [];
   }

@@ -16,6 +16,7 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const src  = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
 const ui   = readFileSync(new URL('../微信小游戏版/js/ui.js', import.meta.url), 'utf8');
+const en   = readFileSync(new URL('../../en/index.html', import.meta.url), 'utf8');
 const wxmlUrl = new URL('../../微信小程序版/pages/game/game.wxml', import.meta.url);
 const hasWxml = existsSync(wxmlUrl);
 const wxml = hasWxml ? readFileSync(wxmlUrl, 'utf8') : '';
@@ -36,6 +37,7 @@ const num = (re, what) => {
 
 // —— 从代码里读出真值 ——
 const MULT   = num(/const SCORE_MULT = ([\d.]+);/, '总倍率');
+const BOOST  = num(/const SCORE_BOOST = ([\d.]+);/, '统一计分提升');
 const PELLET = num(/pelletsLeft--; addPelletScore\((\d+)\);\s*\n[\s\S]{0,80}?ch==='o'/, '豆子基础分')
                || 10;
 const BONUS_LINE = src.match(/const BONUS = \{([^}]+)\}/)[1];
@@ -57,7 +59,9 @@ const comboIdle = num(/const COMBO_IDLE_DECAY = ([\d.]+);/, '停下衰减倍率'
                代码 2.0、说明 1.2，测试全绿。
    所以每一条都写清楚"这个数该出现在哪句话里"。麻烦一点，但这才叫核对。
    \uFFFF 是占位符，构造正则时替换成真实数值。 */
-const num2 = v => String(v).replace('.', '\\.');
+// 消掉 1.3 * 3 在 JS 里可能变成 3.9000000000000004 的浮点尾巴。
+const plainNum = v => String(Number(Number(v).toFixed(10)));
+const num2 = v => plainNum(v).replace('.', '\\.');
 const expect = [
   // 词条和数值之间隔着 </dt><dd> 之类的标签，所以用有界的任意字符，
   // 不能用 [^<]*（跨不过标签），也不能用 [\\s\\S]*（会一路匹配到别人家去）
@@ -66,8 +70,7 @@ const expect = [
   ['相位晶石',   `相位晶石[\\s\\S]{0,40}?<b>\uFFFF</b>`, 300 * MULT],
   ['整关无伤',   `整关无伤[\\s\\S]{0,20}?<b>\uFFFF</b>`, bonus('PERFECT_LEVEL') * MULT],
   /* 全灭是**最终分**，不乘 SCORE_MULT（awardBonus 的 raw），所以这里不能
-     跟着乘 —— 乘了会去找 150000，而说明里写的是 10 万。
-     写成「10万」而不是「100,000」：招牌数字要读得出口。 */
+     跟着乘。现在常量已经从 10 万直接提高到 13 万。 */
   ['全灭对手',   `全灭对手[\\s\\S]{0,20}?<b>\uFFFF万</b>`, bonus('GHOST_SWEEP') / 10000],
   ['通关剩余命', `通关剩余命[\\s\\S]{0,20}?<b>\uFFFF</b>`, bonus('LIFE_LEFT')    * MULT],
   ['全程无伤',   `全程无伤[\\s\\S]{0,20}?<b>\uFFFF</b>`, bonus('FLAWLESS_RUN')  * MULT],
@@ -83,13 +86,66 @@ const expect = [
 ];
 
 const fail = [];
+if (Math.abs(MULT - 1.5 * BOOST) > 1e-9)
+  fail.push(`普通项目倍率不是上一版 1.5 × ${BOOST}（实际 ${MULT}）`);
+if (bounty !== Math.round(10000 * BOOST))
+  fail.push(`敌人悬赏没有从 10000 提高 ${Math.round((BOOST-1)*100)}%（实际 ${bounty}）`);
+if (bonus('GHOST_SWEEP') !== Math.round(100000 * BOOST))
+  fail.push(`全灭奖励没有从 100000 提高 ${Math.round((BOOST-1)*100)}%（实际 ${bonus('GHOST_SWEEP')}）`);
+if (!/const SCORE_KEY = 'doudou\.scores\.v3'/.test(src) ||
+    !/const PREVIOUS_SCORE_KEY = 'doudou\.scores\.v2'/.test(src) ||
+    !/score:\s*Math\.round\(row\.score \* SCORE_BOOST\)/.test(src))
+  fail.push('旧排行榜没有从 v2 按统一计分提升比例迁移到 v3');
 for (const [what, pat, v] of expect){
   const re = new RegExp(pat.replace(/\uFFFF/g, num2(v)));
   if (!re.test(helpHtml)) fail.push(`网页说明里「${what}」和代码对不上（代码是 ${v}）`);
 }
+const boostText = `全部计分项目统一提高 ${Math.round((BOOST-1)*100)}%`;
+if (!helpHtml.includes(boostText)) fail.push(`网页玩法说明没有写明「${boostText}」`);
+if (!helpHtml.includes('最终入账取整')) fail.push('网页玩法说明没有交代半分最终取整');
+const bountyWan = bounty / 10000;
+const bountySequence = `${plainNum(bountyWan)}万 → ${plainNum(bountyWan*2)}万 → ${plainNum(bountyWan*3)}万`;
+if (!helpHtml.includes(bountySequence)) fail.push(`网页玩法说明里的敌人悬赏不是「${bountySequence}」`);
+
+// 英文入口是同域下另一份可玩的完整逻辑，分数和共用排行榜也必须同步。
+const enHelpStart = en.indexOf('<div class="help-doc">');
+const enHelpEnd = en.indexOf('id="helpCloseBtn"', enHelpStart);
+if (enHelpStart < 0 || enHelpEnd < 0) throw new Error('定位不到英文版说明段落');
+const enHelp = en.slice(enHelpStart, enHelpEnd);
+const enChecks = [
+  ['统一提升', 'All scoring is 30% higher than before.'],
+  ['旧榜换算', 'previous leaderboard scores are converted at 1.3×'],
+  ['豆子', `<b>${10*MULT}</b> × Combo`],
+  ['能量星', `<b>${50*MULT}</b> × Combo`],
+  ['相位晶石', `<b>${300*MULT}</b> × Combo`],
+  ['敌人悬赏', `${bounty/1000}k → ${bounty*2/1000}k → ${bounty*3/1000}k`],
+  ['整关无伤', `<b>${bonus('PERFECT_LEVEL')*MULT}</b> × level`],
+  ['全灭对手', `<b>${bonus('GHOST_SWEEP')/1000}k</b>`],
+  ['剩余生命', `<b>${bonus('LIFE_LEFT')*MULT}</b> × lives`],
+  ['全程无伤', `<b>${bonus('FLAWLESS_RUN')*MULT}</b>`],
+];
+for (const [what, text] of enChecks){
+  if (!enHelp.includes(text)) fail.push(`英文版说明里「${what}」和代码对不上`);
+}
+if (!enHelp.includes('Half-points are rounded when banked')) fail.push('英文版没有交代小数分最终取整');
+if (!en.includes(`const SCORE_BOOST = ${BOOST};`) || !en.includes(`const SCORE_MULT = ${MULT};`) ||
+    !en.includes(`const GHOST_BOUNTY_STEP = ${bounty};`) ||
+    !en.includes(`GHOST_SWEEP: ${bonus('GHOST_SWEEP')}`))
+  fail.push('英文版的计分常量没有和中文版同步');
+if (!/const SCORE_KEY = 'doudou\.scores\.v3'/.test(en) ||
+    !/const PREVIOUS_SCORE_KEY = 'doudou\.scores\.v2'/.test(en) ||
+    !/score:\s*Math\.round\(row\.score \* SCORE_BOOST\)/.test(en))
+  fail.push('英文版没有同步 v2 → v3 排行榜迁移');
 // 小游戏那份是纯文本，格式不同，只核关键几个数值出现在同一句话里
 const uiChecks = [
   ['豆子',       `豆子[\\s\\S]{0,20}?${num2(10*MULT)} 分`],
+  ['能量星分数', `能量星[\\s\\S]{0,20}?${num2(50*MULT)} 分`],
+  ['相位晶石',   `相位晶石[\\s\\S]{0,20}?${num2(300*MULT)} 分`],
+  ['敌人悬赏',   `${num2(bountyWan)}万 → ${num2(bountyWan*2)}万 → ${num2(bountyWan*3)}万`],
+  ['整关无伤',   `整关无伤[\\s\\S]{0,20}?${num2(bonus('PERFECT_LEVEL')*MULT)}`],
+  ['全灭对手',   `全灭对手[\\s\\S]{0,20}?${num2(bonus('GHOST_SWEEP')/10000)}万`],
+  ['通关剩余命', `通关剩余命[\\s\\S]{0,20}?${num2(bonus('LIFE_LEFT')*MULT)}`],
+  ['全程无伤',   `全程无伤[\\s\\S]{0,20}?${num2(bonus('FLAWLESS_RUN')*MULT)}`],
   ['恐惧起始秒', `${num2(fright[0])} 秒`],
   ['冲刺倍率',   `${num2(dash)} 倍`],
   ['连击窗口',   `${num2(comboWin)} 秒没吃到`],
@@ -98,6 +154,8 @@ const uiChecks = [
 for (const [what, pat] of uiChecks){
   if (!new RegExp(pat).test(ui)) fail.push(`小游戏那份说明里「${what}」和代码对不上`);
 }
+if (!ui.includes(boostText)) fail.push(`小游戏玩法说明没有写明「${boostText}」`);
+if (!ui.includes('遇到半分最终取整')) fail.push('小游戏玩法说明没有交代半分最终取整');
 /* 小程序那份是 WXML，数字包在 <text class="b"> 里，所以模式跟网页那份不一样，
    但要核的是同一批数。只截说明那一段，别拿整个文件搜 —— 这个坑前面踩过两次。 */
 const wxHelpStart = hasWxml ? wxml.indexOf('<scroll-view class="help-doc"') : -1;
@@ -174,7 +232,7 @@ for (const [name, part] of helpTargets){
 }
 
 console.log('从代码读到的真值：');
-console.log(`  倍率 ${MULT}　豆子 ${10*MULT}　能量星 ${50*MULT}　相位晶石 ${300*MULT}`);
+console.log(`  全项目 +${Math.round((BOOST-1)*100)}%　倍率 ${MULT}　豆子 ${10*MULT}　能量星 ${50*MULT}　相位晶石 ${300*MULT}`);
 console.log(`  奖励 无伤${bonus('PERFECT_LEVEL')*MULT} 全灭${bonus('GHOST_SWEEP')} 剩命${bonus('LIFE_LEFT')*MULT} 全程${bonus('FLAWLESS_RUN')*MULT}`);
 console.log(`  恐惧 ${fright[0]}→${fright[fright.length-1]} 秒　冲刺 ${dash}x　连击 ${comboWin}s（停下 ${comboIdle}x）　传送门冷却 ${portalCd}s`);
 const targetLabel = hasWxml ? '三份说明' : '网页与小游戏说明';

@@ -44,7 +44,7 @@ g.saveName('超级奶爸');
 g.gameState='playing'; g.level=6; g.score=431070; g.lives=2;
 g.endGame(true);
 console.log('结算大分数      :', el('finalScore').textContent);
-if(el('finalScore').textContent!=='450,570') fail.push('finalScore 未格式化');
+if(el('finalScore').textContent!=='456,420') fail.push('finalScore 未格式化');
 console.log('榜单            :', (el('overBoard').innerHTML.match(/board-score">([^<]*)/)||[])[1]);
 if(!/\d,\d{3}/.test(el('overBoard').innerHTML)) fail.push('榜单未格式化');
 console.log('奖励分明细      :', el('overSub').textContent.split('\n').filter(l=>l.includes('奖励')).join(''));
@@ -53,7 +53,7 @@ const url=g.challengeURL();
 console.log('挑战链接        :', url);
 const c=new URL(url).searchParams.get('c');
 console.log('  链接里的分数  :', c, '→ Number():', Number(c));
-if(!Number.isFinite(Number(c))||Number(c)!==450570) fail.push('挑战链接分数损坏！');
+if(!Number.isFinite(Number(c))||Number(c)!==456420) fail.push('挑战链接分数损坏！');
 console.log('分享文案        :', g.shareText().split('\n')[0]);
 
 console.log('\n'+(fail.length?'失败:\n  '+fail.join('\n  '):'全部通过'));

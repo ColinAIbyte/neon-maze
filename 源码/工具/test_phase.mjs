@@ -65,7 +65,7 @@ writeFileSync(modPath, `export function createGame(){\n${bodyJs}\n
            get player(){return player;}, get level(){return level;},
            get score(){return score;}, get gameState(){return gameState;},
            set gameState(v){gameState=v;}, fullNewGame, COLS, ROWS,
-           FRUIT_PHASE_SECONDS, SCORE_MULT, addScore };\n}\n`);
+           FRUIT_PHASE_SECONDS, SCORE_BOOST, SCORE_MULT, GHOST_BOUNTY_STEP, BONUS, addScore };\n}\n`);
 
 const { installShim } = await import(here('../微信小游戏版/js/shim.js'));
 installShim({ maze: fakeCanvas(), fx: fakeCanvas(1,1) });
@@ -135,16 +135,29 @@ function runFrom(startX, startY, dir, phase, seconds){
   else bad('穿墙失效后仍卡在墙里');
 }
 
-// 5) 分数倍率
+// 5) 全部计分项目在上一版基础上统一提高 30%
 {
-  if (g.SCORE_MULT === 1.5) ok('分数倍率 = 1.5');
-  else bad(`分数倍率 = ${g.SCORE_MULT}，期望 1.5`);
-  const before = g.score;
-  const paid = g.addScore(10);
-  if (paid === 15) ok(`基础 10 分实际入账 ${paid} 分`);
-  else bad(`基础 10 分入账 ${paid} 分，期望 15`);
-  if (Number.isInteger(paid)) ok('得分是整数，不会出现小数点');
-  else bad(`得分出现小数: ${paid}`);
+  if (g.SCORE_BOOST === 1.3) ok('统一提升倍率 = 1.30');
+  else bad(`统一提升倍率 = ${g.SCORE_BOOST}，期望 1.3`);
+  if (g.SCORE_MULT === 1.95) ok('普通项目总倍率 = 1.95（原 1.5 × 1.30）');
+  else bad(`普通项目总倍率 = ${g.SCORE_MULT}，期望 1.95`);
+  const cases = [
+    ['豆子 x1', 10, false, 20],
+    ['豆子 x2', 20, false, 39],
+    ['能量星 x1', 50, false, 98],
+    ['相位晶石 x1', 300, false, 585],
+    ['敌人悬赏第 1 只', g.GHOST_BOUNTY_STEP, true, 13000],
+    ['整关无伤基础', g.BONUS.PERFECT_LEVEL, false, 1950],
+    ['全灭对手', g.BONUS.GHOST_SWEEP, true, 130000],
+    ['每条剩余生命', g.BONUS.LIFE_LEFT, false, 2925],
+    ['全程无伤', g.BONUS.FLAWLESS_RUN, false, 19500],
+  ];
+  for (const [label, base, raw, expected] of cases){
+    const paid = g.addScore(base, raw);
+    if (paid === expected) ok(`${label} = ${paid}`);
+    else bad(`${label} = ${paid}，期望 ${expected}`);
+    if (!Number.isInteger(paid)) bad(`${label} 出现小数: ${paid}`);
+  }
 }
 
 console.log(failed ? `\n${failed} 项失败。` : '\n全部通过。');

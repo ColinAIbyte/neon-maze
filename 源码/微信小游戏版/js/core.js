@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 5035b5140edc   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 81ef500d2546   （只跟 pacman_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -455,8 +455,9 @@ let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
  * unexplained score jump just reads as noise.
  */
 /* GHOST_SWEEP 是**最终分**，不乘 SCORE_MULT（见 awardBonus 的 raw）。
-   其余三项仍是基础分，要乘 1.5。 */
-const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 100000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
+   本版所有计分统一比上一版提高 30%：全灭从 100000 调到 130000；
+   其余三项仍是基础分，经 SCORE_MULT 从原来的 1.5 提到 1.95。 */
+const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 130000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
 
 /**
  * Ghost speed per level, written out rather than generated.
@@ -529,29 +530,30 @@ let mercySpeedMult = 1;
  * Raising a base constant instead would have meant touching four call sites and
  * every string that quotes one.
  */
-const SCORE_MULT = 1.5;
+/* 2026-08-31：所有现行得分在上一版基础上统一提高 30%。
+   非 raw 项目原来乘 1.5，现在乘 1.5 × 1.30 = 1.95。 */
+const SCORE_BOOST = 1.3;
+const SCORE_MULT = 1.95;
 
-/** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。 */
-const GHOST_BOUNTY_STEP = 10000;
+/** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。
+ *  独立最终分也同步提高 30%：10000 → 13000。 */
+const GHOST_BOUNTY_STEP = 13000;
 
 /**
  * Adds points at the current multiplier and returns what was actually banked.
- * Rounded because 1.5x turns odd base values into halves — a pellet eaten at an
- * odd combo would post "15" then "37.5", and a decimal point in an arcade score
- * looks like a bug even when the arithmetic is right.
+ * Rounded because SCORE_MULT can produce fractional points; an arcade score
+ * must still bank and display whole numbers. The help text states this rule.
  */
 function addScore(base, raw){
-  // raw=true 表示这个数字就是最终分，不再乘倍率。吃幽灵的悬赏是按"整数万"
-  // 设计的（1 万、2 万、3 万…），乘完 1.5 就成了 1.5 万，招牌数字一歪就不
-  // 好记了。除此之外的一切仍然走倍率，入口还是这一个。
+  // raw=true 表示这个数字就是最终分，不再乘倍率。敌人悬赏和全灭奖励已经各自
+  // 在常量里完成 30% 提升，不能再乘 1.95；除此之外的一切仍走统一倍率。
   const points = raw ? Math.round(base) : Math.round(base * SCORE_MULT);
   score += points;
   return points;
 }
 
 /** @param raw 传 true 表示这个数字就是最终分，不再乘 SCORE_MULT。
- *  全灭用它 —— 招牌数字要是整的（10 万），乘完 1.5 变成 15 万就不好记了，
- *  跟幽灵悬赏那套「整万」是同一个理由。 */
+ *  全灭用它：13 万已经是提高 30% 后的最终分，不能重复放大。 */
 function awardBonus(label, base, raw){
   const points = addScore(base, raw);
   levelBonuses.push({ label, points });
@@ -2081,14 +2083,14 @@ function handleGhostCollisions(){
 
     if (isEdible(g)){
       ghostEatChain++;
-      /* 悬赏：同一颗能量豆内，第 n 只值 n 万分。
+      /* 悬赏：同一颗能量豆内，第 n 只值 n × 1.3 万分。
          原来是 200×2^n（封顶第 4 只），换算下来最多两千出头 —— 和一路吃豆子
          的收益比起来，主动去追幽灵完全不划算，玩家自然选择躲。现在一只就抵
          得上几百颗豆子，"敢不敢转身"才成为真正的决策。
          按线性递增而不是翻倍：翻倍到第 7 只会是 64 万，一次全灭就锁死排行榜，
          后面再玩多久都没意义。 */
       const pts = addScore(ghostEatChain * GHOST_BOUNTY_STEP, true);
-      /* 悬赏本身不乘连击（要保住"整万"这个招牌数字），但这一口**必须续上连击**
+      /* 悬赏本身不乘连击（它已经按新标准直接给最终分），但这一口**必须续上连击**
          ——追幽灵是全场最难的操作，不该反过来砸掉自己的倍率。见 sustainCombo。 */
       sustainCombo();
       g.state='eaten';
@@ -2096,10 +2098,10 @@ function handleGhostCollisions(){
       ghostsEatenThisRun++;       // 结算页要报这一局吃了几只
       applySpeedModifiers();
       toast('反击! +' + fmtNum(pts));
-      /* 悬赏是阶梯式的，可玩家第一次只看到"+10,000"这一个数，没法知道它会往上
+      /* 悬赏是阶梯式的，可玩家第一次只看到"+13,000"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
-      hintOnce('bounty', '同一颗能量星里：第 2 只 2 万，第 3 只 3 万，越吃越值钱', 1400);
+      hintOnce('bounty', '同一颗能量星里：第 2 只 2.6 万，第 3 只 3.9 万，越吃越值钱', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
 
@@ -2434,7 +2436,8 @@ function stopFireworks(){
  * just returning null, so every access is guarded. A blocked board must never
  * take the game down with it — it simply stops persisting.
  */
-const SCORE_KEY = 'doudou.scores.v2';
+const SCORE_KEY = 'doudou.scores.v3';
+const PREVIOUS_SCORE_KEY = 'doudou.scores.v2';
 const LEGACY_SCORE_KEY = 'doudou.scores.v1';
 const NAME_KEY = 'doudou.name';
 const BOARD_SIZE = 8;
@@ -2449,10 +2452,10 @@ let bestScoreCache = null, bestComboCache = null;
  * scoring change is the rude option.
  *
  * The factor is pinned at 2 rather than reading SCORE_MULT: 2 is what the
- * migration actually applied when it shipped. Following SCORE_MULT down to 1.5
- * would mean two players' legacy rows were converted at different rates
- * depending on when they happened to open the game, which is worse than being
- * slightly generous to everyone equally.
+ * migration actually applied when it shipped. Following later multiplier changes
+ * would convert two players' legacy rows at different rates depending on when
+ * they happened to open the game, which is worse than being slightly generous
+ * to everyone equally.
  */
 const LEGACY_SCALE = 2;
 function migrateLegacy(){
@@ -2465,6 +2468,24 @@ function migrateLegacy(){
     const list = old.map((r,i)=>({
       id: 'legacy-'+i, name: DEFAULT_NAME, score: (r.score||0) * LEGACY_SCALE,
       level: r.level||1, combo: r.combo||1, won: !!r.won, date: r.date||'', legacy: true,
+    }));
+    localStorage.setItem(SCORE_KEY, JSON.stringify(list));
+    return list;
+  } catch { return null; }
+}
+
+/* v2 就是提高 30% 之前的当前排行榜。新局全部多拿 30%，旧纪录如果原样保留，
+   同一套打法只因打开游戏的日期不同就不再可比。首次读取 v3 时把 v2 的每条分数
+   同步乘 1.3；v2 原件不删除，迁移失败或以后需要排查时仍有退路。 */
+function migratePreviousScores(){
+  try {
+    const raw = localStorage.getItem(PREVIOUS_SCORE_KEY);
+    if (raw === null) return null;
+    const old = JSON.parse(raw);
+    if (!Array.isArray(old)) return null;
+    const list = old.map(sanitizeScore).filter(Boolean).map(row=>({
+      ...row,
+      score: Math.round(row.score * SCORE_BOOST),
     }));
     localStorage.setItem(SCORE_KEY, JSON.stringify(list));
     return list;
@@ -2507,6 +2528,7 @@ function loadScores(){
   let raw = null;
   try { raw = localStorage.getItem(SCORE_KEY); } catch (e) { return []; }
   if (raw === null){
+    try { const migrated = migratePreviousScores(); if (migrated) return migrated; } catch (e) {}
     try { const migrated = migrateLegacy(); if (migrated) return migrated; } catch (e) {}
     return [];
   }

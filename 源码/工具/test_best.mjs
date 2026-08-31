@@ -32,7 +32,7 @@ writeFileSync(mp,`export function createGame(env){
    getComputedStyle=env.getComputedStyle,requestAnimationFrame=env.requestAnimationFrame,
    cancelAnimationFrame=env.cancelAnimationFrame,performance=env.performance;
 ${body}
- return { fullNewGame, endGame, bestScore, renderBest, levelName, startPowerMode,
+ return { fullNewGame, endGame, bestScore, renderBest, levelName, startPowerMode, loadScores, SCORE_BOOST,
    handleGhostCollisions, resetLevel, get ghosts(){return ghosts;}, get player(){return player;},
    get score(){return score;}, set score(v){score=v;}, set level(v){level=v;},
    set lives(v){lives=v;}, set gameState(v){gameState=v;},
@@ -42,6 +42,20 @@ const shim=installShim({maze:fakeCanvas(),fx:fakeCanvas(1,1)});
 const {createGame}=await import(mp);
 const g=createGame(shim.env);
 const el=shim.el; const fail=[];
+
+// 0) 旧 v2 榜单要整体换算成 v3，否则新局 +30% 后新旧纪录不再可比
+const LS=shim.env.localStorage;
+LS.setItem('doudou.scores.v2', JSON.stringify([
+  {id:'old-1',name:'老玩家',score:12345,level:4,combo:20,won:false,date:'2026-08-30'},
+]));
+const migrated=g.loadScores();
+const expectedMigrated=Math.round(12345*g.SCORE_BOOST);
+if(migrated.length!==1 || migrated[0].score!==expectedMigrated)
+  fail.push(`v2 旧纪录未按 1.3 倍迁移：${migrated[0]?.score} != ${expectedMigrated}`);
+if(!LS.getItem('doudou.scores.v2')) fail.push('v2 原始榜单被删除，没留恢复副本');
+if(!LS.getItem('doudou.scores.v3')) fail.push('v2 换算后没有写入 v3');
+console.log(`榜单迁移: 12,345 → ${expectedMigrated.toLocaleString('en-US')}，v2 原件保留`);
+LS.removeItem('doudou.scores.v2'); LS.removeItem('doudou.scores.v3');
 
 // 1) 还没有任何记录时，BEST 不显示
 g.fullNewGame(); g.renderBest();

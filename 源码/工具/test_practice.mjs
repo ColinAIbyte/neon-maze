@@ -47,7 +47,7 @@ const fail=[];
 const LS = shim.env.localStorage;
 
 // —— 1) 一开始只解锁第一关，选关条整个不出现 ——
-LS.removeItem('doudou.reached'); LS.removeItem('doudou.scores.v2');
+LS.removeItem('doudou.reached'); LS.removeItem('doudou.scores.v2'); LS.removeItem('doudou.scores.v3');
 g.fullNewGame(); g.renderLevelSelect();
 if(g.maxLevelReached()!==1) fail.push('初始解锁应为 1，实际 '+g.maxLevelReached());
 if(!el('levelSel').classList.contains('hidden')) fail.push('只解锁一关时，选关条不该出现');

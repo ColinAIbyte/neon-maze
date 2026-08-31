@@ -7,24 +7,24 @@ import { wrap } from './web_shell.mjs';
 const fragmentUrl = new URL('../pacman_fragment.html', import.meta.url);
 const rootIndexUrl = new URL('../../index.html', import.meta.url);
 const weappCoreUrl = new URL('../微信小游戏版/js/core.js', import.meta.url);
-const weappAtlasUrl = new URL('../微信小游戏版/images/neon-stalkers-cute-mouths-v7.webp', import.meta.url);
+const weappAtlasUrl = new URL('../微信小游戏版/images/neon-stalkers-smooth-v8.webp', import.meta.url);
 const assets = [
   'doudou-hero.webp',
   'neon-logo-v2.webp',
   'neon-space-bg-v2.webp',
-  'neon-stalkers-cute-mouths-v7.webp',
+  'neon-stalkers-smooth-v8.webp',
 ];
 const assetSizeCaps = {
   'doudou-hero.webp': 30_000,
   'neon-logo-v2.webp': 30_000,
   'neon-space-bg-v2.webp': 40_000,
-  'neon-stalkers-cute-mouths-v7.webp': 20_000,
+  'neon-stalkers-smooth-v8.webp': 20_000,
 };
 const expectedDimensions = {
   'doudou-hero.webp': [512, 512],
   'neon-logo-v2.webp': [380, 380],
   'neon-space-bg-v2.webp': [1672, 941],
-  'neon-stalkers-cute-mouths-v7.webp': [256, 256],
+  'neon-stalkers-smooth-v8.webp': [256, 256],
 };
 
 function webpDimensions(url){
@@ -68,9 +68,9 @@ for (const name of assets){
     fail.push(`assets/${name} 尺寸应为 ${expectedDimensions[name].join('×')}`);
   if (!actual.includes('assets/' + name)) fail.push('发布页面没有引用美术资源 ' + name);
 }
-const webAtlasUrl = new URL('../../assets/neon-stalkers-cute-mouths-v7.webp', import.meta.url);
+const webAtlasUrl = new URL('../../assets/neon-stalkers-smooth-v8.webp', import.meta.url);
 if (!existsSync(weappAtlasUrl)) {
-  fail.push('微信小游戏缺少 images/neon-stalkers-cute-mouths-v7.webp，请运行 build_weapp.mjs');
+  fail.push('微信小游戏缺少 images/neon-stalkers-smooth-v8.webp，请运行 build_weapp.mjs');
 } else if (existsSync(webAtlasUrl)
            && !readFileSync(weappAtlasUrl).equals(readFileSync(webAtlasUrl))) {
   fail.push('微信小游戏与网页版的恶魔图集不是同一个文件');

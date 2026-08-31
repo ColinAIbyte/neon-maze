@@ -4,7 +4,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { wrap } from './web_shell.mjs';
 
-const fragmentUrl = new URL('../pacman_fragment.html', import.meta.url);
+const fragmentUrl = new URL('../neon_maze_fragment.html', import.meta.url);
 const rootIndexUrl = new URL('../../index.html', import.meta.url);
 const weappCoreUrl = new URL('../微信小游戏版/js/core.js', import.meta.url);
 const weappAtlasUrl = new URL('../微信小游戏版/images/neon-stalkers-tracking-eyes-v9.webp', import.meta.url);
@@ -49,7 +49,7 @@ const fail = [];
 if (fragment.includes('__dbg')) fail.push('源片段仍包含调试钩子 __dbg');
 if (/<(?:meta|title)\b/i.test(fragment.slice(0, fragment.indexOf('<style>'))))
   fail.push('源片段开头混入了只能放在页面 head 的标签');
-if (actual !== expected) fail.push('根目录 index.html 已和 pacman_fragment.html 漂移，请运行 build_web.mjs');
+if (actual !== expected) fail.push('根目录 index.html 已和 neon_maze_fragment.html 漂移，请运行 build_web.mjs');
 const srcHash = createHash('sha1').update(fragment).digest('hex').slice(0, 12);
 if (!existsSync(weappCoreUrl)) {
   fail.push('缺少微信小游戏 core.js，请运行 build_weapp.mjs');

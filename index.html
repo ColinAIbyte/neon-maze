@@ -326,6 +326,8 @@ body{
      245px = 标题 91 + HUD 56 + stage 内边距 20 + body 内边距 48 + 栅格间距 20，
      再留 10px 余量。这是量出来的，不是估的 —— 第一版拍脑袋写 220，结果棋盘
      比可用空间高出 17px，被 body 的 overflow:hidden 悄悄裁掉了上下各一点。 */
+  /* 老版 Safari 不认 dvh，先给 vh 兜底，新浏览器再用下一行覆盖。 */
+  max-width: calc((100vh - 245px) * 19 / 21);
   max-width: calc((100dvh - 245px) * 19 / 21);
   margin:0 auto;
 }
@@ -475,6 +477,7 @@ body{
   position:fixed;
   inset:0;
   width:100%;
+  height:100vh;
   height:100dvh;
   border-radius:0;
   display:flex;
@@ -501,6 +504,7 @@ body{
   width:520px;
   max-width:calc(100vw - 32px);
   /* 不设固定高度：内容多高就多高，只给一个上限，超了自己滚。 */
+  max-height:calc(100vh - 32px);
   max-height:calc(100dvh - 32px);
   overflow-y:auto;
   overscroll-behavior:contain;
@@ -609,6 +613,7 @@ body{
   }
   .about-card{
     max-width:calc(100vw - 24px);
+    max-height:calc(100vh - 24px);
     max-height:calc(100dvh - 24px);
     padding:22px 18px;
     border-radius:14px;
@@ -1337,6 +1342,9 @@ body.in-game .marquee{
   /* 邮箱链接自己占一行，下面到「知道了」还有 24px，撑 ±11 不会碰到它 */
   .mail-link::after{ content:''; position:absolute; inset:-11px -6px; }
   .lv::after{        content:''; position:absolute; inset:-8px -4px; }
+  /* 暂停和静音视觉上相隔 10px，但两个 44px 触摸热区会重叠。
+     只在触屏设备拉开间距，图标本身大小不变。 */
+  .hud-controls{gap:18px;}
   /* 兜底：真正的按钮直接给 min-height，不用伪元素 —— 它们本来就在自己一行上，
      长高不会挤到别人。开始页那个「玩法说明」实测只有 42，差 2px。 */
   .btn{ min-height:44px; }
@@ -1346,7 +1354,12 @@ body.in-game .marquee{
   /* 手机上寸土寸金：body 两侧 12px + 棋盘自身 10px，一共吃掉 44px，
      在 375 的屏幕上就是 12% 的宽度。棋盘是这个游戏唯一重要的东西，
      这些边距该让位。 */
-  body{padding:8px 3px;}
+  body{
+    padding:max(8px,env(safe-area-inset-top))
+            max(3px,env(safe-area-inset-right))
+            max(8px,env(safe-area-inset-bottom))
+            max(3px,env(safe-area-inset-left));
+  }
   .cabinet{gap:8px;}
   .stage{padding:4px;}
   /* 棋盘是 19:21，而手机屏是 375:812 —— **卡住棋盘的是宽度，不是高度**。
@@ -1355,10 +1368,11 @@ body.in-game .marquee{
      stage 内边距 8 + body 内边距 16 + 栅格间距 16 = 167，留 10px 余量。
      竖屏时它根本不会生效（宽度先卡住），但横屏和矮屏上它就是那道真正的限制，
      沿用桌面的 245 会白白少掉几十像素。 */
+  #mazeCanvas{ max-width: calc((100vh - 177px) * 19 / 21); }
   #mazeCanvas{ max-width: calc((100dvh - 177px) * 19 / 21); }
   /* 方向键走了以后底下空出一大块。让机身在竖直方向居中，空白上下平分 ——
      否则整个游戏贴在屏幕顶上，下面吊着 190px 的黑，像是没加载完。 */
-  body{ display:flex; align-items:center; justify-content:center; min-height:100dvh; }
+  body{ display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; }
   .marquee{padding:0 0 2px;}
   /* HUD 现在只剩静音一个按钮，宽松了不少，仍略收一点 */
   .hud{padding:9px 11px;gap:8px;}
@@ -1502,12 +1516,68 @@ body::before{
 @media (max-width:1119px){
   /* 用宽度而不是 pointer 判定移动布局：平板接鼠标后仍然需要给棋盘腾空间。 */
   body.in-game .marquee{max-height:0 !important;opacity:0 !important;margin:0 !important;padding:0 !important;}
+  /* 手机标题区的实际内容高于 120px，“玩法 / 关于”会被裁掉一半，
+     却仍留在可点击树中。开始页和暂停页已有完整入口，移动端直接精简这行。 */
+  .marquee .tagline{display:none;}
+}
+
+/* 矮横屏要按高度重新分配：旧式仍扣掉 245px 标题预算，
+   844×390 时棋盘只剩 131×145，外面却还是 720px 宽的空框。 */
+@media (max-width:1119px) and (orientation:landscape) and (max-height:500px){
+  body{
+    padding:max(3px,env(safe-area-inset-top))
+            max(3px,env(safe-area-inset-right))
+            max(3px,env(safe-area-inset-bottom))
+            max(3px,env(safe-area-inset-left));
+    min-height:100vh;
+    min-height:100dvh;
+  }
+  .marquee{display:none;}
+  .cabinet{
+    width:min(720px,calc((100vh - 72px) * 19 / 21 + 8px));
+    width:min(720px,calc((100dvh - 72px) * 19 / 21 + 8px));
+    gap:4px;
+  }
+  .hud{padding:4px 8px;gap:8px;border-radius:8px;}
+  .hud .stat .k{font-size:8px;}
+  .hud .stat .v{font-size:14px;}
+  .combo-wrap{max-width:86px;min-width:44px;}
+  .stage{padding:3px;border-radius:10px;}
+  #mazeCanvas{
+    max-width:calc((100vh - 72px) * 19 / 21);
+    max-width:calc((100dvh - 72px) * 19 / 21);
+    border-radius:7px;
+  }
+  .overlay{inset:3px;--ov-pad:10px;padding:10px;gap:7px;border-radius:7px;}
+  /* 横屏高度只够放游戏本身，开始卡片只保留“是什么 / 怎么玩 /
+     开始”。排行榜和选关在竖屏可见，不能为了它们把主按钮裁掉。 */
+  #startOverlay .start-card{
+    width:calc(100% - 12px);max-height:calc(100% - 8px);
+    padding:10px 9px 8px;gap:4px;border-radius:14px;
+    overflow:hidden;justify-content:center;
+  }
+  #startOverlay .start-card h2{font-size:19px;line-height:1.15;white-space:nowrap;}
+  #startOverlay .welcome{font-size:11px;line-height:1.3;margin:0 !important;}
+  #startOverlay .start-tip{font-size:10px;line-height:1.3;}
+  #startOverlay .best-line,
+  #startOverlay .challenge,
+  #startOverlay .levelsel,
+  #startOverlay .board{display:none !important;}
+  #startOverlay .start-actions{
+    position:static;padding:3px 0 5px;margin:0;gap:8px;
+    flex-wrap:nowrap;background:none;
+  }
+  #startOverlay .btn-hero{min-height:44px;padding:10px 19px;font-size:13px;}
+  #startOverlay .btn-quiet{min-height:44px;padding:9px 12px;font-size:11px;}
+  #startOverlay .story-line{margin-top:0;padding:3px 5px;font-size:10px;}
 }
 
 @media (min-width:1120px) and (min-height:720px){
   body{padding:12px;overflow:hidden;}
   .cabinet{
-    width:min(1400px,calc(100vw - 24px));height:min(900px,calc(100dvh - 24px));
+    width:min(1400px,calc(100vw - 24px));
+    height:min(900px,calc(100vh - 24px));
+    height:min(900px,calc(100dvh - 24px));
     display:grid;grid-template-columns:240px minmax(470px,620px) 230px;
     grid-template-rows:52px minmax(0,1fr) 34px;
     gap:10px 20px;justify-content:center;align-items:center;
@@ -1528,6 +1598,7 @@ body::before{
   .hud .high-score-stat{display:flex;}
   .mission-strip{display:flex;grid-column:2;grid-row:1;width:min(100%,600px);justify-self:center;}
   .stage{grid-column:2;grid-row:2;width:100%;align-self:center;padding:9px;border-radius:21px;}
+  #mazeCanvas{width:min(100%,calc((100vh - 150px)*19/21));max-width:620px;border-radius:14px;}
   #mazeCanvas{width:min(100%,calc((100dvh - 150px)*19/21));max-width:620px;border-radius:14px;}
   .scanlines{inset:9px;border-radius:14px;}
   .pad-area{grid-column:2;grid-row:3;display:flex;height:100%;}
@@ -2537,7 +2608,7 @@ const Audio2 = (()=>{
   let muted = (() => {
     try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
   })();
-  // Each entry is a [lo, hi] "waka" pair, stepping up a pentatonic-ish scale
+  // Each entry is a [lo, hi] bite-tone pair, stepping up a pentatonic-ish scale
   // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
   // than arbitrary frequencies, so later steps read as melody, not siren.
   const PELLET_SCALE = [
@@ -2582,7 +2653,7 @@ const Audio2 = (()=>{
      * `progress` is 0 at the start of a level and 1 when the last pellet is
      * eaten. Rather than sliding the pitch continuously upward (which, on a
      * square wave, read as a siren winding up by the end of a level), the
-     * two-tone "waka" pair steps up a short scale in whole discrete jumps —
+     * two-tone bite pair steps up a short scale in whole discrete jumps —
      * a rounder triangle wave and an eased curve that holds near the base
      * pitch for most of the level and only climbs in the final stretch.
      */
@@ -5128,7 +5199,7 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  * 发现自己划不动。
  *
  * 阈值用的是 CSS 像素而不是格子数 —— 这里量的是手指的动作，不是游戏世界的
- * 距离，跟玩家速度无关。24px 在各种尺寸的手机上都足够区分"点"和"划"。
+ * 距离，跟玩家速度无关。14px 在手机上能既避开点击误触，又不必划过一整格才响应。
  */
 /* ---------- 锁死缩放 ----------
  * 玩的时候误触双击 / 双指，整个画面突然放大，是最败兴的一种手感问题。
@@ -5198,6 +5269,9 @@ stage.addEventListener('touchend', (e)=>{
   if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;  // 是点击，不是滑动
   requestDir(swipeDir(dx, dy));
 }, { passive: true });
+/* 下拉通知栏、系统侧滑返回会中断手势且不发 touchend。
+   不清理的话，下次 touchmove 会拿旧起点算出一次“自己转向”。 */
+stage.addEventListener('touchcancel', ()=>{ swipeFrom = null; }, { passive: true });
 document.getElementById('pauseBtn').addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
 /* 静音图标是一个 SVG 里的两组线条，切换的是显隐而不是重画整段 markup ——
    每次点击都重设 innerHTML 会把 SVG 拆了重建，在低端机上看得见闪一下。 */
@@ -5628,7 +5702,7 @@ function update(dt){
   if (wind >= 0.999) hintOnce('dash', '冲刺：直线连走不拐弯会越跑越快', 0);
   /* 尾迹按**距离**采样，不按帧。
      原来是每帧存一个点，最多 7 个 —— 第六关满冲刺是 8.37 格/秒，60 帧下相邻两点
-     只差 0.14 格，七个点总共铺开 0.84 格，正好等于吃豆人自己的直径。那不是一条
+     只差 0.14 格，七个点总共铺开 0.84 格，正好等于豆豆自己的直径。那不是一条
      尾巴，是七个几乎完全叠在角色身上的半透明圆盘，手机上棋盘再一缩就糊成一团，
      业主的原话是"看起来有点晕"。而且按帧采样意味着 120Hz 手机上间距再减半，
      同一份代码在不同手机上观感不一样。

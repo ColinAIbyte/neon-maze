@@ -14,7 +14,7 @@
 // 上，没被测的那份烂掉了：靠注释提醒自己不管用，这就是证据。
 import { existsSync, readFileSync } from 'node:fs';
 
-const src  = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src  = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const ui   = readFileSync(new URL('../微信小游戏版/js/ui.js', import.meta.url), 'utf8');
 const en   = readFileSync(new URL('../../en/index.html', import.meta.url), 'utf8');
 const wxmlUrl = new URL('../../微信小程序版/pages/game/game.wxml', import.meta.url);

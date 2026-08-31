@@ -10,12 +10,12 @@
 //
 // 二、尾迹按距离采样，不按帧。
 //     按帧采的话，第六关满冲刺 8.37 格/秒、60 帧下相邻两点只差 0.14 格，七个点
-//     铺开 0.84 格 —— 正好是吃豆人的直径，看起来是七个叠在身上的重影而不是尾巴
+//     铺开 0.84 格 —— 正好是豆豆的直径，看起来是七个叠在身上的重影而不是尾巴
 //     （业主："跑的时候手机有个影子，看起来有点晕"）。而且按帧采意味着 120Hz
 //     手机上间距再减半，同一份代码在不同设备上观感不同。
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const fail = [];
 
 // —— 一、滑动 ——
@@ -28,6 +28,10 @@ if (!mv) {
 } else if (!/swipeFrom = \{/.test(mv[0])) {
   fail.push('touchmove 判定后没有重置起点 —— 按着不放没法连续拐弯，'
           + '每转一次都得抬手重划');
+}
+const cancel = src.match(/stage\.addEventListener\('touchcancel'[\s\S]{0,180}?\);/);
+if (!cancel || !/swipeFrom\s*=\s*null/.test(cancel[0])) {
+  fail.push('没有在 touchcancel 清掉滑动起点 —— 系统侧滑/下拉通知栏后会留下误转向');
 }
 
 // —— 二、尾迹 ——
@@ -47,7 +51,7 @@ if (!fail.length){
     fail.push('尾迹又变回按帧采样了 —— 高刷手机上会糊成重影，且不同设备观感不一样');
 
   /* 尾巴总长必须明显超过角色直径，否则它就是叠在身上的重影而不是尾巴。
-     吃豆人半径 TILE*0.42，直径 0.84 格。 */
+     豆豆半径 TILE*0.42，直径 0.84 格。 */
   const span = SPACING * (MAX - 1);
   if (span < 1.0)
     fail.push(`尾巴总长只有 ${span.toFixed(2)} 格，没有明显超过角色直径 0.84 格，`
@@ -67,7 +71,7 @@ if (!fail.length){
     const aMax = Number(alpha[1]) + Number(alpha[2]);
     const rMax = Number(radius[1]) + Number(radius[2]);
     if (aMax > 0.20) fail.push(`尾迹最亮 ${aMax.toFixed(2)}，超过 0.20 会开始抢角色`);
-    if (rMax > 0.65) fail.push(`尾迹最大 ${(rMax*100).toFixed(0)}% 本体，超过 65% 就像第二个吃豆人`);
+    if (rMax > 0.65) fail.push(`尾迹最大 ${(rMax*100).toFixed(0)}% 本体，超过 65% 就像第二个豆豆`);
     if (!fail.length){
       console.log('尾迹（方案 B）：');
       console.log(`  间距 ${SPACING} 格 × ${MAX} 点 = 铺开 ${span.toFixed(2)} 格（角色直径 0.84）`);

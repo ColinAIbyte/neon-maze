@@ -115,7 +115,7 @@ Found a bug, or have an idea? I'd love to hear it.
 | Fullscreen button | **勾上** | 棋盘越高越大，全屏明显更好 |
 | Mobile friendly | **勾上**，方向 **Portrait**（竖屏） | 手机上有虚拟方向键，竖屏是对的 |
 | Genre | **Puzzle**（次选 Action） | |
-| Tags | `arcade` `maze` `pacman-like` `neon` `retro` `singleplayer` `html5` `mobile` | 别加 `english`，界面不是英文 |
+| Tags | `arcade` `maze` `maze-chase` `neon` `retro` `singleplayer` `html5` `mobile` | 别加 `english`，界面不是英文 |
 | **Language** | **Chinese (Simplified)** ← 只选这一个 | 界面是中文，标 English 属于标错 |
 | Input | Keyboard, Mouse, Touchscreen | 三种都支持 |
 | Accessibility | 留空 | 没有色盲模式和字幕，别乱勾 |

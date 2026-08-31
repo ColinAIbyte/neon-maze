@@ -30,7 +30,7 @@ globalThis.requestAnimationFrame=()=>0;
    种子写死，任何一次失败都能原样复现。 */
 let __seed = Number(process.argv[2]) || 20260815;   // 可传参换种子，扫多条轨迹
 Math.random = () => { __seed = (__seed * 1103515245 + 12345) & 0x7fffffff; return __seed / 0x7fffffff; };
-const html=readFileSync(new URL('../pacman_fragment.html', import.meta.url),'utf8');
+const html=readFileSync(new URL('../neon_maze_fragment.html', import.meta.url),'utf8');
 let body=html.slice(html.indexOf('<script>')+8,html.lastIndexOf('</script>')).trim()
   .replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/,'').replace(/\}\)\(\);?$/,'').trim();
 const dir=mkdtempSync(join(tmpdir(),'st-')); const mp=join(dir,'c.mjs');

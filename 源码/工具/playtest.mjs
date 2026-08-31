@@ -7,7 +7,7 @@
 //     连 localhost 都被策略挡了。判断"这关能不能过"不该依赖这些。
 //   * 一条命令就能跑，改完难度顺手验一次的成本几乎为零。
 //
-// 测的是 pacman_fragment.html 本身，不是副本。
+// 测的是 neon_maze_fragment.html 本身，不是副本。
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -51,7 +51,7 @@ globalThis.wx = {
 globalThis.requestAnimationFrame = () => 0;
 globalThis.performance = globalThis.performance || { now: () => Date.now() };
 
-const html = readFileSync(here('../pacman_fragment.html'), 'utf8');
+const html = readFileSync(here('../neon_maze_fragment.html'), 'utf8');
 let bodyJs = html.slice(html.indexOf('<script>')+8, html.lastIndexOf('</script>')).trim();
 bodyJs = bodyJs.replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/, '')
                .replace(/\}\)\(\);?$/, '').trim();

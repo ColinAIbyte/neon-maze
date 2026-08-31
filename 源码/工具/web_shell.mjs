@@ -4,7 +4,7 @@
 //   build_web.mjs      → 根目录 index.html，并镜像到 发布到网站/
 //   make_testbuild.mjs → 工具/测试版.html（用来验排版的）
 //
-// 之前测试版是直接写 pacman_fragment.html 的裸片段，没有 <meta viewport>。
+// 之前测试版是直接写 neon_maze_fragment.html 的裸片段，没有 <meta viewport>。
 // 后果很隐蔽：测试版在手机宽度下按 980px 桌面宽排版，量出来的坐标、发现的
 // 排版问题，跟真正发布的那份根本不是一回事——拿一个排版不对的构建去验排版，
 // 等于白验。共用同一个 wrap()，测试版和线上版的外壳就不可能再走偏。
@@ -27,7 +27,7 @@ export { TITLE, DESC, AUTHOR, FAVICON };
 
 /**
  * 把游戏片段包成一个完整网页。
- * @param {string} fragment  pacman_fragment.html 的内容（可能已注入测试钩子）
+ * @param {string} fragment  neon_maze_fragment.html 的内容（可能已注入测试钩子）
  * @param {string} titleSuffix  测试版加个后缀，免得跟正式版的标签页混淆
  */
 export function wrap(fragment, titleSuffix = ''){

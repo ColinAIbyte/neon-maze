@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const src = readFileSync(
-  fileURLToPath(new URL('../pacman_fragment.html', import.meta.url)), 'utf8',
+  fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url)), 'utf8',
 );
 const grab = n => {
   const m = src.match(new RegExp(`const MAZE_LEVEL_${n} = \\[([\\s\\S]*?)\\];`));

@@ -29,7 +29,7 @@ globalThis.wx={createCanvas:()=>fakeCanvas(),getSystemInfoSync:()=>({windowWidth
  onShareAppMessage:noop,onShareTimeline:noop};
 globalThis.requestAnimationFrame=()=>0;
 
-const html=readFileSync(new URL('../pacman_fragment.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
 const body=html.slice(html.indexOf('<script>')+8,html.lastIndexOf('</script>')).trim()
   .replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/,'').replace(/\}\)\(\);?$/,'').trim();
 const dir=mkdtempSync(join(tmpdir(),'su-')); const mp=join(dir,'c.mjs');

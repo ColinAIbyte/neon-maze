@@ -2,7 +2,7 @@
 //   用法: node build_web.mjs
 //   产物: 仓库根目录 index.html / 404.html，并镜像到 发布到网站/
 //
-// 为什么需要这一步：pacman_fragment.html 是**片段**，不是完整网页。它没有
+// 为什么需要这一步：neon_maze_fragment.html 是**片段**，不是完整网页。它没有
 // <!DOCTYPE>、没有 <html>、没有 <head>。artifact 平台发布时会自动包一层壳，
 // 所以在那个链接上一切正常；可一旦把这个文件直接传到静态托管上，就没人替你
 // 包了。
@@ -20,7 +20,7 @@ import { wrap, TITLE } from './web_shell.mjs';
 const here = p => fileURLToPath(new URL(p, import.meta.url));
 const ROOT_DIR = here('../../');
 const OUT_DIR = here('../../发布到网站');
-const fragment = readFileSync(here('../pacman_fragment.html'), 'utf8');
+const fragment = readFileSync(here('../neon_maze_fragment.html'), 'utf8');
 
 if (fragment.includes('__dbg')) {
   console.error('片段里有调试钩子，先清干净再打包。');

@@ -26,7 +26,7 @@ globalThis.wx={createCanvas:()=>fakeCanvas(),getSystemInfoSync:()=>({windowWidth
  onKeyboardInput:noop,onKeyboardConfirm:noop,onShow:noop,onHide:noop,showShareMenu:noop,
  onShareAppMessage:noop,onShareTimeline:noop};
 globalThis.requestAnimationFrame=()=>0;
-const html=readFileSync(new URL('../pacman_fragment.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
 let body=html.slice(html.indexOf('<script>')+8,html.lastIndexOf('</script>')).trim()
   .replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/,'').replace(/\}\)\(\);?$/,'').trim();
 const dir=mkdtempSync(join(tmpdir(),'kb-')); const mp=join(dir,'c.mjs');
@@ -174,7 +174,7 @@ if(!after)  fail.push('关掉说明后键盘没还给游戏');
    测试照样全绿。真实路径（派发 KeyboardEvent 看 defaultPrevented）只能在
    浏览器里跑，那边已经逐条确认过：游戏中拦、说明开着放行、关掉恢复拦。
    这里退一步做源码级检查：至少保证那行调用还在，被误删会立刻报出来。 */
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const handler = src.slice(src.indexOf("window.addEventListener('keydown'"));
 const handlerBody = handler.slice(0, handler.indexOf('});') + 3);
 if (!/gameHasKeyboard\(\)/.test(handlerBody))

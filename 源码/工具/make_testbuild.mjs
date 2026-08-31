@@ -1,7 +1,7 @@
 // Builds 工具/测试版.html = the shipped game + test-only hooks.
 //   用法: node make_testbuild.mjs
 //
-// The shipped pacman_fragment.html must never contain debug hooks. Editing them
+// The shipped neon_maze_fragment.html must never contain debug hooks. Editing them
 // in and remembering to strip them out again worked, but only because it was
 // checked every single time — one forgotten strip and the hooks ship. Generating
 // a throwaway copy instead means the published file is clean by construction,
@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { wrap } from './web_shell.mjs';
 
 const here = p => fileURLToPath(new URL(p, import.meta.url));
-const game  = readFileSync(here('../pacman_fragment.html'), 'utf8');
+const game  = readFileSync(here('../neon_maze_fragment.html'), 'utf8');
 const hooks = readFileSync(here('debug_hooks.js'), 'utf8');
 
 if (game.includes('__dbg')) {

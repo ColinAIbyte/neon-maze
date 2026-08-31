@@ -251,7 +251,10 @@ let hits = {}, padKeys = {}, hudHits = {};
 // 方向键显隐。存进 storage，不然每开一局都要重按一次，这个开关反而成了负担。
 let padHidden = false;
 try { padHidden = wx.getStorageSync('doudou.padHidden') === '1'; } catch (e) {}
-const SWIPE_MIN = 24;
+/* 用逻辑像素、按屏宽微调。320px 小屏用 14px，430px 左右也不超过
+   19px：旧的固定 24px 在小屏上接近一格半，拐弯明显慢半拍。 */
+const SWIPE_MIN = Math.max(14, Math.min(20, Math.round(W * 0.045)));
+const SWIPE_AXIS_RATIO = 1.16;
 let touchStart = null;
 /* 玩法说明比一屏高，要能滑动看。滚动量记在这里，drawOverlays 每帧读它。
    打开说明时归零，否则上次滚到哪儿这次就从哪儿开始，玩家会以为内容缺了一截。 */
@@ -261,6 +264,17 @@ let helpDragFrom = null;
 
 function inRect(x, y, r){ return r && x>=r.x && x<=r.x+r.w && y>=r.y && y<=r.y+r.h; }
 
+/* TouchList 在二指加入/离开时会重排，不能永远取 [0]。真机用 identifier
+   跟住第一指；冒烟测试的简化事件没有 identifier，单指时仍可正常使用。 */
+function touchId(t){ return t && Number.isFinite(t.identifier) ? t.identifier : null; }
+function matchingTouch(list, id){
+  if (!list) return null;
+  if (id == null) return list.length === 1 ? list[0] : null;
+  for (let i=0;i<list.length;i++) if (list[i].identifier === id) return list[i];
+  return null;
+}
+function clearGestures(){ touchStart = null; helpDragFrom = null; }
+
 function pressButton(id){
   // 复用逻辑自己注册的 click 回调，而不是另写一套开始/重开流程——
   // 另写一套就会漏掉它在回调里做的重置动作。
@@ -268,18 +282,25 @@ function pressButton(id){
 }
 
 wx.onTouchStart(e => {
-  const t = e.touches[0];
+  /* 每次新触摸都先放弃上一次手势，防止一指未抬起又加一指时坐标跳变。 */
+  clearGestures();
+  const list = e.touches || [];
+  const t = list[0];
+  if (!t) return;
   /* 任何一次触摸都顺手解锁音频。WebAudio 在多数宿主里要等一次用户手势才肯出声，
      而这边此前只在「练习关」那个分支里解锁过 —— 走主流程（点开始直接玩）的人
      一次都不会碰到那行。真出问题的话是整局无声，而且不报任何错。
      unlock() 内部只是拿一下 context、必要时 resume，重复调用没有代价。 */
   try { game.Audio2.unlock(); } catch (err) { /* 音频起不来不该拦住游戏 */ }
-  touchStart = { x: t.clientX, y: t.clientY, t: Date.now() };
+  /* 多指只有缩放/误触风险，没有可用的游戏语义。 */
+  if (list.length !== 1) return;
+  const id = touchId(t);
 
   // 文档页（玩法说明 / 关于这个游戏）开着时，手指是用来滚页面的，不是转向的
   const docClose = hits.helpClose || hits.aboutClose;
   if (docClose && !inRect(t.clientX, t.clientY, docClose)){
-    helpDragFrom = { y: t.clientY, scroll: helpScroll };
+    helpDragFrom = { y: t.clientY, scroll: helpScroll, id };
+    return;
   }
 
   if (inRect(t.clientX, t.clientY, hits.helpClose)){ game.closeHelp(); return; }
@@ -326,16 +347,31 @@ wx.onTouchStart(e => {
       return;
     }
   }
+
+  /* 只有正在游戏、且起点落在迷宫内的单指才拥有“转向”这个手势。
+     这行必须放在所有 UI 命中之后：点开始/继续/知道了后手指略微一移，
+     不能在新屏幕里顺带写入一个方向。 */
+  if (game.gameState === 'playing' &&
+      inRect(t.clientX, t.clientY, { x:boardX, y:boardY, w:boardW, h:boardH })){
+    touchStart = { x:t.clientX, y:t.clientY, id };
+  }
 });
 
 function swipeDir(dx, dy){
-  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left')
-                                     : (dy > 0 ? 'down'  : 'up');
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  const lead = Math.max(ax, ay), trail = Math.min(ax, ay);
+  if (lead <= SWIPE_MIN) return null;
+  /* 接近 45° 时不急着猜方向，继续等手指表达出更明确的主轴。
+     阈值同时降到 14~20px，所以直划仍比旧版 24px 更快响应。 */
+  if (trail > 6 && lead < trail * SWIPE_AXIS_RATIO) return null;
+  return ax > ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
 }
 
 wx.onTouchMove(e => {
-  const t = e.touches[0];
   if (helpDragFrom){
+    if (!e.touches || e.touches.length !== 1){ helpDragFrom = null; return; }
+    const t = matchingTouch(e.touches, helpDragFrom.id);
+    if (!t) return;
     // 手指往上滑，内容往上走 —— 和滚动列表一致
     helpScroll = Math.max(0, Math.min(helpMaxScroll,
                   helpDragFrom.scroll + (helpDragFrom.y - t.clientY)));
@@ -348,23 +384,30 @@ wx.onTouchMove(e => {
      真正来源：不是触屏天生不如按键，是判定时机放错了（方向键走的是按下即响应）。
      判定后把起点挪到当前位置，按着不放一路划就能连续拐弯。 */
   if (!touchStart) return;
+  if (game.gameState !== 'playing' || !e.touches || e.touches.length !== 1){
+    touchStart = null; return;
+  }
+  const t = matchingTouch(e.touches, touchStart.id);
+  if (!t) return;
   const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
-  if (Math.abs(dx) <= SWIPE_MIN && Math.abs(dy) <= SWIPE_MIN) return;
-  game.requestDir(swipeDir(dx, dy));
-  touchStart = { x: t.clientX, y: t.clientY, t: Date.now() };
+  const dir = swipeDir(dx, dy);
+  if (!dir) return;
+  game.requestDir(dir);
+  touchStart = { x:t.clientX, y:t.clientY, id:touchStart.id };
 });
 
 wx.onTouchEnd(e => {
   if (helpDragFrom){ helpDragFrom = null; touchStart = null; return; }
   if (!touchStart) return;
-  const t = (e.changedTouches && e.changedTouches[0]) || null;
+  const t = matchingTouch(e.changedTouches, touchStart.id);
+  /* 抬起的不是我们跟踪的那根手指，不应结束它的手势。 */
+  if (!t) return;
   if (t){
     /* 兜底：极短的一甩可能整个手势里都没有过阈值的 touchmove，这里补一次。
        已经在 touchmove 里转过向的手势，起点被重置过，剩下的位移通常不到阈值。 */
     const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
-    if (Math.abs(dx) > SWIPE_MIN || Math.abs(dy) > SWIPE_MIN){
-      game.requestDir(swipeDir(dx, dy));
-    }
+    const dir = swipeDir(dx, dy);
+    if (dir) game.requestDir(dir);
   }
   touchStart = null;
 });
@@ -374,7 +417,7 @@ wx.onTouchEnd(e => {
    下一次 touchmove 会拿上一次那个陈旧的起点去算位移，很可能直接判出一个
    玩家根本没做的转向 —— 而这种"我明明没滑它自己拐了"最难复现也最恼人。
    取消不是手势完成，所以什么都不该触发，只清状态。 */
-wx.onTouchCancel(() => { touchStart = null; helpDragFrom = null; });
+wx.onTouchCancel(clearGestures);
 
 /** 小游戏没有 <input>，署名走系统键盘。 */
 function openKeyboard(){
@@ -466,7 +509,7 @@ function autoPause(why){
   if (ui && ui.setPauseReason) ui.setPauseReason(why);
   game.togglePause();
 }
-wx.onHide(() => autoPause('你切走了，游戏替你按了暂停'));
+wx.onHide(() => { clearGestures(); autoPause('你切走了，游戏替你按了暂停'); });
 try {
   wx.onAudioInterruptionBegin && wx.onAudioInterruptionBegin(
     () => autoPause('有电话或语音打断了，先替你暂停'));
@@ -543,6 +586,6 @@ try { wx.onShareTimeline   && wx.onShareTimeline(shareContent);   } catch (e) {}
    之前测试是自己重新搭一遍启动流程，等于从没测过 game.js 本身 —— 而
    toast 的 roundRect 崩溃、分享没开启，两个真 bug 都恰恰在这个文件里。
    测真正的入口才有意义。这几个引用在正式环境里也就是几个字节。 */
-GameGlobal.__test = { shareContent, shim, game, ui, el, mazeCanvas, insetsFrom, layout: {
+GameGlobal.__test = { shareContent, shim, game, ui, el, mazeCanvas, insetsFrom, swipeMin:SWIPE_MIN, layout: {
   W, H, DPR, hudTop, hudH, hudBottom, boardX, boardY, boardW, boardH, padH, bottomInset,
 } };

@@ -27,7 +27,7 @@ if (!LEVEL || LEVEL < 2 || LEVEL > 6 || !Number.isFinite(TARGET)) {
   process.exit(1);
 }
 
-const FILE = fileURLToPath(new URL('../pacman_fragment.html', import.meta.url));
+const FILE = fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url));
 let src = readFileSync(FILE, 'utf8');
 
 const COLS = 19, ROWS = 21, TUNNEL_ROW = 10;

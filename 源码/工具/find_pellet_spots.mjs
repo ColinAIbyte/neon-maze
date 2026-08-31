@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const src = readFileSync(
-  fileURLToPath(new URL('../pacman_fragment.html', import.meta.url)), 'utf8',
+  fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url)), 'utf8',
 );
 const m = src.match(/const MAZE_LEVEL_2 = \[([\s\S]*?)\];/);
 const grid = m[1].split('\n').map(l => l.trim()).filter(Boolean)

@@ -1,7 +1,7 @@
 // 玩家视觉回归：守住“通道里留得出路、动作跟路程走、吃豆不横向变胖”。
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const fail = [];
 
 const num = (name) => {

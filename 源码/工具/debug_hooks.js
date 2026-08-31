@@ -1,6 +1,6 @@
 /* Test-only hooks. NEVER part of the published game — 工具/make_testbuild.mjs
  * appends this to a copy, and the copy is what the bot plays. Keeping them out
- * of pacman_fragment.html removes the repeated "remember to strip the hooks
+ * of neon_maze_fragment.html removes the repeated "remember to strip the hooks
  * before publishing" step, which is exactly the kind of thing that eventually
  * ships by accident.
  *

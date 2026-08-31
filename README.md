@@ -53,14 +53,14 @@ assets/
   neon-space-bg-v2.webp    深色宇宙背景
   neon-stalkers-tracking-eyes-v9.webp  四只圆润怪物留白眼球图集，黑瞳孔由游戏按方向实时绘制（256×256）
 源码/
-  pacman_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
+  neon_maze_fragment.html     网页版唯一源片段：玩法、UI、Canvas 渲染
   工具/                    构建、地图校验、回归测试、自动试玩
   微信小游戏版/            微信开发者工具可直接导入的小游戏工程
 ```
 
 页面不依赖 CDN、在线字体或接口，主视觉也是仓库内本地资源。`index.html` 由 `源码/工具/build_web.mjs` 生成；脚本会同步更新 GitHub Pages 根目录，并生成一个便于拖拽上传的 `发布到网站/` 镜像。
 
-**要改游戏，改 `源码/pacman_fragment.html`，然后重新生成：**
+**要改游戏，改 `源码/neon_maze_fragment.html`，然后重新生成：**
 
 ```bash
 node 源码/工具/build_web.mjs

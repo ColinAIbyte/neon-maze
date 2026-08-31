@@ -7,7 +7,7 @@
 //
 // 小游戏版不手抄游戏逻辑。抄一遍就等于有了两份会各自漂移的实现——网页版调了
 // 难度、修了 bug，小游戏版还停在旧版本，而且这种不一致往往几周后才被发现。
-// 所以核心逻辑永远从 pacman_fragment.html 机械提取，js/shim.js 负责把它缺的
+// 所以核心逻辑永远从 neon_maze_fragment.html 机械提取，js/shim.js 负责把它缺的
 // 那一小片 DOM 补出来。改游戏只改网页版，跑一次这个脚本，小游戏版就跟上了。
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -18,7 +18,7 @@ const here = p => fileURLToPath(new URL(p, import.meta.url));
    新建另一份微信小游戏版，真正导入开发者工具的 core.js 反而一直不更新。 */
 const OUT_DIR = here('../微信小游戏版/js');
 const OUT_IMAGE_DIR = here('../微信小游戏版/images');
-const src = readFileSync(here('../pacman_fragment.html'), 'utf8');
+const src = readFileSync(here('../neon_maze_fragment.html'), 'utf8');
 
 /* 用内容指纹而不是生成时间。
    带时间戳的话，每重跑一次生成脚本都会产生一处 diff，哪怕逻辑一个字没改 ——
@@ -53,9 +53,9 @@ body = body.replace(HEAD, '').replace(TAIL, '').trim();
 // 两次，游戏直接快一倍。
 
 const out = `/* 自动生成，请勿手改。
- * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
+ * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: ${srcHash}   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: ${srcHash}   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。

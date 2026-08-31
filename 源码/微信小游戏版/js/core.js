@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
- * 由 源码/工具/build_weapp.mjs 从 源码/pacman_fragment.html 提取。
+ * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 3c0b9063a66c   （只跟 pacman_fragment.html 的内容走）
+ * 源码指纹: 38f87daa065a   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -639,7 +639,7 @@ const Audio2 = (()=>{
   let muted = (() => {
     try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
   })();
-  // Each entry is a [lo, hi] "waka" pair, stepping up a pentatonic-ish scale
+  // Each entry is a [lo, hi] bite-tone pair, stepping up a pentatonic-ish scale
   // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
   // than arbitrary frequencies, so later steps read as melody, not siren.
   const PELLET_SCALE = [
@@ -684,7 +684,7 @@ const Audio2 = (()=>{
      * `progress` is 0 at the start of a level and 1 when the last pellet is
      * eaten. Rather than sliding the pitch continuously upward (which, on a
      * square wave, read as a siren winding up by the end of a level), the
-     * two-tone "waka" pair steps up a short scale in whole discrete jumps —
+     * two-tone bite pair steps up a short scale in whole discrete jumps —
      * a rounder triangle wave and an eased curve that holds near the base
      * pitch for most of the level and only climbs in the final stretch.
      */
@@ -3230,7 +3230,7 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  * 发现自己划不动。
  *
  * 阈值用的是 CSS 像素而不是格子数 —— 这里量的是手指的动作，不是游戏世界的
- * 距离，跟玩家速度无关。24px 在各种尺寸的手机上都足够区分"点"和"划"。
+ * 距离，跟玩家速度无关。14px 在手机上能既避开点击误触，又不必划过一整格才响应。
  */
 /* ---------- 锁死缩放 ----------
  * 玩的时候误触双击 / 双指，整个画面突然放大，是最败兴的一种手感问题。
@@ -3300,6 +3300,9 @@ stage.addEventListener('touchend', (e)=>{
   if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;  // 是点击，不是滑动
   requestDir(swipeDir(dx, dy));
 }, { passive: true });
+/* 下拉通知栏、系统侧滑返回会中断手势且不发 touchend。
+   不清理的话，下次 touchmove 会拿旧起点算出一次“自己转向”。 */
+stage.addEventListener('touchcancel', ()=>{ swipeFrom = null; }, { passive: true });
 document.getElementById('pauseBtn').addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
 /* 静音图标是一个 SVG 里的两组线条，切换的是显隐而不是重画整段 markup ——
    每次点击都重设 innerHTML 会把 SVG 拆了重建，在低端机上看得见闪一下。 */
@@ -3730,7 +3733,7 @@ function update(dt){
   if (wind >= 0.999) hintOnce('dash', '冲刺：直线连走不拐弯会越跑越快', 0);
   /* 尾迹按**距离**采样，不按帧。
      原来是每帧存一个点，最多 7 个 —— 第六关满冲刺是 8.37 格/秒，60 帧下相邻两点
-     只差 0.14 格，七个点总共铺开 0.84 格，正好等于吃豆人自己的直径。那不是一条
+     只差 0.14 格，七个点总共铺开 0.84 格，正好等于豆豆自己的直径。那不是一条
      尾巴，是七个几乎完全叠在角色身上的半透明圆盘，手机上棋盘再一缩就糊成一团，
      业主的原话是"看起来有点晕"。而且按帧采样意味着 120Hz 手机上间距再减半，
      同一份代码在不同手机上观感不一样。

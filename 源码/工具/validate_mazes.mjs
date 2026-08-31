@@ -1,4 +1,4 @@
-// Validates every maze embedded in pacman_fragment.html.
+// Validates every maze embedded in neon_maze_fragment.html.
 //
 // The hard invariant is that NO pellet can ever be stranded. Portals are
 // modelled as ABSORBING: you can step onto one but never walk through it,
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const src = readFileSync(
-  fileURLToPath(new URL('../pacman_fragment.html', import.meta.url)), 'utf8',
+  fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url)), 'utf8',
 );
 
 function extract(name) {

@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const src = readFileSync(
-  fileURLToPath(new URL('../pacman_fragment.html', import.meta.url)), 'utf8');
+  fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url)), 'utf8');
 
 const COLS = 19, ROWS = 21, TUNNEL_ROW = 10;
 const SPAWN = [9, 15], HOUSE = [9, 10];

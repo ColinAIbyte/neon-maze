@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 // fileURLToPath, not .pathname — the repo lives under a Chinese path and
 // .pathname hands back percent-encoded bytes that fs can't open.
-const FILE = fileURLToPath(new URL('../pacman_fragment.html', import.meta.url));
+const FILE = fileURLToPath(new URL('../neon_maze_fragment.html', import.meta.url));
 let src = readFileSync(FILE, 'utf8');
 
 const COLS = 19, ROWS = 21, MID = 9, TUNNEL_ROW = 10;

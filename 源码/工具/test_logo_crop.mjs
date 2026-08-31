@@ -5,7 +5,7 @@
 // 如果再给图片负 margin-top，结果不是“更紧凑”，而是把 NEON 的字顶裁掉。
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const fail = [];
 
 if (/brand-sub|DOUDOU\s*·\s*豆豆/.test(src))

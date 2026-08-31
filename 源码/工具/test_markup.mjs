@@ -60,7 +60,7 @@ const fail = [];
 
 /* 网页版：只查 </style> 到 <script> 之间那段真正的标记。
    样式和脚本里都有 < 和 >（比如 a < b、箭头函数），拿去当标签解析必然乱。 */
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const mStart = src.indexOf('</style>') + '</style>'.length;
 const mEnd   = src.indexOf('<script>');
 if (mStart <= 0 || mEnd < 0 || mEnd <= mStart){

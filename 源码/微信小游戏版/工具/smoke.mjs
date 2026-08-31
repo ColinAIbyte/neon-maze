@@ -34,7 +34,7 @@ function fakeCtx(){
     fillRect:noop, clearRect:noop, strokeRect:noop, drawImage:noop,
     /* 记下每一次 fillText。排版类的断言（正文左边缘在哪、滚到底能不能看到
        最后一行）只能从这里读——画布是假的，没有别的地方能观察到坐标。 */
-    fillText:(t,x,y)=>{ if (c.__recOn) c.__rec.push({ t:String(t), x, y, align:c.textAlign }); },
+    fillText:(t,x,y)=>{ if (c.__recOn) c.__rec.push({ t:String(t), x, y, align:c.textAlign, font:c.font }); },
     strokeText:noop,
     /* 每个字一律 7px 是不行的。中文在 11.5px 字号下差不多就是 11.5px 宽，
        按 7px 算，测试里**任何中文都不会折行** —— 于是所有"折行之后才暴露"的
@@ -502,35 +502,79 @@ try {
   game.gameState = 'playing';
 
   const dirOf = () => JSON.stringify(game.player.want);
+  const L = globalThis.__test.layout;
+  const MIN = globalThis.__test.swipeMin;
+  if (!(MIN >= 14 && MIN <= 20)) throw new Error('滑动阈值没有限在 14~20px：' + MIN);
+  const sx = L.boardX + L.boardW/2, sy = L.boardY + L.boardH/2;
   const swipe = (dx, dy) => {
-    globalThis.__touch({ touches:[{ clientX:200, clientY:600 }] });
-    globalThis.__touchMove({ touches:[{ clientX:200+dx, clientY:600+dy }] });
+    globalThis.__touch({ touches:[{ clientX:sx, clientY:sy }] });
+    globalThis.__touchMove({ touches:[{ clientX:sx+dx, clientY:sy+dy }] });
   };
 
   // 阈值以内不该转向（那是点击，不是滑动）
   game.requestDir('right');
-  swipe(10, 0);
+  swipe(MIN - 2, 0);
   if (dirOf() !== JSON.stringify({x:1,y:0}))
-    throw new Error('10px 的位移就转向了，点击会被误判成滑动');
-  globalThis.__touchEnd({ changedTouches:[{ clientX:210, clientY:600 }] });
+    throw new Error('阈值内的位移就转向了，点击会被误判成滑动');
+  globalThis.__touchEnd({ changedTouches:[{ clientX:sx+MIN-2, clientY:sy }] });
 
   // 过阈值：**还没抬手**就必须已经转向
-  swipe(0, 60);
+  swipe(0, MIN + 8);
   const afterMove = dirOf();
-  globalThis.__touchEnd({ changedTouches:[{ clientX:200, clientY:660 }] });
+  globalThis.__touchEnd({ changedTouches:[{ clientX:sx, clientY:sy+MIN+8 }] });
   if (afterMove !== JSON.stringify({x:0,y:1}))
     throw new Error('滑过阈值后、抬手之前没有转向（want=' + afterMove
                   + '）—— 判定又回到 touchend 了，手感会比方向键慢一格');
 
   // 一路连划：不抬手继续往另一个方向划，应该再转一次
-  globalThis.__touch({ touches:[{ clientX:200, clientY:600 }] });
-  globalThis.__touchMove({ touches:[{ clientX:200, clientY:660 }] });
-  globalThis.__touchMove({ touches:[{ clientX:140, clientY:660 }] });
+  globalThis.__touch({ touches:[{ clientX:sx, clientY:sy }] });
+  globalThis.__touchMove({ touches:[{ clientX:sx, clientY:sy+MIN+8 }] });
+  globalThis.__touchMove({ touches:[{ clientX:sx-MIN-8, clientY:sy+MIN+8 }] });
   const chained = dirOf();
-  globalThis.__touchEnd({ changedTouches:[{ clientX:140, clientY:660 }] });
+  globalThis.__touchEnd({ changedTouches:[{ clientX:sx-MIN-8, clientY:sy+MIN+8 }] });
   if (chained !== JSON.stringify({x:-1,y:0}))
     throw new Error('按着不放连续划第二个方向没生效（want=' + chained
                   + '）—— 起点没重置，连划会失效');
+
+  // 接近 45° 的拖动方向不明，等待而不是随机猜横/竖
+  game.requestDir('right');
+  swipe(MIN + 8, MIN + 8);
+  if (dirOf() !== JSON.stringify({x:1,y:0}))
+    throw new Error('45° 拖动被武断判成了一个方向：' + dirOf());
+  globalThis.__touchEnd({ changedTouches:[{ clientX:sx+MIN+8, clientY:sy+MIN+8 }] });
+
+  // 手势只属于迷宫：在上方空白/HUD 起手，拖进棋盘也不转向
+  game.requestDir('right');
+  globalThis.__touch({ touches:[{ clientX:sx, clientY:L.boardY-20 }] });
+  globalThis.__touchMove({ touches:[{ clientX:sx, clientY:L.boardY+MIN+20 }] });
+  if (dirOf() !== JSON.stringify({x:1,y:0}))
+    throw new Error('从迷宫外起手也触发了转向');
+  globalThis.__touchEnd({ changedTouches:[{ clientX:sx, clientY:L.boardY+MIN+20 }] });
+
+  // 二指加入会让 TouchList 重排，必须取消而不是拿 [0] 继续算位移
+  game.requestDir('right');
+  globalThis.__touch({ touches:[{ identifier:7, clientX:sx, clientY:sy }] });
+  globalThis.__touch({ touches:[
+    { identifier:7, clientX:sx, clientY:sy },
+    { identifier:8, clientX:sx+80, clientY:sy+80 },
+  ] });
+  globalThis.__touchMove({ touches:[{ identifier:8, clientX:sx+100, clientY:sy+100 }] });
+  if (dirOf() !== JSON.stringify({x:1,y:0}))
+    throw new Error('二指切换导致了幽灵转向：' + dirOf());
+
+  // 点 HUD 暂停后再拖，这一指已归 UI，不能在恢复后留下方向
+  game.gameState = 'playing';
+  el('pauseOverlay').classList.add('hidden');
+  globalThis.__frame();
+  const pauseHit = ui.drawHud().pause;
+  game.requestDir('right');
+  const px = pauseHit.x + pauseHit.w/2, py = pauseHit.y + pauseHit.h/2;
+  globalThis.__touch({ touches:[{ clientX:px, clientY:py }] });
+  globalThis.__touchMove({ touches:[{ clientX:px, clientY:py+MIN+30 }] });
+  if (dirOf() !== JSON.stringify({x:1,y:0}))
+    throw new Error('点暂停后的拖动又被当成了转向');
+  globalThis.__touchEnd({ changedTouches:[{ clientX:px, clientY:py+MIN+30 }] });
+  if (game.gameState === 'paused') game.togglePause();
 
   /* 手势被系统打断（下拉通知栏那类）时微信发的是 onTouchCancel，**不会**再发
      touchend。不清状态的话，下一次 touchmove 会拿上一次那个陈旧的起点去算
@@ -539,14 +583,14 @@ try {
   if (typeof globalThis.__touchCancel !== 'function')
     throw new Error('没接 onTouchCancel，被打断的手势会留下陈旧起点');
   game.requestDir('right');
-  globalThis.__touch({ touches:[{ clientX:200, clientY:600 }] });
+  globalThis.__touch({ touches:[{ clientX:sx, clientY:sy }] });
   globalThis.__touchCancel({});
   // 取消之后再动手指：起点已清，不该判出任何转向
-  globalThis.__touchMove({ touches:[{ clientX:200, clientY:700 }] });
+  globalThis.__touchMove({ touches:[{ clientX:sx, clientY:sy+100 }] });
   if (dirOf() !== JSON.stringify({x:1,y:0}))
     throw new Error('取消手势后仍然转向了（want=' + dirOf() + '）—— 起点没清干净');
 
-  ok('滑动：过阈值即转向（不等抬手）／10px 不误触／按住可连划／被打断不误判');
+  ok(`滑动：${MIN}px 自适应阈值／迷宫专属／UI 不串手势／单指跟踪／可连划`);
 } catch(e){ fail('滑动手感', e); }
 finally { game.gameState = stateBeforeSwipe; }
 
@@ -852,6 +896,66 @@ try {
   el('comboLabel').textContent = '连击 x1';
   el('livesVal').innerHTML = '<svg/><svg/>';
 } catch(e){ fail('HUD 排版', e); }
+
+/* 320px 窄屏单独跑一遍。390px 上不重叠，不代表入门安卓机上也不重叠：
+   旧布局的七位分数会压到连击，第四条命则会压到暂停热区。 */
+try {
+  const { createUI:createSmallUI } = req(here('../js/ui.js'));
+  const smallCtx = fakeCtx();
+  const smallLayout = {
+    W:320, H:568, hudTop:70, hudH:64, hudBottom:134,
+    boardX:3, boardY:142, boardW:314, boardH:347,
+    padH:0, bottomInset:20, capsuleLeft:230,
+  };
+  const smallUI = createSmallUI(smallCtx, el, smallLayout);
+  el('scoreVal').textContent = '1,233,040';
+  el('levelVal').textContent = '6/6';
+  el('comboLabel').textContent = '连击 x113';
+  el('livesVal').innerHTML = '<svg/><svg/><svg/><svg/>';
+  smallCtx.__recOn = true;
+  const h = smallUI.drawHud();
+  smallCtx.__recOn = false;
+  if (h.help) throw new Error('320px 窄屏仍显示冗余的 ?，数值列会被挤压');
+  if (!h.pause || h.pause.x < 0 || h.pause.x+h.pause.w > 320)
+    throw new Error('窄屏暂停热区越界：' + JSON.stringify(h.pause));
+  const score = smallCtx.__rec.find(r=>r.t==='1,233,040');
+  const combo = smallCtx.__rec.find(r=>r.t==='x113');
+  const lives = smallCtx.__rec.find(r=>r.t==='×4');
+  if (!score || !combo || !lives) throw new Error('窄屏 HUD 缺数值：' + JSON.stringify(smallCtx.__rec));
+  const widthOf = r => { const old=smallCtx.font; smallCtx.font=r.font;
+                         const w=smallCtx.measureText(r.t).width; smallCtx.font=old; return w; };
+  if (score.x + widthOf(score) + 4 > combo.x)
+    throw new Error('窄屏分数与连击重叠');
+  if (lives.x + widthOf(lives) + 4 > h.pause.x)
+    throw new Error('窄屏生命与暂停热区重叠');
+
+  // 短屏开始页只留最多 3 条本机纪录，且所有记录都必须在按钮上方
+  for (const id of ['pauseOverlay','overOverlay','helpOverlay','aboutOverlay']) el(id).classList.add('hidden');
+  el('startOverlay').classList.remove('hidden');
+  el('levelSel').classList.add('hidden');
+  el('bestLine').textContent = '最高 1,233,040';
+  el('welcomeLine').textContent = '欢迎回来';
+  el('startBoard').innerHTML = new Array(8).fill(0).map((_,i)=>
+    `<div class="board-row"><span>R${i+1}</span><span>豆豆</span><span>${800-i}</span></div>`).join('');
+  smallCtx.__rec.length = 0; smallCtx.__recOn = true;
+  const ov = smallUI.drawOverlays(0);
+  smallCtx.__recOn = false;
+  const boardRows = smallCtx.__rec.filter(r=>/^R\d/.test(r.t));
+  if (boardRows.length > 3) throw new Error('短屏开始页画了 ' + boardRows.length + ' 条纪录');
+  if (!ov.start || !ov.help) throw new Error('短屏开始/玩法按钮缺失');
+  if (ov.start.y + ov.start.h > smallLayout.H - smallLayout.bottomInset)
+    throw new Error('短屏开始按钮被底部安全区遮住');
+  if (boardRows.some(r=>r.y >= ov.start.y))
+    throw new Error('短屏排行榜文字与开始按钮重叠');
+  ok('320×568 窄屏（分数自适应 / 生命×N / 暂停独立 / 弹层最多 3 条纪录）');
+} catch(e){ fail('窄屏排版', e); }
+finally {
+  el('startOverlay').classList.add('hidden');
+  el('scoreVal').textContent = '360';
+  el('levelVal').textContent = '1/6';
+  el('comboLabel').textContent = '连击 x1';
+  el('livesVal').innerHTML = '<svg/><svg/>';
+}
 
 // 分享。真机上那两个按钮灰着写"当前页面未设置分享"，就是漏了 showShareMenu ——
 // 只注册 onShareAppMessage 不会让按钮亮起来，两件事都得做。

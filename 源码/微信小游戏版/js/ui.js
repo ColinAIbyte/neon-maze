@@ -15,6 +15,12 @@ const FONT = (px, bold) => `${bold ? 'bold ' : ''}${px}px sans-serif`;
 function createUI(ctx, el, layout){
   const { W, H, hudTop, hudH, hudBottom, boardX, boardY, boardW, boardH,
           padH, bottomInset, capsuleLeft } = layout;
+  /* 手机界面不是桌面版等比缩小。窄屏优先保住数值可读和暂停键；
+     短屏则减少弹层中的排行榜行数，不让正文压到底部按钮上。 */
+  const compactHud = W <= 360;
+  const contentH = H - hudBottom - bottomInset;
+  const shortScreen = contentH < 560;
+  const tinyScreen = contentH < 380;
 
   function roundRect(x, y, w, h, r){
     ctx.beginPath();
@@ -41,6 +47,15 @@ function createUI(ctx, el, layout){
   let pauseReason = '';
   function pauseReasonText(){ return pauseReason; }
 
+  function fittedFont(text, maxW, base, min, bold){
+    for (let px=base;px>=min;px--){
+      const font = FONT(px, bold);
+      ctx.font = font;
+      if (ctx.measureText(String(text)).width <= maxW) return font;
+    }
+    return FONT(min, bold);
+  }
+
   function drawHud(){
     /* 整条 HUD 从 hudTop 开始 —— 那是刘海和微信胶囊按钮的下沿。
        胶囊是微信自己画的，盖不住也移不动，只能让开。 */
@@ -55,13 +70,17 @@ function createUI(ctx, el, layout){
        反过来做就会像上一版那样：数值按比例铺满，「?」只能硬塞进去，
        结果跟生命图标叠在一起。 */
     const helpSize = Math.min(28, boxH - 14);
-    const help = { x: W - pad - 10 - helpSize, y: boxY + (boxH - helpSize)/2,
-                   w: helpSize, h: helpSize };
+    const rightSlot = { x: W - pad - 10 - helpSize, y: boxY + (boxH - helpSize)/2,
+                        w: helpSize, h: helpSize };
+    /* 360px 及以下只留暂停：暂停页本身有“玩法说明”，这里再放 ?
+       会吃掉一整个数值列，不是手机上值得的交换。 */
+    const help = compactHud ? null : rightSlot;
     /* 暂停挪到 HUD 里，排在「?」左边。
        它原本嵌在方向键正中，而方向键 2026-08-21 整个去掉了 —— 不在这儿补一个，
        手机上就只剩"打完这局"一种停下来的办法。 */
     // 间隙从 8 拉到 18：两个 28 的图标各撑到 44 要吃掉 16，留 2px 余量
-    const pause = { x: help.x - 18 - helpSize, y: help.y, w: helpSize, h: helpSize };
+    const pause = compactHud ? rightSlot
+      : { x: help.x - 18 - helpSize, y: help.y, w: helpSize, h: helpSize };
 
     const innerL = pad + 14;
     const innerR = pause.x - 12;
@@ -69,23 +88,27 @@ function createUI(ctx, el, layout){
 
     // 分数最长（通关能到七位数），给的份额也最大
     const colScore = innerL;
-    const colCombo = innerL + span * 0.30;
-    const colLevel = innerL + span * 0.585;
-    const colLives = innerL + span * 0.775;
+    const colCombo = innerL + span * (compactHud ? 0.34 : 0.30);
+    const colLevel = innerL + span * (compactHud ? 0.615 : 0.585);
+    const colLives = innerL + span * (compactHud ? 0.80 : 0.775);
 
     const yLabel = boxY + 15;
     const yValue = boxY + 36;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
 
-    ctx.fillStyle = C['--text-dim']; ctx.font = FONT(10);
+    ctx.fillStyle = C['--text-dim']; ctx.font = FONT(compactHud ? 9 : 10);
     ctx.fillText('分数', colScore, yLabel);
     ctx.fillText('连击', colCombo, yLabel);
     ctx.fillText('关卡', colLevel, yLabel);
     ctx.fillText('生命', colLives, yLabel);
 
-    ctx.fillStyle = C['--text']; ctx.font = FONT(18, true);
-    ctx.fillText(el('scoreVal').textContent || '0', colScore, yValue);
+    const scoreText = el('scoreVal').textContent || '0';
+    ctx.fillStyle = C['--text'];
+    ctx.font = fittedFont(scoreText, Math.max(38, colCombo - colScore - 8),
+                          compactHud ? 16 : 18, 12, true);
+    ctx.fillText(scoreText, colScore, yValue);
+    ctx.font = FONT(compactHud ? 16 : 18, true);
     ctx.fillText(el('levelVal').textContent || '1/6', colLevel, yValue);
 
     /* 连击只显示倍率。逻辑给的是完整的「连击 x1」，直接画会和上面那个
@@ -128,7 +151,7 @@ function createUI(ctx, el, layout){
       ctx.lineTo(cx, cy);
       ctx.closePath(); ctx.fill();
     };
-    if (n <= 4){
+    if (!compactHud && n <= 4){
       for (let i=0;i<n;i++) drawBean(colLives + 6 + i*15, yValue, 6);
     } else {
       drawBean(colLives + 6, yValue, 6);
@@ -138,12 +161,14 @@ function createUI(ctx, el, layout){
 
     // 「?」竖直居中放在 HUD 最右，不贴右上角 —— 那里正对微信胶囊按钮，
     // 手指过去会先点到微信的菜单。
-    ctx.strokeStyle = C['--panel-border']; ctx.lineWidth = 1;
-    roundRect(help.x, help.y, help.w, help.h, 8); ctx.stroke();
-    ctx.fillStyle = C['--text-dim'];
-    ctx.font = FONT(15, true);
-    ctx.textAlign = 'center';
-    ctx.fillText('?', help.x + help.w/2, help.y + help.h/2 + 1);
+    if (help){
+      ctx.strokeStyle = C['--panel-border']; ctx.lineWidth = 1;
+      roundRect(help.x, help.y, help.w, help.h, 8); ctx.stroke();
+      ctx.fillStyle = C['--text-dim'];
+      ctx.font = FONT(15, true);
+      ctx.textAlign = 'center';
+      ctx.fillText('?', help.x + help.w/2, help.y + help.h/2 + 1);
+    }
     // 暂停图标：两道竖杠，和网页版 HUD 里那个同形
     ctx.strokeStyle = C['--text-dim']; ctx.lineWidth = 2; ctx.lineCap = 'round';
     const px = pause.x + pause.w/2, py = pause.y + pause.h/2, ph = pause.h*0.3;
@@ -153,7 +178,7 @@ function createUI(ctx, el, layout){
     ctx.stroke();
     ctx.lineCap = 'butt';
 
-    return { help: tap(help), pause: tap(pause) };
+    return { help: help ? tap(help) : null, pause: tap(pause) };
   }
 
   function wrapLines(text, maxW, font){
@@ -183,32 +208,34 @@ function createUI(ctx, el, layout){
     ctx.fillRect(0, hudBottom, W, H - hudBottom);
 
     const cx = W/2;
-    let y = hudBottom + (H - hudBottom) * 0.14;
+    let y = hudBottom + (H - hudBottom) * (shortScreen ? 0.07 : 0.14);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
     ctx.fillStyle = titleColor || C['--amber'];
-    ctx.font = FONT(30, true);
+    ctx.font = FONT(shortScreen ? 26 : 30, true);
     ctx.fillText(title, cx, y);
-    y += 46;
+    y += shortScreen ? 38 : 46;
 
     if (big != null){
-      ctx.fillStyle = C['--text']; ctx.font = FONT(40, true);
+      ctx.fillStyle = C['--text']; ctx.font = FONT(shortScreen ? 34 : 40, true);
       ctx.fillText(String(big), cx, y);
-      y += 48;
+      y += shortScreen ? 40 : 48;
     }
 
     if (body){
-      ctx.fillStyle = C['--text-dim']; ctx.font = FONT(13);
-      for (const line of wrapLines(body, W - 64, FONT(13))){
-        ctx.fillText(line, cx, y); y += 20;
+      const bodyFont = FONT(shortScreen ? 12 : 13);
+      ctx.fillStyle = C['--text-dim']; ctx.font = bodyFont;
+      for (const line of wrapLines(body, W - 64, bodyFont)){
+        ctx.fillText(line, cx, y); y += shortScreen ? 18 : 20;
       }
       y += 8;
     }
 
     if (hint){
-      ctx.fillStyle = C['--tang']; ctx.font = FONT(11);
-      for (const line of wrapLines(hint, W - 64, FONT(11))){
-        ctx.fillText(line, cx, y); y += 17;
+      const hintFont = FONT(shortScreen ? 10 : 11);
+      ctx.fillStyle = C['--tang']; ctx.font = hintFont;
+      for (const line of wrapLines(hint, W - 64, hintFont)){
+        ctx.fillText(line, cx, y); y += shortScreen ? 15 : 17;
       }
       y += 6;
     }
@@ -531,11 +558,12 @@ function createUI(ctx, el, layout){
   }
 
   /** 排行榜。逻辑把它写进 innerHTML，这里拆成行画出来。 */
-  function drawBoard(startY, cx, html){
+  function drawBoard(startY, cx, html, maxRows){
     const text = html.replace(/<div class="board-row[^"]*">/g, '\n')
                      .replace(/<[^>]+>/g, ' ')
                      .replace(/[ \t]+/g, ' ');
-    const rows = text.split('\n').map(s=>s.trim()).filter(Boolean).slice(0, 9);
+    const rows = text.split('\n').map(s=>s.trim()).filter(Boolean)
+                     .slice(0, maxRows == null ? 9 : maxRows);
     ctx.font = FONT(11); ctx.textAlign = 'center';
     let y = startY;
     for (let i=0;i<rows.length;i++){
@@ -594,7 +622,7 @@ function createUI(ctx, el, layout){
           button2: '玩法说明',
           extra: (y, cx) => {
             y = drawPractice(y, cx, hits);
-            y = drawBoard(y, cx, boardHtml);
+            y = drawBoard(y, cx, boardHtml, tinyScreen ? 0 : (shortScreen ? 3 : 9));
             /* 署名这行本身就是「关于 Neon Maze」的入口。
                网页版和小程序版把它放在副标题旁边（和「玩法」并排），这边不行：
                小游戏没有副标题那一行，HUD 只有一条、而且已经挤到极限（有测试
@@ -646,7 +674,8 @@ function createUI(ctx, el, layout){
               ctx.fillStyle = C['--amber']; ctx.font = FONT(12); ctx.textAlign='center';
               ctx.fillText(el('nameRow').textContent, cx, y); y += 22;
             }
-            return drawBoard(y, cx, el('overBoard') ? el('overBoard').innerHTML : '');
+            return drawBoard(y, cx, el('overBoard') ? el('overBoard').innerHTML : '',
+                             tinyScreen ? 0 : (shortScreen ? 3 : 9));
           },
         });
       }

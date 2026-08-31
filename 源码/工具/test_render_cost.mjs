@@ -51,7 +51,7 @@ globalThis.wx = {
 };
 globalThis.requestAnimationFrame = () => 0;
 
-const html = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const body = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>')).trim()
   .replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/, '').replace(/\}\)\(\);?$/, '').trim();
 const dir = mkdtempSync(join(tmpdir(), 'trc-')); const mp = join(dir, 'c.mjs');
@@ -104,7 +104,7 @@ if (bad.length){
    这部分没法在无头环境里量（没有布局、没有 devicePixelRatio），但接线断没断
    是能从源码看出来的，而断了的后果很实在：要么高清屏上糊回去，要么微信两版
    直接崩。后者不是假设 —— 守卫写错过一次，小游戏当场 setTransform 报错。 */
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const wire = [
   ['每帧套用变换',      /function render\(\)\{[\s\S]{0,400}?applyMazeTransform\(\)/],
   ['按 dpr 分配像素',   /canvas\.width = w; canvas\.height = h;/],

@@ -29,7 +29,7 @@ let __seed = Number(process.argv[2]) || 424242;
 Math.random = () => { __seed = (__seed*1103515245 + 12345) & 0x7fffffff; return __seed/0x7fffffff; };
 const rnd = n => Math.floor(Math.random()*n);
 
-const html=readFileSync(new URL('../pacman_fragment.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
 let body=html.slice(html.indexOf('<script>')+8,html.lastIndexOf('</script>')).trim()
   .replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/,'').replace(/\}\)\(\);?$/,'').trim();
 const dir=mkdtempSync(join(tmpdir(),'ch-')); const mp=join(dir,'c.mjs');

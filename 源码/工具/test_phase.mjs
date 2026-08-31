@@ -54,7 +54,7 @@ globalThis.requestAnimationFrame = () => 0;
 globalThis.performance = globalThis.performance || { now: () => Date.now() };
 
 // —— 直接从网页版提取逻辑，测的就是要发布的那一份 ——
-const html = readFileSync(here('../pacman_fragment.html'), 'utf8');
+const html = readFileSync(here('../neon_maze_fragment.html'), 'utf8');
 let bodyJs = html.slice(html.indexOf('<script>')+8, html.lastIndexOf('</script>')).trim();
 bodyJs = bodyJs.replace(/^\(function\(\)\s*\{\s*(?:"use strict";|'use strict';)?/, '')
                .replace(/\}\)\(\);?$/, '').trim();

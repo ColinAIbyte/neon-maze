@@ -15,7 +15,7 @@
 // 顺带钉住"小豆的半径不随呼吸变化"——那正是当初出事的那一行。
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../pacman_fragment.html', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../neon_maze_fragment.html', import.meta.url), 'utf8');
 const fail = [];
 
 const num = (name) => {

@@ -415,7 +415,7 @@ function createUI(ctx, el, layout){
     ctx.fillRect(0, hudBottom, W, H - hudBottom);
 
     const cx = W/2;
-    const btnH = 40;
+    const btnH = 44;
     const viewTop = hudBottom + 8;
     const viewBottom = H - bottomInset - padH * 0.25 - btnH - 20;
 
@@ -668,7 +668,7 @@ function createUI(ctx, el, layout){
               ctx.fillStyle = v ? C['--text'] : C['--text-dim'];
               ctx.font = FONT(13); ctx.textAlign = 'center';
               ctx.fillText(v || '点这里留下名字', cx, y + bh/2);
-              hits.name = { x:bx, y, w:bw, h:bh };
+              hits.name = tap({ x:bx, y, w:bw, h:bh });
               y += bh + 10;
             } else if (el('nameRow').textContent){
               ctx.fillStyle = C['--amber']; ctx.font = FONT(12); ctx.textAlign='center';

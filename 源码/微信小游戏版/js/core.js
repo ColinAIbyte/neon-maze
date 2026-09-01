@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 38f87daa065a   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 8d450ed732aa   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -3240,27 +3240,54 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  * 两件事——
  *   1. CSS 的 touch-action，见样式表里的 html/body 和 .stage；
  *   2. Safari 私有的 gesture* 事件，双指缩放走的是这条路，必须显式拦掉。
- * 再补一道双击兜底：两次触摸间隔小于 300ms 就吃掉后一次的默认行为。
+ * 再补一道双击兜底时必须只管正在游玩的棋盘：文档级 touchend 拦截会把
+ * 300ms 内第二次按钮点击也一起吃掉（例如快速点两次静音只生效一次）。
  */
 ['gesturestart','gesturechange','gestureend'].forEach(t=>{
   document.addEventListener(t, e => e.preventDefault(), { passive:false });
 });
-let lastTouchEnd = 0;
-document.addEventListener('touchend', (e)=>{
-  const now = Date.now();
-  if (now - lastTouchEnd < 300) e.preventDefault();
-  lastTouchEnd = now;
-}, { passive:false });
 
 const SWIPE_MIN_PX = 14;
+const SWIPE_AXIS_RATIO = 1.16;
 let swipeFrom = null;
 const stage = document.getElementById('mazeCanvas').parentElement;
 
+function touchId(t){ return t && Number.isFinite(t.identifier) ? t.identifier : null; }
+function matchingTouch(list, id){
+  if (!list) return null;
+  if (id == null) return list.length === 1 ? list[0] : null;
+  for (let i=0;i<list.length;i++) if (list[i].identifier === id) return list[i];
+  return null;
+}
+function clearSwipe(){ swipeFrom = null; }
+
+/* 第二指可能落在 HUD 或页面别处，那次 touchstart 不会冒泡经过 .stage。
+   在 document 捕获阶段只做“取消旧棋盘手势”这一件事，确保多指无论落在哪都
+   不会让第一指带着陈旧起点继续控制。这里不 preventDefault，不影响按钮点击。 */
+function cancelSwipeOnMultitouch(e){
+  if (swipeFrom && (!e.touches || e.touches.length !== 1)) clearSwipe();
+}
+document.addEventListener('touchstart', cancelSwipeOnMultitouch, { passive:true, capture:true });
+document.addEventListener('touchmove', cancelSwipeOnMultitouch, { passive:true, capture:true });
+
+/* 老 Safari 的双击缩放兜底只作用于正在游玩的棋盘。按钮都在这条规则之外，
+   因而快速连点不会再丢第二次 click；棋盘本身仍由 touch-action:none 主防。 */
+let lastStageTouchEnd = 0;
+stage.addEventListener('touchend', (e)=>{
+  if (gameState !== 'playing') return;
+  const now = Date.now();
+  if (now - lastStageTouchEnd < 300) e.preventDefault();
+  lastStageTouchEnd = now;
+}, { passive:false });
+
 stage.addEventListener('touchstart', (e)=>{
   Audio2.unlock();
-  if (gameState !== 'playing') { swipeFrom = null; return; }
-  const t = e.changedTouches[0];
-  swipeFrom = { x: t.clientX, y: t.clientY };
+  /* 新触摸先放弃旧手势；第二指加入时 TouchList 会重排，不能沿用旧坐标。 */
+  clearSwipe();
+  const list = e.touches || [];
+  if (gameState !== 'playing' || list.length !== 1) return;
+  const t = list[0];
+  swipeFrom = { x:t.clientX, y:t.clientY, id:touchId(t) };
 }, { passive: true });
 
 /* 滑过阈值就立刻转向，**不等抬手**。
@@ -3274,19 +3301,28 @@ stage.addEventListener('touchstart', (e)=>{
    判定之后把起点挪到当前手指位置，所以按着不放一路划就能连续拐弯，
    不必抬手再划一次。 */
 function swipeDir(dx, dy){
-  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left')
-                                     : (dy > 0 ? 'down'  : 'up');
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  const lead = Math.max(ax, ay), trail = Math.min(ax, ay);
+  if (lead <= SWIPE_MIN_PX) return null;
+  /* 接近 45° 时先不猜，继续等手指表达出更明确的主轴。 */
+  if (trail > 6 && lead < trail * SWIPE_AXIS_RATIO) return null;
+  return ax > ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
 }
 
 stage.addEventListener('touchmove', (e)=>{
   // 手指在画布上划动时阻止页面跟着滚 —— 否则一边玩一边整页上下弹，没法玩。
   if (!swipeFrom) return;
+  if (gameState !== 'playing' || !e.touches || e.touches.length !== 1){
+    clearSwipe(); return;
+  }
+  const t = matchingTouch(e.touches, swipeFrom.id);
+  if (!t) return;
   e.preventDefault();
-  const t = e.changedTouches[0];
   const dx = t.clientX - swipeFrom.x, dy = t.clientY - swipeFrom.y;
-  if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;
-  requestDir(swipeDir(dx, dy));
-  swipeFrom = { x: t.clientX, y: t.clientY };   // 重置起点，支持一路连划
+  const dir = swipeDir(dx, dy);
+  if (!dir) return;
+  requestDir(dir);
+  swipeFrom = { x:t.clientX, y:t.clientY, id:swipeFrom.id }; // 重置起点，支持一路连划
 }, { passive: false });
 
 stage.addEventListener('touchend', (e)=>{
@@ -3294,11 +3330,14 @@ stage.addEventListener('touchend', (e)=>{
      那样上面那段不会发火，这里补一次。已经在 touchmove 里转过向的手势，
      起点已被重置，剩下的位移通常不到阈值，不会重复触发。 */
   if (!swipeFrom) return;
-  const t = e.changedTouches[0];
+  if (gameState !== 'playing'){ clearSwipe(); return; }
+  const t = matchingTouch(e.changedTouches, swipeFrom.id);
+  /* 抬起的不是这次手势所属的触点，不得结束或转向。 */
+  if (!t) return;
   const dx = t.clientX - swipeFrom.x, dy = t.clientY - swipeFrom.y;
-  swipeFrom = null;
-  if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;  // 是点击，不是滑动
-  requestDir(swipeDir(dx, dy));
+  clearSwipe();
+  const dir = swipeDir(dx, dy);
+  if (dir) requestDir(dir);
 }, { passive: true });
 /* 下拉通知栏、系统侧滑返回会中断手势且不发 touchend。
    不清理的话，下次 touchmove 会拿旧起点算出一次“自己转向”。 */
@@ -3320,6 +3359,58 @@ muteBtn.addEventListener('click', ()=>{
   paintMute();
 });
 paintMute();
+
+/* 桌面右栏的四只怪不能只是四张头像：鼠标放上去就该知道它为什么难缠。
+   用同一个短说明区承接四只，既不让窄侧栏突然长出四段文字，也让触摸和键盘
+   得到同样反馈。 */
+(function bindEnemyProfiles(){
+  const detail = document.getElementById('enemyDetail');
+  const roster = document.querySelector('.enemy-roster');
+  const buttons = Array.from(document.querySelectorAll('.enemy-choice[data-enemy]'));
+  if (!detail || !roster || !buttons.length) return;
+  let hoveredBtn = null;
+  let focusedBtn = null;
+  let committedBtn = null;
+  const syncEnemyProfile = ()=>{
+    /* 鼠标临时预览优先，其次键盘焦点，最后回到触摸/点击确认的那只。 */
+    const current = hoveredBtn || focusedBtn || committedBtn;
+    buttons.forEach((item)=>{
+      item.classList.toggle('is-current', item === current);
+      /* aria-pressed 只表达“已经确认”，悬停不能伪装成按下状态。 */
+      item.setAttribute('aria-pressed', item === committedBtn ? 'true' : 'false');
+    });
+    if (!current){
+      detail.textContent = '悬停怪物 · 查看特点';
+      detail.removeAttribute('data-enemy');
+      detail.classList.remove('is-active');
+      return;
+    }
+    detail.textContent = current.dataset.profile || '';
+    detail.dataset.enemy = current.dataset.enemy || '';
+    detail.classList.add('is-active');
+  };
+  buttons.forEach((btn)=>{
+    /* 全局 Enter/空格是游戏快捷键；在图鉴按钮上要留给原生 button 激活。 */
+    btn.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') e.stopPropagation();
+    });
+    btn.addEventListener('mouseenter', ()=>{ hoveredBtn = btn; syncEnemyProfile(); });
+    btn.addEventListener('focus', ()=>{ focusedBtn = btn; syncEnemyProfile(); });
+    btn.addEventListener('blur', ()=>{
+      if (focusedBtn === btn) focusedBtn = null;
+      syncEnemyProfile();
+    });
+    btn.addEventListener('click', ()=>{
+      committedBtn = btn;
+      syncEnemyProfile();
+    }); // 宽屏触控设备的备用入口
+  });
+  roster.addEventListener('mouseleave', ()=>{
+    /* 在四只之间移动不清空；真正离开整排后，回落到焦点或已轻触的怪物。 */
+    hoveredBtn = null;
+    syncEnemyProfile();
+  });
+})();
 
 /* ---------- 玩法说明 ----------
  * 读说明的时候幽灵不能还在追 —— 否则玩家一边看字一边掉命，而且是看不见的
@@ -3613,6 +3704,7 @@ function autoPause(){
   if (docPanelOpen()) return;                              // 文档页开着本来就是暂停态
   if (pausedByBlur) return;                                // 已经自动暂停过了
   pausedByBlur = true;
+  clearSwipe();                                            // 系统中断后不能留下旧触点
   gameState = 'paused';
   document.getElementById('pauseOverlay').classList.remove('hidden');
   const why = document.getElementById('pauseWhy');
@@ -3629,7 +3721,11 @@ function togglePause(){
   // 说明开着的时候 gameState 已经是 paused，此时按 P 会把游戏恢复成 playing
   // 而说明还盖在上面 —— 玩家看着一张静止的说明页，幽灵却已经在后面跑了。
   if (docPanelOpen()) return;
-  if (gameState==='playing'){ gameState='paused'; document.getElementById('pauseOverlay').classList.remove('hidden'); }
+  if (gameState==='playing'){
+    clearSwipe();
+    gameState='paused';
+    document.getElementById('pauseOverlay').classList.remove('hidden');
+  }
   else if (gameState==='paused'){
     gameState='playing';
     document.getElementById('pauseOverlay').classList.add('hidden');

@@ -633,8 +633,27 @@ try {
   }
   if (over.length) throw new Error('热区互相重叠，点哪个都是同一个：' + over.join('　'));
 
-  ok(`命中区（${rects.length} 个，最小 `
-     + Math.round(Math.min(...rects.map(x=>Math.min(x.r.w,x.r.h)))) + '，无重叠）');
+  /* 原检查只看开始页，漏了两个实际可点元素：玩法/关于页的「知道了」原来只有
+     40px 高，结算页昵称框只有 34px。它们也必须走同一条 44px 底线。 */
+  el('startOverlay').classList.add('hidden');
+  el('helpOverlay').classList.remove('hidden');
+  const docHits = ui.drawOverlays(0);
+  if (!docHits.helpClose || Math.min(docHits.helpClose.w, docHits.helpClose.h) < MIN)
+    throw new Error('玩法说明「知道了」热区不足 44：' + JSON.stringify(docHits.helpClose));
+
+  el('helpOverlay').classList.add('hidden');
+  el('overOverlay').classList.remove('hidden');
+  el('nameRow').classList.remove('hidden');
+  const overHits = ui.drawOverlays(0);
+  if (!overHits.name || Math.min(overHits.name.w, overHits.name.h) < MIN)
+    throw new Error('结算页昵称输入热区不足 44：' + JSON.stringify(overHits.name));
+  el('nameRow').classList.add('hidden');
+  el('overOverlay').classList.add('hidden');
+  el('startOverlay').classList.remove('hidden');
+
+  ok(`命中区（${rects.length + 2} 个，最小 `
+     + Math.round(Math.min(...rects.map(x=>Math.min(x.r.w,x.r.h)),
+                           docHits.helpClose.h, overHits.name.h)) + '，无重叠）');
 } catch(e){ fail('命中区大小', e); }
 
 /* 迷宫那块离屏画布必须按**它最终显示的大小**分配像素。

@@ -1337,14 +1337,13 @@ body.in-game .marquee{
   .help-pill, .icon-btn, .story-line, .lang-link, .lv, .mail-link{ position:relative; }
   .lang-link::after{  content:''; position:absolute; inset:-10px 0; }
   .help-pill::after{ content:''; position:absolute; inset:-11px -4px; }
-  .icon-btn::after{  content:''; position:absolute; inset:-7px; }
   .story-line::after{content:''; position:absolute; inset:-10px 0; }
   /* 邮箱链接自己占一行，下面到「知道了」还有 24px，撑 ±11 不会碰到它 */
   .mail-link::after{ content:''; position:absolute; inset:-11px -6px; }
   .lv::after{        content:''; position:absolute; inset:-8px -4px; }
   /* 暂停和静音视觉上相隔 10px，但两个 44px 触摸热区会重叠。
      只在触屏设备拉开间距，图标本身大小不变。 */
-  .hud-controls{gap:18px;}
+  .hud .hud-controls{gap:18px;}
   /* 兜底：真正的按钮直接给 min-height，不用伪元素 —— 它们本来就在自己一行上，
      长高不会挤到别人。开始页那个「玩法说明」实测只有 42，差 2px。 */
   .btn{ min-height:44px; }
@@ -1473,13 +1472,26 @@ body::before{
 .hud-controls{display:flex;align-items:center;gap:10px;}
 .enemy-card{padding:14px 0 12px;border-bottom:1px dashed rgba(83,92,153,.52);}
 .enemy-card .rail-title{margin-bottom:11px;padding-bottom:8px;}
-.enemy-roster{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.enemy-roster{display:grid;grid-template-columns:repeat(4,44px);justify-content:space-between;gap:4px;}
+.enemy-choice{
+  display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:12px;
+  appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;color:#fff;
+}
 .enemy-thumb{
-  display:block;position:relative;width:38px;height:38px;justify-self:center;border-radius:10px;
+  display:block;position:relative;width:38px;height:38px;border-radius:10px;pointer-events:none;
   background-image:url('assets/neon-stalkers-tracking-eyes-v9.webp');
   background-size:200% 200%;background-repeat:no-repeat;background-color:#000;
   border:1px solid rgba(255,255,255,.22);
   box-shadow:0 0 12px color-mix(in srgb,currentColor 52%,transparent);
+  transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease;
+}
+.enemy-choice:hover .enemy-thumb{transform:translateY(-2px);border-color:currentColor;}
+.enemy-choice:focus-visible{outline:2px solid #fff;outline-offset:1px;}
+.enemy-choice:focus-visible .enemy-thumb{border-color:currentColor;}
+.enemy-choice.is-current .enemy-thumb{
+  transform:translateY(-2px) scale(1.06);border-color:currentColor;
+  box-shadow:0 0 0 2px color-mix(in srgb,currentColor 32%,transparent),
+             0 0 18px color-mix(in srgb,currentColor 76%,transparent);
 }
 .enemy-thumb::before,.enemy-thumb::after{
   content:"";position:absolute;z-index:1;border-radius:50%;transform:translate(-50%,-50%);
@@ -1487,10 +1499,28 @@ body::before{
 }
 .enemy-thumb::before{left:var(--eye1-x);top:var(--eye1-y);width:var(--eye1-s);height:var(--eye1-s);}
 .enemy-thumb::after{left:var(--eye2-x);top:var(--eye2-y);width:var(--eye2-s);height:var(--eye2-s);}
-.enemy-thumb.chaser{background-position:0 0;color:var(--cyan);--eye1-x:12.2px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27.4px;--eye2-y:23px;--eye2-s:3.7px;}
-.enemy-thumb.ambush{background-position:100% 0;color:var(--danger);--eye1-x:11px;--eye1-y:22.8px;--eye1-s:4px;--eye2-x:27.4px;--eye2-y:23px;--eye2-s:4px;}
-.enemy-thumb.shy{background-position:0 100%;color:var(--tang);--eye1-x:12.2px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27.1px;--eye2-y:22px;--eye2-s:4.2px;}
-.enemy-thumb.patrol{background-position:100% 100%;color:var(--pink);--eye1-x:11.6px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27px;--eye2-y:23.8px;--eye2-s:3.6px;}
+.enemy-choice.chaser{color:var(--cyan);}.enemy-choice.chaser .enemy-thumb{background-position:0 0;--eye1-x:12.2px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27.4px;--eye2-y:23px;--eye2-s:3.7px;}
+.enemy-choice.ambush{color:var(--danger);}.enemy-choice.ambush .enemy-thumb{background-position:100% 0;--eye1-x:11px;--eye1-y:22.8px;--eye1-s:4px;--eye2-x:27.4px;--eye2-y:23px;--eye2-s:4px;}
+.enemy-choice.shy{color:var(--tang);}.enemy-choice.shy .enemy-thumb{background-position:0 100%;--eye1-x:12.2px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27.1px;--eye2-y:22px;--eye2-s:4.2px;}
+.enemy-choice.patrol{color:var(--pink);}.enemy-choice.patrol .enemy-thumb{background-position:100% 100%;--eye1-x:11.6px;--eye1-y:19.8px;--eye1-s:5px;--eye2-x:27px;--eye2-y:23.8px;--eye2-s:3.6px;}
+.enemy-detail{
+  --detail-color:#9990c8;display:flex;align-items:center;justify-content:center;
+  min-height:30px;margin:10px 0 0;padding:5px 7px;border-radius:9px;
+  border:1px solid rgba(105,111,170,.28);background:rgba(2,4,24,.62);
+  color:#9990c8;font-size:9.5px;line-height:1.35;text-align:center;
+  transition:color .14s ease,border-color .14s ease,box-shadow .14s ease;
+}
+.enemy-detail.is-active{
+  color:#f4f1ff;border-color:color-mix(in srgb,var(--detail-color) 52%,transparent);
+  box-shadow:0 0 12px color-mix(in srgb,var(--detail-color) 18%,transparent) inset;
+}
+.enemy-detail[data-enemy="chaser"]{--detail-color:var(--cyan);}
+.enemy-detail[data-enemy="ambush"]{--detail-color:var(--danger);}
+.enemy-detail[data-enemy="shy"]{--detail-color:var(--tang);}
+.enemy-detail[data-enemy="patrol"]{--detail-color:var(--pink);}
+@media (prefers-reduced-motion:reduce){
+  .enemy-choice .enemy-thumb,.enemy-detail{transition:none;}
+}
 .howto-card{margin-top:auto;padding-top:16px;border-top:1px solid rgba(70,79,132,.55);}
 .howto-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
 .howto-card li{display:grid;grid-template-columns:25px 1fr;gap:9px;align-items:center;color:var(--text-dim);font-size:10.5px;line-height:1.35;}
@@ -1739,10 +1769,21 @@ body::before{
     </div>
     <section class="enemy-card" aria-label="敌人角色">
       <h2 class="rail-title">ENEMIES</h2>
-      <div class="enemy-roster" aria-hidden="true">
-        <i class="enemy-thumb chaser"></i><i class="enemy-thumb ambush"></i>
-        <i class="enemy-thumb shy"></i><i class="enemy-thumb patrol"></i>
+      <div class="enemy-roster" aria-label="敌人图鉴">
+        <button type="button" class="enemy-choice chaser" data-enemy="chaser"
+          data-profile="闪闪：锁定你的位置直接追踪" aria-label="闪闪，追踪型，查看特点"
+          aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
+        <button type="button" class="enemy-choice ambush" data-enemy="ambush"
+          data-profile="狐狐：预判你的去向，提前拦截" aria-label="狐狐，预判型，查看特点"
+          aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
+        <button type="button" class="enemy-choice shy" data-enemy="shy"
+          data-profile="软软：你一靠近它就跑" aria-label="软软，回避型，查看特点"
+          aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
+        <button type="button" class="enemy-choice patrol" data-enemy="patrol"
+          data-profile="慢慢：沿固定路线循环巡逻" aria-label="慢慢，巡逻型，查看特点"
+          aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
       </div>
+      <p class="enemy-detail" id="enemyDetail" aria-live="polite">悬停怪物 · 查看特点</p>
     </section>
     <section class="howto-card" aria-label="玩法速览">
       <h2 class="rail-title">HOW TO PLAY</h2>
@@ -5209,27 +5250,54 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  * 两件事——
  *   1. CSS 的 touch-action，见样式表里的 html/body 和 .stage；
  *   2. Safari 私有的 gesture* 事件，双指缩放走的是这条路，必须显式拦掉。
- * 再补一道双击兜底：两次触摸间隔小于 300ms 就吃掉后一次的默认行为。
+ * 再补一道双击兜底时必须只管正在游玩的棋盘：文档级 touchend 拦截会把
+ * 300ms 内第二次按钮点击也一起吃掉（例如快速点两次静音只生效一次）。
  */
 ['gesturestart','gesturechange','gestureend'].forEach(t=>{
   document.addEventListener(t, e => e.preventDefault(), { passive:false });
 });
-let lastTouchEnd = 0;
-document.addEventListener('touchend', (e)=>{
-  const now = Date.now();
-  if (now - lastTouchEnd < 300) e.preventDefault();
-  lastTouchEnd = now;
-}, { passive:false });
 
 const SWIPE_MIN_PX = 14;
+const SWIPE_AXIS_RATIO = 1.16;
 let swipeFrom = null;
 const stage = document.getElementById('mazeCanvas').parentElement;
 
+function touchId(t){ return t && Number.isFinite(t.identifier) ? t.identifier : null; }
+function matchingTouch(list, id){
+  if (!list) return null;
+  if (id == null) return list.length === 1 ? list[0] : null;
+  for (let i=0;i<list.length;i++) if (list[i].identifier === id) return list[i];
+  return null;
+}
+function clearSwipe(){ swipeFrom = null; }
+
+/* 第二指可能落在 HUD 或页面别处，那次 touchstart 不会冒泡经过 .stage。
+   在 document 捕获阶段只做“取消旧棋盘手势”这一件事，确保多指无论落在哪都
+   不会让第一指带着陈旧起点继续控制。这里不 preventDefault，不影响按钮点击。 */
+function cancelSwipeOnMultitouch(e){
+  if (swipeFrom && (!e.touches || e.touches.length !== 1)) clearSwipe();
+}
+document.addEventListener('touchstart', cancelSwipeOnMultitouch, { passive:true, capture:true });
+document.addEventListener('touchmove', cancelSwipeOnMultitouch, { passive:true, capture:true });
+
+/* 老 Safari 的双击缩放兜底只作用于正在游玩的棋盘。按钮都在这条规则之外，
+   因而快速连点不会再丢第二次 click；棋盘本身仍由 touch-action:none 主防。 */
+let lastStageTouchEnd = 0;
+stage.addEventListener('touchend', (e)=>{
+  if (gameState !== 'playing') return;
+  const now = Date.now();
+  if (now - lastStageTouchEnd < 300) e.preventDefault();
+  lastStageTouchEnd = now;
+}, { passive:false });
+
 stage.addEventListener('touchstart', (e)=>{
   Audio2.unlock();
-  if (gameState !== 'playing') { swipeFrom = null; return; }
-  const t = e.changedTouches[0];
-  swipeFrom = { x: t.clientX, y: t.clientY };
+  /* 新触摸先放弃旧手势；第二指加入时 TouchList 会重排，不能沿用旧坐标。 */
+  clearSwipe();
+  const list = e.touches || [];
+  if (gameState !== 'playing' || list.length !== 1) return;
+  const t = list[0];
+  swipeFrom = { x:t.clientX, y:t.clientY, id:touchId(t) };
 }, { passive: true });
 
 /* 滑过阈值就立刻转向，**不等抬手**。
@@ -5243,19 +5311,28 @@ stage.addEventListener('touchstart', (e)=>{
    判定之后把起点挪到当前手指位置，所以按着不放一路划就能连续拐弯，
    不必抬手再划一次。 */
 function swipeDir(dx, dy){
-  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left')
-                                     : (dy > 0 ? 'down'  : 'up');
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  const lead = Math.max(ax, ay), trail = Math.min(ax, ay);
+  if (lead <= SWIPE_MIN_PX) return null;
+  /* 接近 45° 时先不猜，继续等手指表达出更明确的主轴。 */
+  if (trail > 6 && lead < trail * SWIPE_AXIS_RATIO) return null;
+  return ax > ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
 }
 
 stage.addEventListener('touchmove', (e)=>{
   // 手指在画布上划动时阻止页面跟着滚 —— 否则一边玩一边整页上下弹，没法玩。
   if (!swipeFrom) return;
+  if (gameState !== 'playing' || !e.touches || e.touches.length !== 1){
+    clearSwipe(); return;
+  }
+  const t = matchingTouch(e.touches, swipeFrom.id);
+  if (!t) return;
   e.preventDefault();
-  const t = e.changedTouches[0];
   const dx = t.clientX - swipeFrom.x, dy = t.clientY - swipeFrom.y;
-  if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;
-  requestDir(swipeDir(dx, dy));
-  swipeFrom = { x: t.clientX, y: t.clientY };   // 重置起点，支持一路连划
+  const dir = swipeDir(dx, dy);
+  if (!dir) return;
+  requestDir(dir);
+  swipeFrom = { x:t.clientX, y:t.clientY, id:swipeFrom.id }; // 重置起点，支持一路连划
 }, { passive: false });
 
 stage.addEventListener('touchend', (e)=>{
@@ -5263,11 +5340,14 @@ stage.addEventListener('touchend', (e)=>{
      那样上面那段不会发火，这里补一次。已经在 touchmove 里转过向的手势，
      起点已被重置，剩下的位移通常不到阈值，不会重复触发。 */
   if (!swipeFrom) return;
-  const t = e.changedTouches[0];
+  if (gameState !== 'playing'){ clearSwipe(); return; }
+  const t = matchingTouch(e.changedTouches, swipeFrom.id);
+  /* 抬起的不是这次手势所属的触点，不得结束或转向。 */
+  if (!t) return;
   const dx = t.clientX - swipeFrom.x, dy = t.clientY - swipeFrom.y;
-  swipeFrom = null;
-  if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;  // 是点击，不是滑动
-  requestDir(swipeDir(dx, dy));
+  clearSwipe();
+  const dir = swipeDir(dx, dy);
+  if (dir) requestDir(dir);
 }, { passive: true });
 /* 下拉通知栏、系统侧滑返回会中断手势且不发 touchend。
    不清理的话，下次 touchmove 会拿旧起点算出一次“自己转向”。 */
@@ -5289,6 +5369,58 @@ muteBtn.addEventListener('click', ()=>{
   paintMute();
 });
 paintMute();
+
+/* 桌面右栏的四只怪不能只是四张头像：鼠标放上去就该知道它为什么难缠。
+   用同一个短说明区承接四只，既不让窄侧栏突然长出四段文字，也让触摸和键盘
+   得到同样反馈。 */
+(function bindEnemyProfiles(){
+  const detail = document.getElementById('enemyDetail');
+  const roster = document.querySelector('.enemy-roster');
+  const buttons = Array.from(document.querySelectorAll('.enemy-choice[data-enemy]'));
+  if (!detail || !roster || !buttons.length) return;
+  let hoveredBtn = null;
+  let focusedBtn = null;
+  let committedBtn = null;
+  const syncEnemyProfile = ()=>{
+    /* 鼠标临时预览优先，其次键盘焦点，最后回到触摸/点击确认的那只。 */
+    const current = hoveredBtn || focusedBtn || committedBtn;
+    buttons.forEach((item)=>{
+      item.classList.toggle('is-current', item === current);
+      /* aria-pressed 只表达“已经确认”，悬停不能伪装成按下状态。 */
+      item.setAttribute('aria-pressed', item === committedBtn ? 'true' : 'false');
+    });
+    if (!current){
+      detail.textContent = '悬停怪物 · 查看特点';
+      detail.removeAttribute('data-enemy');
+      detail.classList.remove('is-active');
+      return;
+    }
+    detail.textContent = current.dataset.profile || '';
+    detail.dataset.enemy = current.dataset.enemy || '';
+    detail.classList.add('is-active');
+  };
+  buttons.forEach((btn)=>{
+    /* 全局 Enter/空格是游戏快捷键；在图鉴按钮上要留给原生 button 激活。 */
+    btn.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') e.stopPropagation();
+    });
+    btn.addEventListener('mouseenter', ()=>{ hoveredBtn = btn; syncEnemyProfile(); });
+    btn.addEventListener('focus', ()=>{ focusedBtn = btn; syncEnemyProfile(); });
+    btn.addEventListener('blur', ()=>{
+      if (focusedBtn === btn) focusedBtn = null;
+      syncEnemyProfile();
+    });
+    btn.addEventListener('click', ()=>{
+      committedBtn = btn;
+      syncEnemyProfile();
+    }); // 宽屏触控设备的备用入口
+  });
+  roster.addEventListener('mouseleave', ()=>{
+    /* 在四只之间移动不清空；真正离开整排后，回落到焦点或已轻触的怪物。 */
+    hoveredBtn = null;
+    syncEnemyProfile();
+  });
+})();
 
 /* ---------- 玩法说明 ----------
  * 读说明的时候幽灵不能还在追 —— 否则玩家一边看字一边掉命，而且是看不见的
@@ -5582,6 +5714,7 @@ function autoPause(){
   if (docPanelOpen()) return;                              // 文档页开着本来就是暂停态
   if (pausedByBlur) return;                                // 已经自动暂停过了
   pausedByBlur = true;
+  clearSwipe();                                            // 系统中断后不能留下旧触点
   gameState = 'paused';
   document.getElementById('pauseOverlay').classList.remove('hidden');
   const why = document.getElementById('pauseWhy');
@@ -5598,7 +5731,11 @@ function togglePause(){
   // 说明开着的时候 gameState 已经是 paused，此时按 P 会把游戏恢复成 playing
   // 而说明还盖在上面 —— 玩家看着一张静止的说明页，幽灵却已经在后面跑了。
   if (docPanelOpen()) return;
-  if (gameState==='playing'){ gameState='paused'; document.getElementById('pauseOverlay').classList.remove('hidden'); }
+  if (gameState==='playing'){
+    clearSwipe();
+    gameState='paused';
+    document.getElementById('pauseOverlay').classList.remove('hidden');
+  }
   else if (gameState==='paused'){
     gameState='playing';
     document.getElementById('pauseOverlay').classList.add('hidden');

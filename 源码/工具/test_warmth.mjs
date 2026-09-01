@@ -120,7 +120,7 @@ if (!/128,650/.test(best)) fail.push('最高分数字没了或没加千分位');
 // ---------- 五、开始页那句故事（源码级接线）----------
 const src = html;
 const wire = [
-  ['关于入口在开始页',   /id="storyLine"[^>]*>\s*原创霓虹迷宫/],
+  ['关于入口在开始页',   /id="storyLine"[^>]*>\s*原创霓虹迷宫\s*<\/button>/],
   ['故事那句可点开关于', /\['aboutBtn', 'storyLine'\]/],
   ['欢迎语在标题下面',   /<h2>NEON READY<\/h2>[\s\S]{0,900}?id="welcomeLine"/],
   ['故事在按钮下面',     /id="startBtn"[\s\S]{0,800}?id="storyLine"/],

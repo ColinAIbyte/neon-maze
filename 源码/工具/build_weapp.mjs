@@ -101,6 +101,14 @@ ${body}
     // 挂的那些 click 监听在垫片上根本不会触发），所以点中之后要能直接调进来。
     // maxLevelReached 一起导出：哪几关解锁了只有逻辑层知道。
     startPractice, maxLevelReached,
+    /* 每日挑战 + 对手图鉴。外壳同样是自己画的，点中之后要能调进来。
+       openOwl 还负责在打开前重画一次图鉴内容（renderOwlList），漏了它外壳
+       就会显示上一次的战绩 —— 而战绩每局都在变。
+       owlCodexView 直接给结构化数据：不让外壳去正则拆 owlList 的 innerHTML，
+       那等于把「HTML 长什么样」当成一份没人声明过的接口。 */
+    startDaily, openOwl, closeOwl,
+    renderDaily, renderLevelSelect,
+    owlCodexView,
   };
 }
 

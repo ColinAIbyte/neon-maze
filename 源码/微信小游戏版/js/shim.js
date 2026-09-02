@@ -133,7 +133,8 @@ function installShim(canvases){
   ['mazeCanvas','fxCanvas','scoreVal','levelVal','livesVal','comboLabel','comboFill',
    'toast','startOverlay','pauseOverlay','overOverlay','helpOverlay','aboutOverlay','overTitle','overSub',
    'finalScore','startBtn','restartBtn','resumeBtn','pauseBtn','muteBtn','helpBtn',
-   'helpCloseBtn','padBtn','nameRow','nameInput','nameSaveBtn'].forEach(el);
+   'helpCloseBtn','padBtn','nameRow','nameInput','nameSaveBtn',
+   'owlOverlay','owlList','owlCloseBtn','dailyBox'].forEach(el);
 
   /**
    * These carry class="overlay hidden" in the web markup — they start closed.
@@ -142,7 +143,8 @@ function installShim(canvases){
    * picks the first non-hidden overlay to draw, so the pause screen would
    * appear over the board the moment the start screen was dismissed.
    */
-  ['pauseOverlay','overOverlay','helpOverlay','aboutOverlay','nameRow'].forEach(id => el(id).classList.add('hidden'));
+  ['pauseOverlay','overOverlay','helpOverlay','aboutOverlay','nameRow',
+   'owlOverlay'].forEach(id => el(id).classList.add('hidden'));
 
   const doc = {
     documentElement: { style:{} },

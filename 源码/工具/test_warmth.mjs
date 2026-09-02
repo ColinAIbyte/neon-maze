@@ -128,6 +128,10 @@ const wire = [
 for (const [what, re] of wire){
   if (!re.test(src)) fail.push(`接线断了：${what}`);
 }
+/* Logo 图里已经写了主标题，下面不再叠一行英文/中文副标；但开始按钮下方的
+   「原创霓虹迷宫」是另一条独立故事入口，上面的 wire 会确保它没有被误删。 */
+if (/class="brand-sub"|DOUDOU\s*·\s*豆豆/.test(src))
+  fail.push('Logo 下方还残留「DOUDOU · 豆豆」副标');
 /* 旧文案不许再出现在开始页那一行。改文案最容易漏的就是"还有一处也写着同样的话"，
    而两处不一致比两处都是旧的更糟 —— 玩家会以为自己看花了眼。
    注意结算页的 .credits 仍然写着"一个爸爸和儿子一起做的小游戏"，那是业主留下的，

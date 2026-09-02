@@ -215,7 +215,10 @@ function padHeightFor(w){
 
 let ui, game;
 try {
-  ui = createUI(sctx, el, { W, H, hudTop, hudH, hudBottom, boardX, boardY, boardW, boardH, padH, bottomInset, capsuleLeft: SAFE.capsuleLeft });
+  ui = createUI(sctx, el, { W, H, hudTop, hudH, hudBottom, boardX, boardY, boardW, boardH, padH, bottomInset, capsuleLeft: SAFE.capsuleLeft },
+                /* 图鉴那页要向逻辑层取结构化数据。传函数不传 game 本身：
+                   ui 比 game 先创建，直接传的话拿到的是 undefined。 */
+                () => game);
 } catch (err) { fatal(err, 'createUI'); throw err; }
 try {
   // 核心那条循环里的异常也接到 fatal 上——不然它断了只会定格，不报错
@@ -297,7 +300,7 @@ wx.onTouchStart(e => {
   const id = touchId(t);
 
   // 文档页（玩法说明 / 关于这个游戏）开着时，手指是用来滚页面的，不是转向的
-  const docClose = hits.helpClose || hits.aboutClose;
+  const docClose = hits.helpClose || hits.aboutClose || hits.owlClose;
   if (docClose && !inRect(t.clientX, t.clientY, docClose)){
     helpDragFrom = { y: t.clientY, scroll: helpScroll, id };
     return;
@@ -305,6 +308,7 @@ wx.onTouchStart(e => {
 
   if (inRect(t.clientX, t.clientY, hits.helpClose)){ game.closeHelp(); return; }
   if (inRect(t.clientX, t.clientY, hits.aboutClose)){ game.closeAbout(); return; }
+  if (inRect(t.clientX, t.clientY, hits.owlClose)){ game.closeOwl(); return; }
   /* 练习关那一排。必须排在 hits.start 前面判断：两者在开始页上离得近，
      而锁着的关卡也要吃掉这一下点击（它有热区但不响应），不能穿透到「开始」。 */
   if (hits.practice){
@@ -316,6 +320,14 @@ wx.onTouchStart(e => {
       game.startPractice(p.lv);
       return;
     }
+  }
+  /* 每日挑战。和练习那排一样要排在 hits.start 前面 —— 它就摆在「开始」上方，
+     两个热区在小屏上离得很近，判反了就会点一下每日挑战却开了正式局。 */
+  if (inRect(t.clientX, t.clientY, hits.daily)){
+    game.Audio2.unlock();
+    el('startOverlay').classList.add('hidden');
+    game.startDaily();
+    return;
   }
   if (inRect(t.clientX, t.clientY, hits.start))   { pressButton('startBtn');   return; }
   if (inRect(t.clientX, t.clientY, hits.resume))  { if (ui.setPauseReason) ui.setPauseReason('');
@@ -330,6 +342,8 @@ wx.onTouchStart(e => {
     game.togglePause(); return; }
   // 开始页那行署名 —— 点进「关于这个游戏」
   if (inRect(t.clientX, t.clientY, hits.about))   { helpScroll = 0; game.openAbout(); return; }
+  // openOwl 会先重画一次图鉴内容再显示，所以这里不用自己刷新
+  if (inRect(t.clientX, t.clientY, hits.owl))     { helpScroll = 0; game.openOwl();  return; }
 
   // 显隐开关必须排在方向键前面判断：隐藏状态下 padKeys 里只剩它一个，
   // 但显示状态下两者的命中区是挨着的，先判方向键会把它吃掉。
@@ -496,6 +510,9 @@ wx.onShow((res) => {
     const q = (res && res.query) || {};
     if (q.c && game.setChallenge) game.setChallenge(q.c, q.n);
   } catch (e) { /* 拿不到就当没有挑战 */ }
+  /* 每日挑战跨夜要重算。开始页那一条只在启动和每局结束时画过，挂着过零点
+     再回来就还显示昨天那一关 —— 而"今天大家打同一关"正是这条功能唯一的意义。 */
+  try { if (game.renderDaily) game.renderDaily(); } catch (e) {}
 });
 
 /* 被打断时暂停，并且**说清楚为什么**。

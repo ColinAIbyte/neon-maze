@@ -12,7 +12,7 @@ const { PALETTE } = require('./shim.js');
 const C = PALETTE;
 const FONT = (px, bold) => `${bold ? 'bold ' : ''}${px}px sans-serif`;
 
-function createUI(ctx, el, layout){
+function createUI(ctx, el, layout, getGame){
   const { W, H, hudTop, hudH, hudBottom, boardX, boardY, boardW, boardH,
           padH, bottomInset, capsuleLeft } = layout;
   /* 手机界面不是桌面版等比缩小。窄屏优先保住数值可读和暂停键；
@@ -294,6 +294,9 @@ function createUI(ctx, el, layout){
       ['本版计分', '全部计分项目统一提高 30%；旧排行榜按 1.3 倍换算'],
       ['还有',   '传送门 · 冲刺 · 穿墙'],
       ['',       '这些不用记，边玩边撞见'],
+      ['成长记录', '每关三颗星：通关、无伤、反击两个对手；已获星星不会丢失'],
+      ['每日挑战', '到达第 2 关后开放，从已解锁关卡选择；只记本机当日同关最高分，不进正式排行榜'],
+      ['对手图鉴', '到达第 2 关后可查看四种对手的特点、被抓次数和反击次数'],
     ]},
     { t:'连击', rows:[
       ['怎么涨', '每吃一颗涨一级，上不封顶；反击敌人、拿晶石同样算'],
@@ -502,6 +505,108 @@ function createUI(ctx, el, layout){
     return { close: { x:bx, y:by, w:bw, h:btnH }, maxScroll };
   }
 
+  /* ---------- 每日挑战 ----------
+   *
+   * 内容一个字都不在这儿算：打哪一关、今天最好多少，全由逻辑层写进 dailyBox，
+   * 这里只负责画出来和收热区。和练习那一排同一个道理 —— 把"今天是第几关"的
+   * 规则在外壳里再实现一遍，两份迟早对不上，而对不上的那天父子俩打的就不是
+   * 同一关了，比分直接失去意义。
+   */
+  let dailyCache = { html: null, lv: '', best: '' };
+
+  function drawDaily(y, cx, hits){
+    const box = el('dailyBox');
+    if (!box || box.classList.contains('hidden')) return y;
+    const html = box.innerHTML || '';
+    if (dailyCache.html !== html){
+      const pick = cls => {
+        const m = String(html).match(new RegExp('class="' + cls + '"[^>]*>([^<]*)<'));
+        return m ? m[1].trim() : '';
+      };
+      dailyCache = { html, lv: pick('daily-lv'), best: pick('daily-best') };
+    }
+    const { lv, best } = dailyCache;
+    if (!lv) return y;
+
+    const h = 26, pad = 16, x0 = pad, w = W - pad * 2;
+    ctx.fillStyle = 'rgba(255,212,71,.07)';
+    roundRect(x0, y, w, h, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,212,71,.30)'; ctx.lineWidth = 1; ctx.stroke();
+
+    const cy = y + h / 2;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.font = FONT(9); ctx.fillStyle = C['--amber'];
+    ctx.fillText('今日挑战', x0 + 8, cy);
+    const kw = ctx.measureText('今日挑战').width;
+    ctx.font = FONT(11, true); ctx.fillStyle = C['--text'];
+    const lvX = x0 + 8 + kw + 6;
+    ctx.fillText(lv, lvX, cy);
+    const lvW = ctx.measureText(lv).width;
+
+    /* 「开始」先占位、贴右边，成绩再往它左边填。
+       顺序反过来的话，遇到长关名 + 六位分数就会把按钮挤出框 —— 而这一行上
+       唯一非点不可的就是那个按钮。宁可不显示今天的成绩，也不能让它没处点。 */
+    const bw = 42, bh = h - 8, bx = x0 + w - 8 - bw;
+    ctx.fillStyle = 'rgba(255,212,71,.16)';
+    roundRect(bx, y + 4, bw, bh, 6); ctx.fill();
+    ctx.strokeStyle = C['--amber']; ctx.lineWidth = 1; ctx.stroke();
+    ctx.textAlign = 'center'; ctx.font = FONT(11, true); ctx.fillStyle = C['--amber'];
+    ctx.fillText('开始', bx + bw / 2, cy);
+    hits.daily = tap({ x:bx, y, w:bw, h }, bw + 10, TAP_MIN);
+
+    if (best){
+      ctx.font = FONT(10);
+      // 量过再画：放不下就整段不画，不做截断——「今天最好 12,3…」比不写更糟
+      if (ctx.measureText(best).width <= bx - 10 - (lvX + lvW + 8)){
+        ctx.textAlign = 'right'; ctx.fillStyle = C['--text-dim'];
+        ctx.fillText(best, bx - 10, cy);
+      }
+    }
+    /* 下面留 16 而不是 10。看着多余，但两边的热区都会自己长大：
+       这一条只有 26 高，撑到 44 的最小热区要上下各借 9；练习那排 40 高，
+       也要各借 2。10 的间距下两者正好差 1px 压在一起 —— 点第五、六关会点到
+       「开始今日挑战」，而那两关恰恰是刚解锁、最想点的。 */
+    return y + h + 16;
+  }
+
+  /* ---------- 对手图鉴 ----------
+   *
+   * 内容从逻辑层的 owlCodexView() 拿结构化数据，不在这儿再写一份文案。
+   *
+   * 这一点值得说清楚：玩法说明和「关于」在这个文件里各有一份手抄的常量
+   * （HELP / ABOUT），代价是两端两份、改一处忘一处 —— 换名字那次就是这么
+   * 把微信版的角色称呼落下的。
+   * 图鉴不走那条路：唯一的文案在 neon_maze_fragment.html 里，外壳只是显示器。
+   *
+   * 也不要拿正则去拆 owlList 的 innerHTML —— 那等于把「HTML 长什么样」当成
+   * 接口用：网页那边把 <b> 换成 <strong>，这边的战绩就会静静地全变成 0，
+   * 没有任何报错。读同一个函数，那种断法就没有了。
+   */
+  let owlCache = { key: null, sections: null };
+
+  function owlSections(view){
+    const rows = [];
+    for (const o of view){
+      if (!o.met){ rows.push(['???', '还没见过它']); continue; }
+      /* 颜色在这一页不是装饰 —— 孩子在场上认的就是这个颜色，
+         图鉴里不上色就等于换了一套代号。 */
+      rows.push([o.name, o.how.replace(/\*\*/g, ''), { color: C[o.color] || C['--text'] }]);
+      /* 战绩单独一行、不带词条名：它和上面那句说明是两种东西 ——
+         一句是"它怎么动"（永远不变），一个是"你和它打成什么样"（每局都在变）。
+         挤在同一行会让人以为战绩是说明的一部分。 */
+      rows.push(['', `抓到你 ${o.caught} 次　你反杀 ${o.ate} 次`]);
+    }
+    return [{ rows: rows.length ? rows : [['', '还没遇到过任何一个对手']] }];
+  }
+
+  /** 排一次版不便宜，而这一页每帧都在画。战绩没变就直接用上次的结果。 */
+  function owlSectionsCached(view){
+    const key = view.map(o => o.met ? `${o.id}:${o.caught}:${o.ate}` : o.id).join('|');
+    if (owlCache.key !== key) owlCache = { key, sections: owlSections(view) };
+    return owlCache.sections;
+  }
+
   /** 「练习 1 2 3 4 5 6」那一排。网页版开始页早就有，小游戏这边一直没画。
    *
    *  哪几关解锁了不在这儿判断 —— 逻辑层的 renderLevelSelect 已经把答案写进
@@ -514,25 +619,46 @@ function createUI(ctx, el, layout){
     if (!box || box.classList.contains('hidden')) return y;
     const html = box.innerHTML || '';
     const items = [];
-    const re = /<button[^>]*class="lv"[^>]*data-lv="(\d+)"([^>]*)>/g;
+    /* 连按钮内容一起抓，星星数就在里头：<b>★★</b> 是拿到的，后面跟着的是空位。
+       正则里的 [\s\S]*? 不能写成 .*? —— 网页版那串按钮现在是一整行没错，可它
+       将来一旦换行，.*? 就再也匹配不到，星星会无声无息地全部消失。
+       末尾那个 id="owlBtn" 的图鉴按钮没有 data-lv，自然落不进这里，正好。 */
+    const re = /<button[^>]*class="lv"[^>]*data-lv="(\d+)"([^>]*)>([\s\S]*?)<\/button>/g;
     let m;
-    while ((m = re.exec(html))) items.push({ lv:Number(m[1]), locked:/disabled/.test(m[2]) });
+    while ((m = re.exec(html))) items.push({
+      lv: Number(m[1]),
+      locked: /disabled/.test(m[2]),
+      stars: ((m[3].match(/<b>(★*)<\/b>/) || [, ''])[1]).length,
+    });
     if (!items.length) return y;
 
     /* 34 + 10 = 44 的步距，正好等于建议的最小热区 —— 这样每个方块的热区撑到
        44 之后刚好与邻居贴边而不重叠。原来是 26 + 7（步距 33），热区最多撑到 31，
        六个并排怎么排都不够。方块画大一点本身也更像"可以点"。
        六个 34 + 五个 10 + 「练习」二字 ≈ 284，320 的窄屏也放得下。 */
-    const chip = 34, gap = 10;
+    /* 方块从 34 拉到 40：底下要多放一行星星。步距仍是 chip+gap=44（热区不变），
+       只有高度变了，所以这一行整体往下长 6px，别的东西不用动。 */
+    const chip = 40, gap = 4;
     ctx.font = FONT(11);
-    const kw = ctx.measureText('练习').width + 10;
+    /* 「练习」后面跟总星数，和网页版一样。星星册不单开一页 —— 它就长在这一行上，
+       孩子按下练习那一刻就看见自己缺哪一颗。
+
+       但这一行在 320 的窄屏上本来就是贴边排的，再加「★6/18」就会顶出屏幕。
+       所以先量一量：装不下就退回只写「练习」，每个方块底下那三颗星还在，
+       信息一颗没少，少的只是那个总数。宁可少个总数，也不能让最右边那关被切掉
+       一半 —— 切掉的那个是最新解锁的，恰恰是孩子最想点的。 */
+    const tot = items.reduce((a, it) => a + it.stars, 0);
+    const chipsW = items.length * chip + (items.length - 1) * gap;
+    let label = '练习 ★' + tot + '/' + (items.length * 3);
+    if (ctx.measureText(label).width + 10 + chipsW > W - 24) label = '练习';
+    const kw = ctx.measureText(label).width + 10;
     const total = kw + items.length * chip + (items.length - 1) * gap;
     let x = cx - total / 2;
     const cy = y + chip / 2;
 
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     ctx.fillStyle = C['--text-dim'];
-    ctx.fillText('练习', x, cy);
+    ctx.fillText(label, x, cy);
     x += kw;
 
     hits.practice = [];
@@ -544,7 +670,17 @@ function createUI(ctx, el, layout){
       ctx.textAlign = 'center';
       ctx.fillStyle = it.locked ? C['--text-dim'] : C['--text'];
       ctx.font = FONT(14, !it.locked);
-      ctx.fillText(it.locked ? '·' : String(it.lv), x + chip/2, cy);
+      ctx.fillText(it.locked ? '·' : String(it.lv), x + chip/2, y + 15);
+      /* 锁着的关也画三颗空星。空格子是这套东西全部的动力来源 ——
+         看不见要填什么，就没有要填的冲动。 */
+      ctx.font = FONT(8);
+      const got = '★'.repeat(it.stars), left = '★'.repeat(3 - it.stars);
+      const wg = ctx.measureText(got).width, wl = ctx.measureText(left).width;
+      let sx = x + chip/2 - (wg + wl)/2;
+      ctx.textAlign = 'left';
+      if (got){ ctx.fillStyle = C['--amber']; ctx.fillText(got, sx, y + 30); sx += wg; }
+      if (left){ ctx.fillStyle = 'rgba(138,107,255,.30)'; ctx.fillText(left, sx, y + 30); }
+      ctx.textAlign = 'center';
       /* 没解锁的也留热区：点上去什么都不做，但**不能**穿透到下面去。
          少了这一条，点一个锁着的关卡会命中它后面的东西。 */
       /* 宽度撑满一个步距（chip + gap = 44）。相邻两个热区正好贴边、不重叠 ——
@@ -595,6 +731,18 @@ function createUI(ctx, el, layout){
         const r = drawDoc(helpScroll, ABOUT, '关于 Neon Maze', true);
         hits.aboutClose = r.close;
         hits.helpMaxScroll = r.maxScroll;
+      } else if (!hidden('owlOverlay')){
+        /* 和玩法说明、关于同一套排版，但走**通栏**（single=true）：
+           图鉴每条是「名字 + 一整句对策」，两栏模板会把那句话挤进右边一半，
+           三十来个字要折成四行。这一页读的就是那句话，不能让它变窄。
+           滚动量和另外两页共用 helpScroll —— 三页互斥，各记一份只是多一套状态。 */
+        /* 只在图鉴真的开着时才去取数据 —— 每帧映射一遍五个词条纯属白烧。
+           取不到就给空数组，那一页会显示"还没遇到过任何一个对手"。 */
+        const g = getGame && getGame();
+        const view = (g && g.owlCodexView) ? g.owlCodexView() : [];
+        const r = drawDoc(helpScroll, owlSectionsCached(view), '对手图鉴', true);
+        hits.owlClose = r.close;
+        hits.helpMaxScroll = r.maxScroll;
       } else if (!hidden('startOverlay')){
         // 与网页版一致：开始页只留一句，详细规则进「玩法说明」按钮。原来这里
         // 硬编码着六行说明，加上榜单和署名会把「开始」按钮挤出屏幕；那句
@@ -621,6 +769,7 @@ function createUI(ctx, el, layout){
           button: '开始',
           button2: '玩法说明',
           extra: (y, cx) => {
+            y = drawDaily(y, cx, hits);
             y = drawPractice(y, cx, hits);
             y = drawBoard(y, cx, boardHtml, tinyScreen ? 0 : (shortScreen ? 3 : 9));
             /* 署名这行本身就是「关于 Neon Maze」的入口。
@@ -633,13 +782,39 @@ function createUI(ctx, el, layout){
                「怀旧游戏」，那颗心一并去掉；那段自述完整留在「关于」里。 */
             ctx.textBaseline = 'middle';
             ctx.font = FONT(10);
+            /* 图鉴的入口挂在这一行，不去挤练习那一排 ——
+               那排六个方块 + 「练习 ★n/18」在 320 宽的屏上已经顶到边，
+               再加第七个方块会把最右边那关切掉一半，而最右边那关恰恰是刚
+               解锁的、孩子最想点的。这一行本来就只有四个字，白得很。
+               和练习条同一个门槛（打到第二关才出现）：第一次玩的人屏幕上
+               不该多出一个还看不懂的东西，两端的规矩也保持一致。 */
+            const showOwl = el('levelSel') && !el('levelSel').classList.contains('hidden');
             const label = '怀旧游戏';
+            const owlLabel = '对手图鉴';
+            const sep = '　·　';
             const lw = ctx.measureText(label).width;
-            ctx.textAlign = 'center';
             ctx.fillStyle = C['--amber'];
-            ctx.fillText(label, cx, y + 6);
             // 热区按整行算，且上下各放宽 —— 10px 的字太细，只按字高做热区点不中
-            hits.about = tap({ x:cx - lw/2 - 8, y:y - 6, w:lw + 16, h:24 });
+            if (showOwl){
+              const ow = ctx.measureText(owlLabel).width;
+              const sw = ctx.measureText(sep).width;
+              let x = cx - (ow + sw + lw) / 2;
+              ctx.textAlign = 'left';
+              ctx.fillText(owlLabel, x, y + 6);
+              hits.owl = tap({ x:x - 8, y:y - 6, w:ow + 16, h:24 });
+              x += ow;
+              ctx.fillStyle = C['--text-dim'];
+              ctx.fillText(sep, x, y + 6);
+              x += sw;
+              ctx.fillStyle = C['--amber'];
+              ctx.fillText(label, x, y + 6);
+              hits.about = tap({ x:x - 8, y:y - 6, w:lw + 16, h:24 });
+              ctx.textAlign = 'center';
+            } else {
+              ctx.textAlign = 'center';
+              ctx.fillText(label, cx, y + 6);
+              hits.about = tap({ x:cx - lw/2 - 8, y:y - 6, w:lw + 16, h:24 });
+            }
             return y + 22;
           },
         });

@@ -1032,6 +1032,67 @@ try {
   ok(`死到结算并画出结算页（「${title}」，${el('finalScore').textContent} 分）`);
 } catch(e){ fail('结算路径', e); }
 
+/* ---------- 每日挑战 / 对手图鉴 / 星星 ----------
+   这三样在网页版是 HTML，在这边全靠 ui.js 逐行画。网页那边改一行 innerHTML
+   就能把这边画的东西静静地变成空白 —— 三条断言都做过反向验证（故意改坏，
+   确认会红）。 */
+
+// 星星要真的画在选关方块上，而且总数跟着逻辑层走
+try {
+  el('startOverlay').classList.remove('hidden');
+  el('pauseOverlay').classList.add('hidden');
+  el('overOverlay').classList.add('hidden');
+  /* 解锁进度要**真的**写进存档：renderLevelSelect 自己去问 maxLevelReached()，
+     只在 innerHTML 里假装的话它下一句就把整块 hidden 回去了。 */
+  shim.env.localStorage.setItem('doudou.reached', '3');
+  game.renderLevelSelect();
+  const h = draw(() => ui.drawOverlays(0));
+  if (!h.practice || !h.practice.length) throw new Error('选关那一排没画出来');
+  /* 只查"画面上有没有 ★"是空的：「练习 ★6/18」那个总数标签自己就带一颗，
+     把方块下面的星星全删掉，那种断言照样是绿的（第一版就是这么写的，
+     反向验证当场抓出来）。
+     所以数**整段只有星星**的那些 fillText —— 总数标签夹着汉字和数字，
+     落不进来；每个方块底下的实心/空心两段才是。 */
+  const starRuns = rec.__rec.filter(r => /^★+$/.test(r.t)).length;
+  if (starRuns < h.practice.length)
+    throw new Error(`选关方块上的星星只画了 ${starRuns} 段，应该至少 ${h.practice.length} 段`
+                  + '——多半是 core 那边的按钮结构变了，这边的正则拆不出来了');
+  ok(`选关星星已画（${h.practice.length} 关，${starRuns} 段星）`);
+} catch(e){ fail('选关星星', e); }
+
+// 每日挑战：那一条要画出来，「开始」要有热区，且不能和选关方块压在一起
+try {
+  el('startOverlay').classList.remove('hidden');
+  game.renderDaily();
+  const h = draw(() => ui.drawOverlays(0));
+  const seen = rec.__rec.map(r => r.t).join('');
+  if (!seen.includes('今日挑战')) throw new Error('每日挑战那一条没画出来');
+  if (!h.daily) throw new Error('每日挑战「开始」没有热区——这一行唯一非点不可的就是它');
+  const over = (a,b) => a && b && a.x < b.x+b.w && b.x < a.x+a.w && a.y < b.y+b.h && b.y < a.y+a.h;
+  /* 热区互相压住是这一块历史上真出过的事：两边都会自己撑到 44 的最小热区，
+     间距不够就会重叠，点刚解锁的那一关反而开了今日挑战。 */
+  for (const p of (h.practice || [])){
+    if (over(h.daily, p)) throw new Error(`每日挑战热区压住了第 ${p.lv} 关`);
+  }
+  ok('每日挑战：画出来了，「开始」有热区且不压练习那一排');
+} catch(e){ fail('每日挑战', e); }
+
+// 图鉴：入口在开始页上，点开是一整页，内容取自逻辑层而不是 innerHTML
+try {
+  const h0 = draw(() => ui.drawOverlays(0));
+  if (!h0.owl) throw new Error('开始页上没有图鉴入口');
+  game.openOwl();
+  const h = draw(() => ui.drawOverlays(0));
+  const seen = rec.__rec.map(r => r.t).join('');
+  if (!seen.includes('对手图鉴')) throw new Error('图鉴那一页的标题没画出来');
+  if (!h.owlClose) throw new Error('图鉴页没有关闭按钮——这一页会关不掉');
+  /* 这一局是真打过的（前面撞死了一次），所以至少有一条见过的词条，
+     战绩那一行必须在。全是 ??? 说明 owlCodexView 的数据根本没接上。 */
+  if (!seen.includes('抓到你')) throw new Error('图鉴里一条战绩都没有——owlCodexView 的数据没接上');
+  game.closeOwl();
+  ok('对手图鉴：入口 + 整页 + 战绩数据');
+} catch(e){ fail('对手图鉴', e); }
+
 // 音效：小游戏用 wx.createWebAudioContext，别在这里炸
 try { game.Audio2.unlock(); game.Audio2.eatPellet && game.Audio2.eatPellet(); ok('音效引擎（wx WebAudio）'); }
 catch(e){ fail('音效引擎', e); }

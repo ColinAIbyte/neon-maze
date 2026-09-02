@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: f503f68f2c4d   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: e3cdf73e9c33   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -506,6 +506,8 @@ const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 130000, LIFE_LEFT: 1500, FLAWL
    第四关 51.3% → 第五关 49.0% → 第六关 46.9%。 */
 const GHOST_SPEED_BY_LEVEL = [2.35, 2.61, 2.90, 3.22, 3.22, 3.22];
 let deathsThisLevel = 0, deathsThisRun = 0, sweepsThisRun = 0, ghostsEatenThisRun = 0;
+// 星星第三颗看的是「这一关」反杀了几只，所以不能复用 ThisRun 那个。
+let ghostsEatenThisLevel = 0;
 /* 无伤通过的关数。不能拿 MAX_LEVEL - deathsThisRun 去反推——一关里可能死好几次，
    那样算出来会偏低甚至变成负数。只能在过关那一刻按 deathsThisLevel 数。 */
 let perfectLevelsThisRun = 0;
@@ -827,12 +829,19 @@ function resetLevel(fullReset){
   fruit = { active:false, x:9, y:13, timer:0, nextAt: 60, path:0 };
   comboTimer = 0; combo = 1;
   frightTimer = 0; ghostEatChain = 0;
-  deathsThisLevel = 0; levelBonuses = [];
+  deathsThisLevel = 0; ghostsEatenThisLevel = 0; levelBonuses = [];
   mercySpeedMult = 1;   // 过关或重开：温柔降难复位（见 loseLife）
   introTimer = 0;   // 复位关卡时清掉卡片，免得它挂在上一关的画面上
   deathPause = 0; deathFlash = 0;
-  if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0; }
+  if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0;
+    /* 每一局默认都**不是**每日挑战。startDaily 在 startPractice 回来之后才把它
+       打开——放这儿而不是放 startDaily 里清，是为了让"忘了清"这件事不可能发生：
+       任何开局路径都经过这里。 */
+    dailyRun = false; }
   invuln = 2.4;
+  /* 图鉴按"出过场"解锁，不按"抓到过你"。用被抓解锁的话，玩得好的孩子反而
+     看不到图鉴 —— 那就把这一栏做成了对失败的奖励。见过就算见过。 */
+  noteOwlsSeen(level);
   elapsed = 0;
 }
 
@@ -1748,6 +1757,196 @@ function hintSeen(id){
   }
   return !!hintSeenCache[id];
 }
+
+/* ---------- 长期进度：星星册 · 对手图鉴 · 每日挑战 ----------
+ *
+ * 前面那些 localStorage 键（分数、名字、提示、静音）记的都是**一局之内**或者
+ * 一次性的事。这一个不同：它记的是这个孩子玩了几个月之后手里攒下了什么。
+ *
+ * 合成一个键而不是三个：这三样天天都在写（每过一关写星星、每被抓一次写图鉴、
+ * 每天写一次挑战），分成三个键就要读写三次、失败三次、迁移三次。而它们的
+ * 生命周期是同一个 —— 都是"这个人的存档"，要清就一起清。
+ *
+ * 出错一律吞掉走默认值：无痕模式、存储配额满、别的站点写脏了同名键，都不该
+ * 让游戏打不开。星星丢了是可惜，白屏是事故。
+ */
+const PROGRESS_KEY = 'doudou.progress.v1';
+const EMPTY_PROGRESS = () => ({ stars:{}, owls:{}, daily:{} });
+let progress = EMPTY_PROGRESS();
+const validProgressObject = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const progressCount = v => typeof v === 'number' && Number.isFinite(v)
+  ? Math.min(1e9, Math.max(0, Math.floor(v))) : 0;
+const owlIdAllowed = id => GHOST_DEFS.some(g => g.id === id);
+const normalizeOwl = e => ({
+  met: progressCount(e && e.met), caught: progressCount(e && e.caught), ate: progressCount(e && e.ate),
+});
+
+function loadProgress(){
+  progress = EMPTY_PROGRESS();
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    /* 逐字段挑，不整个 assign。存档是用户能改的（开发者工具里两秒的事），
+       而下面所有代码都假设 stars/owls/daily 是对象 —— 让 stars 变成 null
+       就够让开始页整个渲染不出来了。 */
+    if (validProgressObject(p)){
+      if (validProgressObject(p.stars)) for (let lv=1;lv<=MAX_LEVEL;lv++){
+        const bits = p.stars[lv];
+        if (Number.isInteger(bits) && bits >= 0 && bits <= 7) progress.stars[lv] = bits;
+      }
+      if (validProgressObject(p.owls)) for (const {id} of GHOST_DEFS){
+        const e = normalizeOwl(p.owls[id]);
+        if (e.caught || e.ate) e.met = Math.max(1, e.met);
+        progress.owls[id] = e;
+      }
+      if (validProgressObject(p.daily)){
+        const {d,lv,best} = p.daily;
+        if (Number.isInteger(d) && d >= 10000101 && d <= 99991231
+            && Number.isInteger(lv) && lv >= 1 && lv <= MAX_LEVEL
+            && Number.isFinite(best) && best >= 0)
+          progress.daily = {d,lv,best:Math.min(Number.MAX_SAFE_INTEGER, best)};
+      }
+    }
+  } catch (e) { progress = EMPTY_PROGRESS(); }
+}
+function saveProgress(){
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
+}
+loadProgress();
+
+/* ---------- 对手图鉴 ----------
+ *
+ * 这一栏是把**挫败翻译成收藏**。被同一个对手抓了十次，孩子记住的原本只是
+ * "我又死了"；图鉴让那十次变成一行数字和一句"它是这么动的"。
+ *
+ * 所以每条的 how 必须是**可执行的对策**，不是形容词。"很凶"没用，
+ * "拐个弯就甩掉了"才有用 —— 这句话下次真的会改变他的手指。
+ * 名字和颜色跟 GHOST_DEFS 走，行为描述跟玩法说明里那四行走，改了记得同步。
+ */
+const OWL_CODEX = [
+  { id:'chaser', name:'闪闪', color:'--cyan',
+    how:'锁定你的位置追踪。利用岔路拉开距离，后续关卡还会有同伴包抄。',
+    tip:'闪闪会追踪你 —— 利用岔路拉开距离' },
+  { id:'ambush', name:'狐狐', color:'--danger',
+    how:'不追你，追你**要去的地方**。老朝一个方向跑，正好撞它怀里。',
+    tip:'狐狐会抄到你前面 —— 别一直朝一个方向跑' },
+  { id:'shy',    name:'软软', color:'--tang',
+    how:'离得远时追踪，靠近时转向角落。观察它的退路，但不要直接撞上去。',
+    tip:'软软靠近时会退开 —— 留意退路，别直接碰撞' },
+  { id:'patrol', name:'慢慢', color:'--pink',
+    how:'沿固定目标巡逻。看准它经过的方向再穿过路口，最后一关还要留意反向巡逻。',
+    tip:'慢慢只走它那个圈 —— 记住它的路线就能避开' },
+];
+
+/** 记一笔图鉴。kind: 'met' 见过 · 'caught' 被它抓 · 'ate' 反杀它 */
+function noteOwl(id, kind){
+  if (!owlIdAllowed(id) || !['met','caught','ate'].includes(kind)) return;
+  const e = progress.owls[id] = normalizeOwl(progress.owls[id]);
+  e[kind] = Math.min(1e9, e[kind] + 1);
+  if (kind !== 'met') e.met = Math.max(1, e.met || 0);   // 抓过你的，一定见过
+  saveProgress();
+}
+
+/** 这一关会出场的对手都算"见过"——开关卡时记一次，不等它真的追上来。 */
+function noteOwlsSeen(lvl){
+  const ids = new Set(ghostDefsForLevel(lvl).map(d => d.id));
+  let dirty = false;
+  ids.forEach(id=>{
+    if (!owlIdAllowed(id)) return;
+    const e = progress.owls[id] = normalizeOwl(progress.owls[id]);
+    if (!e.met){ e.met = 1; dirty = true; }
+  });
+  if (dirty) saveProgress();
+}
+
+/** 图鉴要显示的那份数据。UI 层不碰存档，只拿这个数组。 */
+function owlCodexView(){
+  return OWL_CODEX.map(o=>{
+    const e = progress.owls[o.id] || { met:0, caught:0, ate:0 };
+    return { id:o.id, name:o.name, color:o.color, how:o.how,
+             met:!!e.met, caught:e.caught||0, ate:e.ate||0 };
+  });
+}
+
+/* ---------- 星星收集册 ----------
+ *
+ * 一关三颗，是三个**不同性质**的目标，不是同一件事的三个难度档：
+ *
+ *   ★ 通关     —— 会玩就有。保证每个孩子第一次打完都能拿到东西。
+ *   ★ 无伤     —— 考熟练。同一关反复打自然会到。
+ *   ★ 反杀两只 —— 考胆量。它逼着孩子做这游戏最想让他做的决定：转身。
+ *
+ * 三颗如果是"通关/快速通关/更快通关"，就只是一个目标的三个刻度，卡在第三颗
+ * 的人也知道自己差在哪，不会去改玩法。分成三种，他会**换一种打法**再来 ——
+ * 那才是这套东西存在的理由。
+ */
+const STAR_GOALS = ['通关这一关', '一次都不死', '反杀 2 个对手'];
+
+/** 结算这一关拿到几颗，写进存档，返回本次**新拿到**的颗数。 */
+function awardStars(lvl){
+  let bits = 1;                                  // 能走到这儿就是清光了豆子
+  if (deathsThisLevel === 0)      bits |= 2;
+  if (ghostsEatenThisLevel >= 2)  bits |= 4;
+  const had = progress.stars[lvl] || 0;
+  const now = had | bits;                        // 只增不减：拿到的星星不会因为
+  if (now === had) return 0;                     // 下次打得差就被收回去
+  progress.stars[lvl] = now;
+  saveProgress();
+  return countBits(now) - countBits(had);
+}
+function countBits(b){ return (b&1?1:0) + (b&2?1:0) + (b&4?1:0); }
+function starsOf(lvl){ return countBits(progress.stars[lvl] || 0); }
+function totalStars(){ let t = 0; for (let i=1;i<=MAX_LEVEL;i++) t += starsOf(i); return t; }
+
+/* ---------- 每日挑战 ----------
+ *
+ * 这一条是给"爸爸和儿子"设计的，不是给排行榜设计的。
+ *
+ * 排行榜比的是历史最高分 —— 一旦一方冲出一个高分，另一方要追很久，中间那些
+ * 天就没得比了。每日挑战每天零点清空：今天谁高谁就赢了今天。这才是一对父子
+ * 每天能玩一轮的东西。
+ *
+ * 关卡由日期和已解锁范围决定：解锁进度相同的玩家当天选到同一关。
+ * 只从**已解锁**的关里挑 —— 出一关孩子还没打到的，今天他就直接出局了。
+ *
+ * 它走练习模式的路子，所以整局不进排行榜。这是故意的：每日挑战允许反复重来，
+ * 能进榜的话刷分就太容易了，而排行榜的价值全在"不好刷"。
+ */
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+/** 日期与解锁上限相同，才会得到同一关。 */
+function dailyLevel(){
+  const top = Math.max(1, maxLevelReached());
+  /* 先把日期打散再取模。直接 todayKey() % top 的话，连着几天的日期号只差 1，
+     关卡就只是 1→2→3 地顺着走，一眼能猜到明天是哪关。
+
+     打散必须用 Math.imul：写成 todayKey() * 2654435761 的话，乘积是 5.4e16，
+     超过 Number.MAX_SAFE_INTEGER（9.0e15），结果被舍到 8 的倍数上，于是
+     % 4 恒等于 0 —— 解锁四关的人**每天都会拿到第 1 关**，而且不报任何错。
+     Math.imul 走 32 位整数乘法，不经过浮点，没有这个问题。 */
+  let h = todayKey();
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+  h = Math.imul(h ^ (h >>> 12), 0x297a2d39);
+  h = (h ^ (h >>> 15)) >>> 0;          // 转成无符号，免得负数取模出负值
+  return (h % top) + 1;
+}
+function dailyBest(lv = dailyLevel(), d = todayKey()){
+  return progress.daily.d === d && progress.daily.lv === lv ? (progress.daily.best || 0) : 0;
+}
+function recordDaily(sc){
+  if (!Number.isFinite(sc) || sc <= 0) return false;
+  const d = dailyRun ? dailyRun.d : todayKey(), lv = dailyRun ? dailyRun.lv : dailyLevel();
+  // 跨午夜的局仍属于开局那天，不能把昨天的难度写成今天的纪录。
+  if (progress.daily.d > d || sc <= dailyBest(lv,d)) return false;
+  progress.daily = { d, lv, best: Math.min(Number.MAX_SAFE_INTEGER,sc) };
+  saveProgress();
+  return true;
+}
+let dailyRun = false;   // 本局是不是每日挑战，endGame 要用
+
 /* ---------- 开局的滑动手势 ----------
  *
  * 这一条以前是弹一行字："滑动屏幕 或 按方向键移动"。换成动画有两个理由：
@@ -2096,6 +2295,8 @@ function handleGhostCollisions(){
       g.state='eaten';
       g.eatenThisFright = true;   // 这轮不能再吃第二次，见 isEdible
       ghostsEatenThisRun++;       // 结算页要报这一局吃了几只
+      ghostsEatenThisLevel++;
+      noteOwl(g.id, 'ate');
       applySpeedModifiers();
       toast('反击! +' + fmtNum(pts));
       /* 悬赏是阶梯式的，可玩家第一次只看到"+13,000"这一个数，没法知道它会往上
@@ -2118,7 +2319,7 @@ function handleGhostCollisions(){
         toast('全灭对手！+' + fmtNum(awardBonus('全灭对手', BONUS.GHOST_SWEEP, true)));
       }
     } else if (invuln<=0){
-      loseLife();
+      loseLife(g);
       return;
     }
   }
@@ -2153,22 +2354,44 @@ function drawDeathFlash(){
   ctx.restore();
 }
 
-function loseLife(){
+/* 参数 killer 是**抓住你的那一个**。
+ *
+ * 加这个参数的理由不是记账，是教学：小孩连着死五次，脑子里留下的往往只有
+ * "这一关好难"，而不是"我每次都死在同一个抄近路的家伙手上"。死因提示把那
+ * 五次合并成一条可执行的对策，挫败才变成学习。
+ *
+ * 允许为空：碰不到实体的死法（真出现的话）不该因为少个参数就崩。 */
+function loseLife(killer){
   lives--;
   deathsThisLevel++; deathsThisRun++;
   /* 温柔降难：同一关连续死到第 3 次，本关幽灵放慢一成。不是送分 —— 只是
      让卡住的人多一点反应时间；过关或重开就复位（resetLevel 里 mercySpeedMult=1）。
      提示挑最温和的说法，不点破"你死太多次了"。 */
+  let mercyJustKicked = false;
   if (deathsThisLevel === 3 && mercySpeedMult === 1){
     mercySpeedMult = 0.9;
+    mercyJustKicked = true;
     toast('对手们放慢脚步啦');
   }
   updateHud();
   Audio2.death();
   deathFlash = DEATH_FLASH_SECONDS;
   deathPause = DEATH_PAUSE_SECONDS;
-  // 第一次死掉的那一刻，正是最想知道"还能怎么办"的时候
-  hintOnce('power', '收集能量星，可以反击敌人！', 900);
+  /* 死因提示。每次都说，不做 hintOnce ——
+     这不是"教一次就会"的规则说明，是**对这一次死法的复盘**：同一句话看第五遍
+     的时候，孩子才会把它和自己刚才那一下连起来。真正会烦人的是重复无关的话，
+     不是重复正中要害的话。
+     上面那条"温柔降难"抢在前面时让位：连死三次的那一刻，先告诉他情况变好了，
+     比再解释一遍他为什么死更重要。 */
+  const killerId = killer && killer.id;
+  if (killerId){
+    noteOwl(killerId, 'caught');
+    const entry = OWL_CODEX.find(o => o.id === killerId);
+    if (entry && !mercyJustKicked) toast(entry.tip);
+  }
+  /* 从 900 挪到 1600：死因提示占着前 1.4 秒，900 会把它顶掉。
+     两条都值得看，那就排队，不要抢。 */
+  hintOnce('power', '收集能量星，可以反击敌人！', 1600);
   if (lives<=0){ endGame(false); return; }
   player.x=SPAWN.player.x; player.y=SPAWN.player.y; player.dir={x:0,y:0}; player.want={x:0,y:0};
   player.warpCd=0; player.warpCdCh=null; player.warpChoiceUntil=0; player.warpStandingOn=null;
@@ -2634,13 +2857,31 @@ function renderLevelSelect(){
   const top = maxLevelReached();
   if (top < 2){ el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
-  let html = '<span class="levelsel-k">练习</span>';
+  /* 「练习」两个字后面挂着总星数，收集册就不必单开一页了。
+     总数放在最左边而不是最右边：孩子的视线是从这一行的开头进来的，
+     "我攒了几颗"应该是他看到的第一个数，而不是扫完六个按钮之后的补充说明。 */
+  const tot = totalStars(), max = MAX_LEVEL * 3;
+  let html = `<span class="levelsel-k">练习 <b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
   for (let i = 1; i <= MAX_LEVEL; i++){
     const locked = i > top;
-    html += `<button class="lv" data-lv="${i}"${locked ? ' disabled aria-label="未解锁"' : ` title="练习第 ${i} 关 · ${levelName(i)}"`}>`
-          + (locked ? '🔒' : i) + '</button>';
+    const st = starsOf(i);
+    /* 锁着的关也画三颗空星。空着的格子是这套东西的全部动力来源 ——
+       看不见要填什么，就没有要填的冲动。 */
+    const stars = `<span class="lv-st"><b>${'★'.repeat(st)}</b>${'★'.repeat(3 - st)}</span>`;
+    const tip = `练习第 ${i} 关 · ${levelName(i)}　★ ${STAR_GOALS.join(' / ')}`;
+    html += `<button class="lv" data-lv="${i}"${locked ? ' disabled aria-label="未解锁"' : ` title="${tip}"`}>`
+          + `<span class="lv-n">${locked ? '🔒' : i}</span>` + stars + '</button>';
   }
+  /* 图鉴入口挂在这一行末尾。跟选关同一个门槛（打到第二关才出现）：
+     第一次玩的人屏幕上不该多出一个还看不懂的东西。
+     用 document.getElementById 而不是 el.querySelector：小游戏那份 DOM 垫片
+     的元素桩上没有 querySelector，只有 document 上有。这行是开始页初始化链的
+     一环 —— 在垫片下抛异常的话，它后面的键盘、暂停、手势全都不会接线，
+     而且一声不吭。 */
+  html += '<button class="lv lv-codex" id="owlBtn" title="对手图鉴" aria-label="对手图鉴">🦉</button>';
   el.innerHTML = html;
+  const ob = document.getElementById('owlBtn');
+  if (ob) ob.addEventListener('click', ()=>{ Audio2.unlock(); openOwl(); });
   el.querySelectorAll('.lv[data-lv]').forEach(b=>{
     b.addEventListener('click', ()=>{
       Audio2.unlock();
@@ -2807,6 +3048,10 @@ function endGame(won){
   // The row is filed FIRST, under the remembered name, so the board is already
   // correct if the player never touches the input. Typing a name renames that
   // same row in place rather than filing a second one.
+  /* 每日挑战的成绩存在自己那儿，不进排行榜（理由见 dailyLevel 上面那段）。
+     它走的是练习模式，本来也进不去 —— 这里只是把今天这一笔记下来。 */
+  const dailyBeat = dailyRun && recordDaily(score);
+
   const remembered = loadName();
   const { rank, id } = practice ? { rank: 0, id: null }
     : recordScore({ score, level, combo: maxComboSeen, won, name: remembered });
@@ -2816,17 +3061,26 @@ function endGame(won){
   if (won) Audio2.victory(); else if (isNewBest) Audio2.newBest(); else Audio2.gameOver();
   const practiceCleared = practice && pelletsLeft <= 0;
   document.getElementById('overTitle').textContent =
-      practiceCleared ? ('练习完成 · 第 ' + level + ' 关')
+      dailyRun        ? ('每日挑战' + (practiceCleared ? '完成' : '结束') + ' · 第 ' + level + ' 关')
+    : practiceCleared ? ('练习完成 · 第 ' + level + ' 关')
     : practice        ? ('练习结束 · 第 ' + level + ' 关')
     : won             ? ('通关！全 ' + MAX_LEVEL + ' 关')
     :                   '游戏结束';
   lastFinalScore = score;
   document.getElementById('finalScore').textContent = fmtNum(score);
   document.getElementById('overSub').innerHTML =
-    practice ? buildPracticeSummary(practiceCleared) : buildSummary(won, rank, prevBest, isNewBest);
+    dailyRun ? '每日挑战仅记录本机当日同关最高分，不计入正式排行榜。'
+    : practice ? buildPracticeSummary(practiceCleared) : buildSummary(won, rank, prevBest, isNewBest);
   document.getElementById('overOverlay').classList.remove('hidden');
   // 破纪录也放礼花：这是除了通关之外，唯一值得停下来庆祝一下的时刻
   if (isNewBest && !won && prevBest > 0) startFireworks(6000);
+
+  /* 星星和今日成绩都变了，开始页那两处得跟着重画。
+     这里不重画的话，玩家要刷新页面才看得到刚拿到的星星 —— 而拿到的那一刻
+     正是他最想看见它的时候。 */
+  renderLevelSelect();
+  renderDaily();
+  if (dailyBeat) setTimeout(()=>toast('今日挑战新纪录！'), 700);
 
   const nameRow = document.getElementById('nameRow');
   const nameInput = document.getElementById('nameInput');
@@ -3207,7 +3461,7 @@ window.addEventListener('keydown', (e)=>{
   Audio2.unlock();
   // Escape 任何时候都能关掉盖在上面的文档页 —— 这是玩家唯一的逃生键。
   // 两个都关：两者不会同时打开，各调一次比先判断谁开着更省事，也不会漏。
-  if (e.key==='Escape'){ closeHelp(); closeAbout(); return; }
+  if (e.key==='Escape'){ closeHelp(); closeAbout(); closeOwl(); return; }
   if (e.key==='Enter'){ if (handleEnter(e)) e.preventDefault(); return; }
   if (!gameHasKeyboard()) return;      // 说明在读、名字在输，都不归游戏管
 
@@ -3433,14 +3687,15 @@ let helpPausedByUs = false;
  */
 function docPanelOpen(){
   return !helpOverlay.classList.contains('hidden')
-      || !aboutOverlay.classList.contains('hidden');
+      || !aboutOverlay.classList.contains('hidden')
+      || !!(owlOverlay && !owlOverlay.classList.contains('hidden'));
 }
 
 let helpSync = null;   // 由下面那段初始化；打开说明时重算滚动提示
 
 function openHelp(){
   if (!helpOverlay.classList.contains('hidden')) return;
-  closeAbout();               // 两页互斥，理由见 openAbout
+  closeAbout(); closeOwl();   // 文档页互斥
   helpPausedByUs = (gameState === 'playing');
   if (helpPausedByUs) gameState = 'paused';
   helpOverlay.classList.remove('hidden');
@@ -3481,6 +3736,7 @@ function openAbout(){
      两页同时打开会叠在一起，而且关掉一页之后另一页还盖着。
      与其到处判断，不如让这个前提在开的时候就成立。 */
   closeHelp();
+  closeOwl();
   /* 记住是谁把它打开的。用键盘的人关掉弹层后，焦点必须回到刚才那个按钮上，
      否则焦点掉回 body，再按 Tab 是从整页最开头重新数起。 */
   aboutOpener = (typeof document.activeElement === 'object') ? document.activeElement : null;
@@ -3602,6 +3858,80 @@ function setChallenge(score, name){
   return challenge;
 }
 
+/** 开始页那条每日挑战。和选关同一个门槛：打到第二关才出现。 */
+function renderDaily(){
+  const box = document.getElementById('dailyBox');
+  if (!box) return;
+  if (maxLevelReached() < 2){ box.classList.add('hidden'); return; }
+  const lv = dailyLevel(), best = dailyBest();
+  box.classList.remove('hidden');
+  box.innerHTML = `<span class="daily-k">今日挑战</span>`
+    + `<span class="daily-lv">第 ${lv} 关 · ${levelName(lv)}</span>`
+    /* 没成绩时写"还没打"而不是"0 分"。0 是一个成绩，"还没打"是一个空位——
+       今天这一栏要邀请人来填，不是先给他记一笔难看的账。 */
+    + `<span class="daily-best">${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}</span>`
+    + `<button class="daily-go" id="dailyGo">开始</button>`;
+  const go = document.getElementById('dailyGo');   // 理由同 renderLevelSelect 里那条
+  if (go) go.addEventListener('click', ()=>{
+    Audio2.unlock();
+    document.getElementById('startOverlay').classList.add('hidden');
+    startDaily();
+  });
+}
+
+function startDaily(){
+  const d = todayKey(), lv = dailyLevel();
+  startPractice(lv);
+  /* 必须在 startPractice 之后 —— 它里面的 resetLevel(true) 会把这个标记清掉。
+     顺序反了的话每日挑战永远不记成绩，而且不会报错。 */
+  dailyRun = {d,lv};
+}
+
+/* ---------- 对手图鉴弹层 ---------- */
+const owlOverlay = document.getElementById('owlOverlay');
+
+function renderOwlList(){
+  const el = document.getElementById('owlList');
+  if (!el) return;
+  el.innerHTML = owlCodexView().map(o=>{
+    if (!o.met){
+      return `<div class="owl-row locked"><div class="owl-head">`
+        + `<span class="owl-dot"></span><span class="owl-name">???</span></div>`
+        + `<p class="owl-how">还没见过它</p></div>`;
+    }
+    /* 只报"抓到你"和"被你吃"两个数。遇见次数不报：它每关都涨，涨得毫无悬念，
+       放上去只会把真正有意思的那两个数挤淡。 */
+    const tally = `抓到你 ${o.caught} 次　你反杀 ${o.ate} 次`;
+    return `<div class="owl-row"><div class="owl-head">`
+      + `<span class="owl-dot" style="background:var(${o.color})"></span>`
+      + `<span class="owl-name" style="color:var(${o.color})">${o.name}</span>`
+      + `<span class="owl-tally">${tally}</span></div>`
+      + `<p class="owl-how">${o.how.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p></div>`;
+  }).join('');
+}
+
+function openOwl(){
+  if (!owlOverlay || !owlOverlay.classList.contains('hidden')) return;
+  closeHelp(); closeAbout();     // 三页互斥，理由见 openAbout
+  /* 和「关于」同一套：正在玩就先暂停，并把暂停页也显示出来，这样关掉图鉴之后
+     露出的是暂停画面，玩家自己按「继续」。跟「玩法说明」的行为是反的，那是
+     故意的 —— 查规则是打到一半的一个动作，读图鉴是离开游戏去看一页东西，
+     看完抬头手指未必回到屏幕上，直接把对手放出来就是白掉一条命。 */
+  if (gameState === 'playing'){
+    gameState = 'paused';
+    const po = document.getElementById('pauseOverlay');
+    if (po) po.classList.remove('hidden');
+  }
+  renderOwlList();
+  owlOverlay.classList.remove('hidden');
+}
+function closeOwl(){ if (owlOverlay) owlOverlay.classList.add('hidden'); }
+(function(){
+  const b = document.getElementById('owlCloseBtn');
+  if (b) b.addEventListener('click', ()=>{ Audio2.unlock(); closeOwl(); });
+  if (owlOverlay) owlOverlay.addEventListener('click', (e)=>{ if (e.target === owlOverlay) closeOwl(); });
+})();
+
 function renderChallengeBanner(){
   if (!challenge) return;
   const box = document.getElementById('challengeBox');
@@ -3711,7 +4041,13 @@ function autoPause(){
   if (why) why.textContent = '你切走了，游戏替你按了暂停　按 P / Enter 或点「继续游戏」';
 }
 
-document.addEventListener('visibilitychange', ()=>{ if (document.hidden) autoPause(); });
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden){ autoPause(); return; }
+  /* 回到前台重算每日挑战。开始页那一条只在初始化和每局结束时画过，页面挂着
+     过了零点再回来就还显示昨天那一关 —— 而"今天大家打同一关"正是这条功能
+     唯一的意义。 */
+  renderDaily();
+});
 /* blur 是必需的第二道：切到**另一个应用**（而不是另一个标签页）时，标签仍然
    算「可见」，visibilitychange 根本不触发，只有窗口失焦。手机上切出去、
    桌面上点到别的程序，都是走这条。 */
@@ -3883,11 +4219,17 @@ function update(dt){
     const perfect = deathsThisLevel === 0;
     if (perfect){ perfectLevelsThisRun++; awardBonus(`第 ${level} 关无伤`, BONUS.PERFECT_LEVEL * level); }
     const earned = levelBonuses.slice();
+    /* 星星必须在 resetLevel() 之前结，它读的 deathsThisLevel /
+       ghostsEatenThisLevel 都会被那一句清掉。和上面那条奖励是同一个理由。 */
+    const newStars = awardStars(level);
+    const starMsg = newStars ? '　★ 新星星 ×' + newStars : '';
 
     /* 练习只打这一关。清掉之后直接进结算，**不推进到下一关**——
        否则从第五关练起、连着清掉五和六，看起来就跟通关一样了，
        而通关必须是六关连打不死才算。 */
-    if (practiceLevel){ endGame(false); return; }
+    /* 练习/每日挑战这一路不经过下面那条 toast，星星要在这儿自己报。
+       报完再进结算页 —— endGame 不发 toast，所以这条能留在屏幕上。 */
+    if (practiceLevel){ if (starMsg) toast('第 ' + level + ' 关' + starMsg.trim()); endGame(false); return; }
     if (level >= MAX_LEVEL){ endGame(true); return; }
     level++;
     noteLevelReached(level);
@@ -3898,7 +4240,7 @@ function update(dt){
     /* 卡片报"是哪一关"，toast 报"拿到了什么"，两者不重复。
        关名已经在卡片上大字写着了，toast 里就不再念一遍。 */
     const extra = earned.length ? '　' + earned.map(b=>b.label+' +'+fmtNum(b.points)).join('　') : '';
-    toast('生命 +1' + extra);
+    toast('生命 +1' + extra + starMsg);
     Audio2.levelUp();
   }
 }
@@ -4659,6 +5001,7 @@ fullNewGame();
 renderScoreboard('startBoard');
 renderBest(); renderWelcome();
 renderLevelSelect();
+renderDaily();
 renderChallengeBanner();
 requestAnimationFrame(loop);
 
@@ -4686,6 +5029,14 @@ requestAnimationFrame(loop);
     // 挂的那些 click 监听在垫片上根本不会触发），所以点中之后要能直接调进来。
     // maxLevelReached 一起导出：哪几关解锁了只有逻辑层知道。
     startPractice, maxLevelReached,
+    /* 每日挑战 + 对手图鉴。外壳同样是自己画的，点中之后要能调进来。
+       openOwl 还负责在打开前重画一次图鉴内容（renderOwlList），漏了它外壳
+       就会显示上一次的战绩 —— 而战绩每局都在变。
+       owlCodexView 直接给结构化数据：不让外壳去正则拆 owlList 的 innerHTML，
+       那等于把「HTML 长什么样」当成一份没人声明过的接口。 */
+    startDaily, openOwl, closeOwl,
+    renderDaily, renderLevelSelect,
+    owlCodexView,
   };
 }
 

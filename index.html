@@ -1950,7 +1950,7 @@ body::before{
             <dt>移动</dt><dd>手机在迷宫上<b>滑动</b>　电脑<b>方向键 / WASD</b></dd>
             <dt>吃豆</dt><dd>吃光豆子就过关；<b>连着吃</b>，倍率越叠越高</dd>
             <dt>躲开敌人</dt><dd>碰到少一条命；收集<b>能量星</b>就能反过来吃它们</dd>
-            <dt>本版计分</dt><dd><b>全部提高 30%</b>；旧排行榜也按相同比例换算</dd>
+            <dt>本版计分</dt><dd><b>连击项目再提高 30%</b>；通关等固定奖励和已有成绩不变</dd>
             <dt>还有</dt><dd>传送门 · 冲刺 · 穿墙
               <br><span class="dim">不用背，玩着就会</span></dd>
             <dt>成长记录</dt><dd>每关三颗星：通关、无伤、反击两个对手；已获星星不会丢失</dd>
@@ -1968,8 +1968,8 @@ body::before{
              「怎么玩」在最前面，看完前三行就能开打，剩下的往下滚就是。 -->
           <div class="help-sec">
             <h3>连击</h3>
-            <p>每吃一颗涨一级，<b>上不封顶</b>；吃敌人、拿晶石同样算。<br>
-              一边跑一边吃约 <b>1.6 秒</b>没吃到才断，停下不动约 <b>0.5 秒</b>就断。</p>
+            <p>小豆、大豆（能量星）、反击敌人、拿晶石，每次都让同一条连击涨一级并续满时间，<b>上不封顶</b>。<br>
+              连击持续时间延长 <b>10%</b>：跑动基础窗口 <b>1.76 秒</b>，连击越高越宽，最长 <b>2.75 秒</b>；停下仍按 <b>3 倍</b>速度消耗。</p>
           </div>
           <div class="help-sec">
             <h3>四位霓虹对手</h3>
@@ -1991,12 +1991,12 @@ body::before{
           </div>
           <div class="help-sec">
             <h3>能拿多少分</h3>
-            <p><b>全部计分项目统一提高 30%</b>；遇到半分时，最终入账取整。</p>
+            <p><b>连击项目再提高 30%</b>：以下数值已含本次加成，不要重复乘；小数分在最终入账取整。</p>
             <dl class="kv">
-              <dt>豆子</dt><dd><b>19.5</b> × 连击，最终取整</dd>
-              <dt>能量星</dt><dd><b>97.5</b> × 连击，最终取整</dd>
-              <dt>相位晶石</dt><dd><b>585</b> × 连击</dd>
-              <dt>敌人</dt><dd><b>1.3万 → 2.6万 → 3.9万…</b><span class="dim">同一颗能量星内按 1.3 万逐只递增</span></dd>
+              <dt>豆子</dt><dd><b>25.35</b> × 连击，最终取整</dd>
+              <dt>能量星</dt><dd><b>126.75</b> × 连击，最终取整</dd>
+              <dt>相位晶石</dt><dd><b>760.5</b> × 连击，最终取整</dd>
+              <dt>敌人</dt><dd><b>1.69万 → 3.38万 → 5.07万…</b><span class="dim">同一颗能量星内按 1.69 万逐只递增；同样续连击，但悬赏不再乘吃豆倍率</span></dd>
             </dl>
           </div>
           <div class="help-sec">
@@ -2006,12 +2006,14 @@ body::before{
               <dt>全灭对手</dt><dd><b>13万</b>　一次能量星内吃光全场</dd>
               <dt>通关剩余命</dt><dd><b>2925</b> × 条数</dd>
               <dt>全程无伤</dt><dd><b>19500</b></dd>
-              <dt>能量星时长</dt><dd><b>9 秒</b>起，每过一关缩短，第 6 关只剩 <b>5 秒</b><br>
+              <dt>敌人速度</dt><dd>六关基础速度统一为 <b>2.35 格/秒</b><br><span class="dim">同一关失败三次后仍享本关减速 10% 的辅助；各关规则相同</span></dd>
+              <dt>能量星时长</dt><dd>六关统一 <b>9 秒</b>；再吃一颗刷新至 9 秒，不叠加<br>
                 <span class="dim">期间你快 15%，敌人慢 15%</span></dd>
               <dt>冲刺</dt><dd>直线连走 5 格提速到 <b>1.22 倍</b></dd>
               <dt>传送门</dt><dd>冷却 <b>0 秒</b>，落地会停一下等你选方向</dd>
               <dt>穿墙</dt><dd><b>10 秒</b>；期间移动放慢，转向随按随到</dd>
-              <dt>连击倍率</dt><dd>所有吃到的东西都乘这个倍率（敌人悬赏除外）</dd>
+              <dt>连击倍率</dt><dd>按吃之前的倍率计分，再涨一级；敌人悬赏独立递增，但也续连击</dd>
+              <dt>历史成绩</dt><dd>本次只调整连击项目，已有成绩保持原值，不再统一乘 1.3</dd>
             </dl>
           </div>
 
@@ -2541,9 +2543,7 @@ let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
  * the same behaviour:
  *   PERFECT_LEVEL  clear a level untouched — scaled by level number, since the
  *                  later ones are genuinely harder
- *   GHOST_SWEEP    eat every ghost within ONE power pellet. The fright window
- *                  shrinks 9s -> 4s across the run, so this goes from tough to
- *                  near-heroic
+ *   GHOST_SWEEP    eat every ghost within ONE power pellet's fixed 9s window
  *   LIFE_LEFT      each life still in hand at the finish
  *   FLAWLESS_RUN   clear all six levels without dying once
  * Every award is logged so the player is told WHAT they earned and why — an
@@ -2554,52 +2554,9 @@ let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
    其余三项仍是基础分，经 SCORE_MULT 从原来的 1.5 提到 1.95。 */
 const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 130000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
 
-/**
- * Ghost speed per level, written out rather than generated.
- *
- * This was a compounding formula twice over (1.15, then 1.11), and both times
- * the same thing went wrong: a single growth rate cannot know what ELSE changes
- * on a given level. The ramp is not just speed — ghost count goes 4,5,6,6,6,7,
- * the fright window shrinks, and the maps differ in how easily they corner you.
- * A formula gives every level the same step by construction, which is exactly
- * how level 5 and then level 6 each became a wall.
- *
- * The figures are set from measured clear rates, not from a curve. 工具/autoplay.js
- * plays each level forty times and reports how often a deliberately mediocre bot
- * finishes; the target is a rate that falls gently across the six levels rather
- * than falling off a cliff at one of them.
- *
- *   1  2.35  frozen, the owner's reference level — do not touch
- *   2  2.61  +1 ghost
- *   3  2.90  +1 ghost (6 now)
- *   4  3.22  nothing else changes, so speed carries the step
- *   5  3.40  its map is the meanest of the six — 10 dead ends against 6 and 7
- *            on its neighbours — so it needs a SMALLER speed step than the
- *            ramp suggests. At 3.57 it measured harder than level 6.
- *   6  3.78  +1 ghost (7) AND the shortest fright window: a small step, because
- *            the level is already gaining the two harshest levers at once.
- *            Under the old curve this was 3.96 and simply unclearable.
- *
- * Widening level 5's corridors was tried first and made it measurably WORSE
- * (70% -> 40%): opening a dead end also opens a flanking route for six ghosts.
- * Speed is the lever that moves difficulty in the direction you expect.
- *
- * The 85% cap below is a safety net, not a design knob: above it a ghost
- * catches a fleeing player in an open corridor and the run stops being winnable.
- */
-/* 第五、六关和第四关同速（3.22），是业主 2026-08-20 定的：这两关已经靠"多一只
-   幽灵"和"受惊时间更短"在加压了，速度不必再叠一层。
-
-   把第五关按下来的直接依据：机器人单关隔离测，第五关 20 局死 19 局、中位存活
-   14 秒，而**一半的死亡挤在同一个格子 (9,5)** —— 那里是鬼门正上方两格的四岔
-   路口，六只幽灵从唯一那扇门涌出来，中间 (9,6) 是条只有上下两个出口的直筒，
-   横向无处可躲。第六关虽然更快更多，死亡却完全分散（每点各一次），是"整体紧"
-   而不是"一个陷阱"。第五关的速度本来就是全程涨得最少的一关（+0.18），
-   问题从来不在速度 —— 降速是止血，那个路口本身仍然值得单独处理。
-
-   注意玩家速度还在逐关上涨（+0.2912/关），所以这两关的**相对**速度比是往下走的：
-   第四关 51.3% → 第五关 49.0% → 第六关 46.9%。 */
-const GHOST_SPEED_BY_LEVEL = [2.35, 2.61, 2.90, 3.22, 3.22, 3.22];
+/* 2026-09-03：六关采用第一关的基础速度，不再随关卡提速。
+   地图、敌人数量和 AI 保持原样；能量减速、失败辅助也在各关使用同一套倍率。 */
+const GHOST_BASE_SPEED = 2.35;
 let deathsThisLevel = 0, deathsThisRun = 0, sweepsThisRun = 0, ghostsEatenThisRun = 0;
 // 星星第三颗看的是「这一关」反杀了几只，所以不能复用 ThisRun 那个。
 let ghostsEatenThisLevel = 0;
@@ -2615,7 +2572,7 @@ let ghostEatChain = 0;              // 同一颗能量豆内连续吃了几只�
 let deathPause = 0, deathFlash = 0; // 死亡定格与红闪，见 loseLife
 let comboMilestoneHit = 0;          // 本局连击里程碑已报到哪档，见 checkComboMilestone
 /* 温柔降难：同一关连续死 3 次（中途没通关），本关幽灵速度 ×0.9。
-   运行时乘数 —— GHOST_SPEED_BY_LEVEL 表本身一格不动；过关或手动重开时归 1。
+   运行时乘数 —— GHOST_BASE_SPEED 不变；过关或手动重开时归 1。
    只存内存，不落盘。 */
 let mercySpeedMult = 1;
 
@@ -2631,9 +2588,11 @@ let mercySpeedMult = 1;
    非 raw 项目原来乘 1.5，现在乘 1.5 × 1.30 = 1.95。 */
 const SCORE_BOOST = 1.3;
 const SCORE_MULT = 1.95;
+/* 本轮只增加能续连击的收集/反击奖励。固定结算奖励和历史成绩不再放大。 */
+const COMBO_SCORE_BOOST = 1.3;
 
 /** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。
- *  独立最终分也同步提高 30%：10000 → 13000。 */
+ *  上一版基础步长 13000；本轮经 addComboScore 再 ×1.3，实际每级 16900。 */
 const GHOST_BOUNTY_STEP = 13000;
 
 /**
@@ -2642,8 +2601,7 @@ const GHOST_BOUNTY_STEP = 13000;
  * must still bank and display whole numbers. The help text states this rule.
  */
 function addScore(base, raw){
-  // raw=true 表示这个数字就是最终分，不再乘倍率。敌人悬赏和全灭奖励已经各自
-  // 在常量里完成 30% 提升，不能再乘 1.95；除此之外的一切仍走统一倍率。
+  // raw=true 跳过历史总倍率 1.95；本轮连击加成只由 addComboScore 负责。
   const points = raw ? Math.round(base) : Math.round(base * SCORE_MULT);
   score += points;
   return points;
@@ -2903,9 +2861,7 @@ function resetLevel(fullReset){
     // tiles run without changing direction, and the fading motion trail it drives
     straightTiles:0, trail:[], trailAt:0,
   };
-  const speedRow = GHOST_SPEED_BY_LEVEL[level-1];   // 微信基础库没有 ??，一律三元
-  const ghostSpeed = Math.min(speedRow === undefined ? GHOST_SPEED_BY_LEVEL[MAX_LEVEL-1] : speedRow,
-                              playerSpeed * 0.85);
+  const ghostSpeed = GHOST_BASE_SPEED;
   ghosts = ghostDefsForLevel(level).map((def,i)=>({
     ...def,
     kind:'ghost',
@@ -3722,11 +3678,11 @@ function bestDirTo(ent, target, excludeReverse){
  * 保住连击，那连击就不再奖励什么了。
  *
  * 所以改成两档衰减：**在跑就慢扣，停下就快扣**。
- *   跑动中：1.6 秒的余量，够穿过一段空走廊
- *   停下来：3 倍速扣，约 0.53 秒就断
+ *   跑动中：基础余量从 1.6 提到 1.76 秒（+10%）
+ *   停下来：仍然 3 倍速扣；随连击宽限，约 0.6–0.9 秒就断
  * 规则本身还是"别停、往前冲"，只是不再因为地图空了而惩罚玩家。
  */
-const COMBO_WINDOW = 1.6;
+const COMBO_WINDOW = 1.76;
 /** 停下不动时的额外衰减倍率。见上面的说明。 */
 const COMBO_IDLE_DECAY = 3.0;
 
@@ -3736,12 +3692,13 @@ const COMBO_IDLE_DECAY = 3.0;
  * 越分散，续上一颗的难度自然越大。窗口不变的话，等于越到后面越苛刻，
  * 高连击不是靠本事保住的，是靠地图还没被吃空。
  *
- * 封在 +0.9 秒（x45 触顶）：再宽下去，高连击就变成"断不了"，那份"别断啊"的
+ * 宽限也同步 +10%，封在 +0.99 秒（x45 触顶），总窗口最多 2.75 秒。
+ * 再宽下去，高连击就变成"断不了"，那份"别断啊"的
  * 紧张感——也就是连击唯一的乐趣——就没了。停下不动仍然是 3 倍速扣，
  * 所以"别停"这条规矩一点没松。
  */
-const COMBO_GRACE_PER = 0.02;   // 每级加多少秒
-const COMBO_GRACE_MAX = 0.9;    // 最多加到这么多
+const COMBO_GRACE_PER = 0.022;  // 原 0.02 ×1.1
+const COMBO_GRACE_MAX = 0.99;   // 原 0.9 ×1.1
 
 function comboWindow(){
   return COMBO_WINDOW + Math.min(COMBO_GRACE_MAX, combo * COMBO_GRACE_PER);
@@ -3787,21 +3744,20 @@ const LAST_PELLET_LOUD = 3;
 function sustainCombo(){
   combo = combo + 1;
   comboTimer = comboWindow();
+  if (combo === 5) hintOnce('combo', '连击 x5！小豆、大豆和反击都续连击；豆子与晶石按倍率加分', 0);
   checkComboMilestone();
   updateHud();
 }
 
+/** 同一入口处理小豆、大豆、晶石和敌人：加成后只取整一次，再续连击。 */
+function addComboScore(base, raw){
+  const points = addScore(base * COMBO_SCORE_BOOST, raw);
+  sustainCombo();
+  return points;
+}
+
 function addPelletScore(base){
-  addScore(base * combo);
-  combo = combo + 1; // uncapped — keep the chain alive and the multiplier keeps climbing
-  comboTimer = comboWindow();
-  /* 连击是这游戏最核心的计分机制，可界面上只有一根没标注的条 —— 玩家看得见
-     它在动，不知道它值钱。等第一次真的连起来（x5）再说，比开局塞一行字有用：
-     这时候他刚做出这个行为，一句话就能把"我刚才干了什么"和"为什么加分多"
-     对上号。 */
-  if (combo === 5) hintOnce('combo', '连击 x5！不停嘴，所有得分都乘这个倍率', 0);
-  checkComboMilestone();
-  updateHud();
+  return addComboScore(base * combo);
 }
 
 /* ---------- 连击里程碑 ----------
@@ -4224,31 +4180,10 @@ function eatPelletAt(x,y){
 // "I got faster" without costing control.
 const FRIGHT_PLAYER_SPEED_MULT = 1.15;
 const FRIGHT_GHOST_SPEED_MULT = 0.85;
-/**
- * How long ghosts stay edible, per level. A table for the same reason the speed
- * ramp is one: the levels do not differ by a constant amount, so a constant
- * decay cannot fit them.
- *
- * 9s on level 1, down from an earlier 18s. 18s was long enough that a single
- * power pellet cleared most of the threat and the level went quiet — the reward
- * stopped feeling like a burst and became an intermission. 9s is enough to run
- * down two or three ghosts if the player commits.
- *
- * The two hand-set figures:
- *   5  6s  a plain -1 per level put this at 5s, and full-run playtests then
- *          ended here in 10 of 14 failures — level 5 had become the wall, past
- *          the level 6 it is supposed to lead into. Its map is the meanest of
- *          the six (10 dead ends), so it needs the wider window that level 4
- *          gets, not a narrower one.
- *   6  5s  the shortest window in the game, and it stays that way: level 6 is
- *          meant to be the peak. It was 4s, which against SEVEN ghosts was not
- *          a window at all — by the time you turned and closed on the first one
- *          it was already flashing.
- */
-const FRIGHT_BY_LEVEL = [9, 8, 7, 6, 6, 5];
+// 六关可反击时间统一为 9 秒。续星刷新，而不是累加；不受连击倍率影响。
+const FRIGHT_SECONDS = 9;
 function frightSeconds(){
-  const row = FRIGHT_BY_LEVEL[level-1];   // 微信基础库没有 ??，一律三元
-  return row === undefined ? FRIGHT_BY_LEVEL[FRIGHT_BY_LEVEL.length-1] : row;
+  return FRIGHT_SECONDS;
 }
 
 function startPowerMode(){
@@ -4331,7 +4266,7 @@ function applySpeedModifiers(){
    * 道具变得难用，等于把最有意思的一个道具做废了：玩家吃到它反而不敢乱走。
    * 现在改成穿墙期间锁 0.88 倍，比平时还慢一点 —— 换来的是能贴着想去的那颗豆
    * 停下、能在墙里精确改道。速度它本来就不缺，缺的是控制。
-   * （第六关 6.86×0.88≈6.0，仍然远快过幽灵的 3.78，安全性没有变。） */
+   * （第六关 6.86×0.88≈6.0，仍然快过敌人的统一基础速度 2.35。） */
   const phasing = player.phase > 0;
   player.speed = player.baseSpeed
     * (powered ? FRIGHT_PLAYER_SPEED_MULT : 1)
@@ -4377,16 +4312,14 @@ function handleGhostCollisions(){
 
     if (isEdible(g)){
       ghostEatChain++;
-      /* 悬赏：同一颗能量豆内，第 n 只值 n × 1.3 万分。
+      /* 悬赏：同一颗能量豆内，第 n 只实际值 n × 1.69 万分。
          原来是 200×2^n（封顶第 4 只），换算下来最多两千出头 —— 和一路吃豆子
          的收益比起来，主动去追幽灵完全不划算，玩家自然选择躲。现在一只就抵
          得上几百颗豆子，"敢不敢转身"才成为真正的决策。
          按线性递增而不是翻倍：翻倍到第 7 只会是 64 万，一次全灭就锁死排行榜，
          后面再玩多久都没意义。 */
-      const pts = addScore(ghostEatChain * GHOST_BOUNTY_STEP, true);
-      /* 悬赏本身不乘连击（它已经按新标准直接给最终分），但这一口**必须续上连击**
-         ——追幽灵是全场最难的操作，不该反过来砸掉自己的倍率。见 sustainCombo。 */
-      sustainCombo();
+      // 悬赏再 +30%，并续同一条连击；不额外叠乘吃豆倍率。
+      const pts = addComboScore(ghostEatChain * GHOST_BOUNTY_STEP, true);
       g.state='eaten';
       g.eatenThisFright = true;   // 这轮不能再吃第二次，见 isEdible
       ghostsEatenThisRun++;       // 结算页要报这一局吃了几只
@@ -4394,10 +4327,10 @@ function handleGhostCollisions(){
       noteOwl(g.id, 'ate');
       applySpeedModifiers();
       toast('反击! +' + fmtNum(pts));
-      /* 悬赏是阶梯式的，可玩家第一次只看到"+13,000"这一个数，没法知道它会往上
+      /* 悬赏是阶梯式的，可玩家第一次只看到"+16,900"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
-      hintOnce('bounty', '同一颗能量星里：第 2 只 2.6 万，第 3 只 3.9 万，越吃越值钱', 1400);
+      hintOnce('bounty', '同一颗能量星里：第 2 只 3.38 万，第 3 只 5.07 万，越吃越值钱', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
 
@@ -5470,8 +5403,7 @@ function updateFruit(dt){
   const fdx = fruit.x-player.x, fdy = fruit.y-player.y;
   if (fdx*fdx + fdy*fdy < 0.36){   // 0.6 格，平方比较不开根号
     fruit.active = false;
-    addScore(300*combo);
-    sustainCombo();   // 水果原先只拿 combo 当倍率却不续期，等于只吃不喂
+    addComboScore(300*combo);
     player.phase = FRUIT_PHASE_SECONDS;
     toast('相位晶石！' + FRUIT_PHASE_SECONDS + ' 秒穿墙');
     Audio2.fruit();
@@ -7016,9 +6948,7 @@ function render(){
 /**
  * 能量豆剩余时间。
  *
- * 在这之前，唯一的提示是最后 1.8 秒幽灵闪白 —— 而受惊时长第一关 9 秒、第六关
- * 只剩 5 秒，玩家根本无从判断"还够不够追那只"。悬赏改成一只一万分之后，这个
- * 判断直接决定要不要转身，不能再靠赌。
+ * 六关都是 9 秒；倒计时条让玩家能判断"还够不够追那只"，不必只靠最后的闪烁。
  *
  * 画在棋盘顶端而不是 HUD 里：追幽灵的时候视线在棋盘上，扫一眼 HUD 的代价
  * 恰恰是最紧张的那半秒。

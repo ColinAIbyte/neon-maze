@@ -135,18 +135,19 @@ function runFrom(startX, startY, dir, phase, seconds){
   else bad('穿墙失效后仍卡在墙里');
 }
 
-// 5) 全部计分项目在上一版基础上统一提高 30%
+// 5) 保留此前的全项目 +30% 基础层；本轮 addComboScore 的额外加成
+// 由 test_combo_balance.mjs 通过实际吃豆/吃怪入口验证，不在此重复施加。
 {
   if (g.SCORE_BOOST === 1.3) ok('统一提升倍率 = 1.30');
   else bad(`统一提升倍率 = ${g.SCORE_BOOST}，期望 1.3`);
   if (g.SCORE_MULT === 1.95) ok('普通项目总倍率 = 1.95（原 1.5 × 1.30）');
   else bad(`普通项目总倍率 = ${g.SCORE_MULT}，期望 1.95`);
   const cases = [
-    ['豆子 x1', 10, false, 20],
-    ['豆子 x2', 20, false, 39],
-    ['能量星 x1', 50, false, 98],
-    ['相位晶石 x1', 300, false, 585],
-    ['敌人悬赏第 1 只', g.GHOST_BOUNTY_STEP, true, 13000],
+    ['小豆 x1 加成前基础层', 10, false, 20],
+    ['小豆 x2 加成前基础层', 20, false, 39],
+    ['能量星 x1 加成前基础层', 50, false, 98],
+    ['相位晶石 x1 加成前基础层', 300, false, 585],
+    ['敌人悬赏加成前基础步长', g.GHOST_BOUNTY_STEP, true, 13000],
     ['整关无伤基础', g.BONUS.PERFECT_LEVEL, false, 1950],
     ['全灭对手', g.BONUS.GHOST_SWEEP, true, 130000],
     ['每条剩余生命', g.BONUS.LIFE_LEFT, false, 2925],

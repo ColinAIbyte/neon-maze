@@ -26,7 +26,7 @@ writeFileSync(mp,`export function createGame(env){
    getComputedStyle=env.getComputedStyle,requestAnimationFrame=env.requestAnimationFrame,
    cancelAnimationFrame=env.cancelAnimationFrame,performance=env.performance;
 ${body}
- return { fullNewGame, endGame, updateHud, challengeURL, shareText, renderScoreboard, recordScore, saveName,
+ return { fullNewGame, endGame, updateHud, challengeURL, shareText, renderScoreboard, recordScore, saveName, summarizeBonuses,
    get score(){return score;}, set score(v){score=v;}, get level(){return level;}, set level(v){level=v;},
    get lives(){return lives;}, set lives(v){lives=v;}, get gameState(){return gameState;}, set gameState(v){gameState=v;} };\n}\n`);
 const {installShim}=await import(new URL('../微信小游戏版/js/shim.js', import.meta.url));
@@ -48,6 +48,26 @@ if(el('finalScore').textContent!=='456,420') fail.push('finalScore 未格式化'
 console.log('榜单            :', (el('overBoard').innerHTML.match(/board-score">([^<]*)/)||[])[1]);
 if(!/\d,\d{3}/.test(el('overBoard').innerHTML)) fail.push('榜单未格式化');
 console.log('奖励分明细      :', el('overSub').textContent.split('\n').filter(l=>l.includes('奖励')).join(''));
+
+// 通关时「全灭对手」可能连续出现几十次。明细必须聚合，否则会把保存名字
+// 的入口挤出首屏。聚合只改显示，分数总和必须原样保留。
+const compact = g.summarizeBonuses([
+  {label:'全灭对手', points:130000},
+  {label:'第 1 关无伤', points:1950},
+  {label:'全灭对手', points:130000},
+  {label:'全灭对手', points:130000},
+]);
+console.log('重复奖励折叠  :', compact);
+if(!compact.includes('全灭对手 ×3 +390,000')) fail.push('重复奖励没有合并或分数合计错误');
+if((compact.match(/全灭对手/g)||[]).length!==1) fail.push('合并后仍重复显示全灭奖励');
+
+// 「已自动存档 + 保存名字」必须紧跟总分，排在可能很长的战绩明细前。
+const markup = html.slice(0, html.indexOf('<script>'));
+const finalAt = markup.indexOf('id="finalScore"');
+const recordAt = markup.indexOf('id="recordBox"');
+const summaryAt = markup.indexOf('id="overSub"');
+if(!(finalAt >= 0 && finalAt < recordAt && recordAt < summaryAt)) fail.push('保存区没有放在总分与长战绩之间');
+if(!markup.includes('成绩已自动存档')) fail.push('结算页没有明确告知成绩已自动存档');
 
 const url=g.challengeURL();
 console.log('挑战链接        :', url);

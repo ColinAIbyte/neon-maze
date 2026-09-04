@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 362695d9df9a   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: d29d009ba66d   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -3002,7 +3002,11 @@ function endGame(won){
   document.getElementById('overSub').innerHTML =
     dailyRun ? '每日挑战仅记录本机当日同关最高分，不计入正式排行榜。'
     : practice ? buildPracticeSummary(practiceCleared) : buildSummary(won, rank, prevBest, isNewBest);
-  document.getElementById('overOverlay').classList.remove('hidden');
+  const overOverlay = document.getElementById('overOverlay');
+  overOverlay.classList.remove('hidden');
+  // 结算层上次滑到了底部时，浏览器会记住 scrollTop。新一局必须回到
+  // 顶部，否则就算保存区已经提前，玩家打开时仍可能直接看到底部。
+  overOverlay.scrollTop = 0;
   // 破纪录也放礼花：这是除了通关之外，唯一值得停下来庆祝一下的时刻
   if (isNewBest && !won && prevBest > 0) startFireworks(6000);
 
@@ -3013,11 +3017,14 @@ function endGame(won){
   renderDaily();
   if (dailyBeat) setTimeout(()=>toast('今日挑战新纪录！'), 700);
 
+  const recordBox = document.getElementById('recordBox');
+  const recordRank = document.getElementById('recordRank');
   const nameRow = document.getElementById('nameRow');
-  const nameInput = document.getElementById('nameInput');
   nameRow.innerHTML = NAME_ROW_HTML;
   bindNameRow();
+  recordBox.classList.toggle('hidden', rank === 0);
   nameRow.classList.toggle('hidden', rank === 0);
+  recordRank.textContent = rank > 0 ? `· 本机第 ${rank} 名` : '';
   if (rank > 0){
     const input = document.getElementById('nameInput');
     input.value = remembered;
@@ -3049,8 +3056,8 @@ function endGame(won){
 let lastRunId = null;
 const NAME_ROW_HTML =
   '<input id="nameInput" class="name-input" type="text" maxlength="8" ' +
-  'placeholder="留下名字" autocomplete="off" spellcheck="false">' +
-  '<button class="btn btn-sm" id="nameSaveBtn">记录</button>';
+  'placeholder="输入名字（可选）" autocomplete="off" spellcheck="false">' +
+  '<button class="btn btn-sm" id="nameSaveBtn">保存名字</button>';
 
 function commitName(){
   const input = document.getElementById('nameInput');
@@ -3128,6 +3135,27 @@ function buildPracticeSummary(cleared){
   return lines.join('<br>');
 }
 
+/* 同一种奖励可能在一局里触发很多次（例如「全灭对手」 22 次）。
+   原来把 22 条原样铺开，直接把保存区挤到折叠线下面。按名称聚合后显示
+   「全灭对手 ×22 +2,860,000」，总分不变、信息也不丢，但只占一行。 */
+function summarizeBonuses(bonuses){
+  const grouped = [];
+  const byLabel = new Map();
+  for (const bonus of bonuses){
+    let item = byLabel.get(bonus.label);
+    if (!item){
+      item = { label:bonus.label, count:0, points:0 };
+      byLabel.set(bonus.label, item);
+      grouped.push(item);
+    }
+    item.count++;
+    item.points += bonus.points;
+  }
+  return grouped.map(item =>
+    `${item.label}${item.count > 1 ? ` ×${item.count}` : ''} +${fmtNum(item.points)}`
+  ).join('　');
+}
+
 function buildSummary(won, rank, prevBest, isNewBest){
   const lines = [];
 
@@ -3162,7 +3190,7 @@ function buildSummary(won, rank, prevBest, isNewBest){
 
   if (runBonuses.length){
     const total = runBonuses.reduce((s,b)=>s+b.points, 0);
-    const detail = runBonuses.map(b=>`${b.label} +${fmtNum(b.points)}`).join('　');
+    const detail = summarizeBonuses(runBonuses);
     lines.push(`<span style="color:var(--amber)">奖励分 +${fmtNum(total)}</span><br>${detail}`);
   }
   /* 结算页最后必须留下一个**再来一局的理由**。

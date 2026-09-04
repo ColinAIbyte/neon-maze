@@ -53,6 +53,44 @@ body{
   padding:24px 12px;
   overflow-x:hidden;
 }
+/* 语言切换永远放在页面最上方，不跟开始层一起被游戏状态藏起来。
+   两个选项都露出，当前语言用青色底标记，不让玩家猜这个按钮会切去哪里。 */
+.language-switch{
+  position:fixed;
+  top:calc(env(safe-area-inset-top) + 7px);
+  right:calc(env(safe-area-inset-right) + 8px);
+  z-index:120;
+  display:flex;
+  align-items:center;
+  padding:3px;
+  border:1px solid rgba(90,224,255,.38);
+  border-radius:999px;
+  background:rgba(5,7,31,.92);
+  box-shadow:0 6px 20px rgba(0,0,0,.28),0 0 14px rgba(90,224,255,.09);
+  font-family:var(--font-display);
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.04em;
+}
+.language-switch a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:43px;
+  height:36px;
+  padding:0 8px;
+  border-radius:999px;
+  color:var(--text-dim);
+  text-decoration:none;
+  touch-action:manipulation;
+  transition:color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.language-switch a:hover,.language-switch a:focus-visible{color:var(--text);}
+.language-switch a[aria-current="page"]{
+  color:#e9fdff;
+  background:rgba(90,224,255,.18);
+  box-shadow:0 0 10px rgba(90,224,255,.16);
+}
 /* 竖排：标题 / HUD / 棋盘 / 方向键，各占一整行。
    方向键自己是一个独立的栅格（.pad-grid），不参与这里的列宽 —— 这两者一旦
    耦合，方向键有多宽就决定了棋盘有多宽。 */
@@ -1713,6 +1751,11 @@ body::before{
   .enemy-card{display:none;}
 }
 </style>
+
+<nav class="language-switch" aria-label="语言 / Language">
+  <a href="./" hreflang="zh-Hans" data-language-choice="zh" aria-current="page">中文</a>
+  <a href="en/" hreflang="en" data-language-choice="en">EN</a>
+</nav>
 
 <div class="cabinet">
   <div class="marquee">

@@ -41,8 +41,14 @@ export function wrap(fragment, titleSuffix = ''){
 <meta name="description" content="${DESC}">
 <meta name="author" content="${AUTHOR}">
 <meta name="theme-color" content="#020218">
+<link rel="alternate" hreflang="zh-Hans" href="https://playneonmaze.com/">
+<link rel="alternate" hreflang="en" href="https://playneonmaze.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://playneonmaze.com/">
 <link rel="icon" href="${FAVICON}">
 <link rel="apple-touch-icon" href="${FAVICON}">
+<!-- GitHub Pages 是静态站：首次访问由这个小脚本按 IP 国家码选语言；
+     玩家手动点过中 / EN 后，手动选择永远优先。 -->
+<script src="assets/language-router.js" data-current-language="zh"></script>
 <!-- 加到手机主屏后按全屏应用打开，而不是套一层浏览器地址栏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

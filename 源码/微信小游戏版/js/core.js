@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: d29d009ba66d   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: ed9b5cb48da0   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。

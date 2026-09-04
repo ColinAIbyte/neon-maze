@@ -9,11 +9,12 @@
 <meta name="theme-color" content="#0a0612">
 <!-- 告诉搜索引擎这是同一个游戏的两种语言，而不是两个互相抄袭的页面。
      写死绝对地址：hreflang 不接受相对路径。 -->
-<link rel="alternate" hreflang="zh-Hans" href="https://colinaibyte.github.io/neon-maze/">
-<link rel="alternate" hreflang="en" href="https://colinaibyte.github.io/neon-maze/en/">
-<link rel="alternate" hreflang="x-default" href="https://colinaibyte.github.io/neon-maze/">
+<link rel="alternate" hreflang="zh-Hans" href="https://playneonmaze.com/">
+<link rel="alternate" hreflang="en" href="https://playneonmaze.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://playneonmaze.com/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%230a0612%22%2F%3E%3Cpath%20d%3D%22M16%206a10%2010%200%201%200%208.66%2015L16%2016l8.66-5A10%2010%200%200%200%2016%206z%22%20fill%3D%22%23ffcf5c%22%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%230a0612%22%2F%3E%3Cpath%20d%3D%22M16%206a10%2010%200%201%200%208.66%2015L16%2016l8.66-5A10%2010%200%200%200%2016%206z%22%20fill%3D%22%23ffcf5c%22%2F%3E%3C%2Fsvg%3E">
+<script src="../assets/language-router.js" data-current-language="en"></script>
 <!-- 加到手机主屏后按全屏应用打开，而不是套一层浏览器地址栏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,11 +43,51 @@ body {
   box-sizing:border-box;
   overflow:hidden;
 }
+.language-switch{
+  position:fixed;
+  top:calc(env(safe-area-inset-top) + 7px);
+  right:calc(env(safe-area-inset-right) + 8px);
+  z-index:120;
+  display:flex;
+  align-items:center;
+  padding:3px;
+  border:1px solid rgba(126,224,201,.42);
+  border-radius:999px;
+  background:rgba(10,6,18,.92);
+  box-shadow:0 6px 20px rgba(0,0,0,.3),0 0 14px rgba(126,224,201,.1);
+  font-family:ui-monospace,"SF Mono",Consolas,monospace;
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.04em;
+}
+.language-switch a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:43px;
+  height:36px;
+  padding:0 8px;
+  border-radius:999px;
+  color:#9c8fc9;
+  text-decoration:none;
+  touch-action:manipulation;
+  transition:color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.language-switch a:hover,.language-switch a:focus-visible{color:#ece7fb;}
+.language-switch a[aria-current="page"]{
+  color:#effffb;
+  background:rgba(126,224,201,.18);
+  box-shadow:0 0 10px rgba(126,224,201,.16);
+}
 /* 连点方向键时那层灰色高亮很碍眼 */
 * { -webkit-tap-highlight-color:transparent; }
 </style>
 </head>
 <body>
+<nav class="language-switch" aria-label="Language / 语言">
+  <a href="../" hreflang="zh-Hans" data-language-choice="zh">中文</a>
+  <a href="./" hreflang="en" data-language-choice="en" aria-current="page">EN</a>
+</nav>
 <meta charset="utf-8">
 <title>Neon Maze · Doudou</title>
 <style>
@@ -1509,7 +1550,6 @@ body.in-game .marquee{
            2026-08-21 业主把这句从"♥ 一个爸爸和儿子一起做的小游戏"改成「怀旧游戏」，
            心也一并去掉。那段自述没有丢，它完整地留在「关于」里。 -->
       <button class="story-line" id="storyLine">A retro game</button>
-      <a class="lang-link" href="../" hreflang="zh-Hans">中文</a>
     </div>
 
     <!-- 暂停页也要能看玩法。开打之后标题栏会收起来（body.in-game），那个「?」

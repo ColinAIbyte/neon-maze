@@ -7,8 +7,14 @@
 <meta name="description" content="原创霓虹迷宫游戏，六关递进。收集 · 强化 · 智取。">
 <meta name="author" content="超级奶爸">
 <meta name="theme-color" content="#020218">
+<link rel="alternate" hreflang="zh-Hans" href="https://playneonmaze.com/">
+<link rel="alternate" hreflang="en" href="https://playneonmaze.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://playneonmaze.com/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%2303031a%22%2F%3E%3Cellipse%20cx%3D%2216%22%20cy%3D%2218%22%20rx%3D%2210%22%20ry%3D%229%22%20fill%3D%22%2335e3d1%22%2F%3E%3Cellipse%20cx%3D%2212.5%22%20cy%3D%2216.5%22%20rx%3D%221.5%22%20ry%3D%222%22%20fill%3D%22%2307152b%22%2F%3E%3Cellipse%20cx%3D%2219.5%22%20cy%3D%2216.5%22%20rx%3D%221.5%22%20ry%3D%222%22%20fill%3D%22%2307152b%22%2F%3E%3Cpath%20d%3D%22M12.5%2021q3.5%203%207%200%22%20fill%3D%22none%22%20stroke%3D%22%2307152b%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M12%208q1-5%204%200q3-5%204%201q-2%203-4%203q-3%200-4-4%22%20fill%3D%22%2378f3bc%22%2F%3E%3Cpath%20d%3D%22M16%2020l2%202-2%203-2-3z%22%20fill%3D%22%23dffcff%22%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%2303031a%22%2F%3E%3Cellipse%20cx%3D%2216%22%20cy%3D%2218%22%20rx%3D%2210%22%20ry%3D%229%22%20fill%3D%22%2335e3d1%22%2F%3E%3Cellipse%20cx%3D%2212.5%22%20cy%3D%2216.5%22%20rx%3D%221.5%22%20ry%3D%222%22%20fill%3D%22%2307152b%22%2F%3E%3Cellipse%20cx%3D%2219.5%22%20cy%3D%2216.5%22%20rx%3D%221.5%22%20ry%3D%222%22%20fill%3D%22%2307152b%22%2F%3E%3Cpath%20d%3D%22M12.5%2021q3.5%203%207%200%22%20fill%3D%22none%22%20stroke%3D%22%2307152b%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M12%208q1-5%204%200q3-5%204%201q-2%203-4%203q-3%200-4-4%22%20fill%3D%22%2378f3bc%22%2F%3E%3Cpath%20d%3D%22M16%2020l2%202-2%203-2-3z%22%20fill%3D%22%23dffcff%22%2F%3E%3C%2Fsvg%3E">
+<!-- GitHub Pages 是静态站：首次访问由这个小脚本按 IP 国家码选语言；
+     玩家手动点过中 / EN 后，手动选择永远优先。 -->
+<script src="assets/language-router.js" data-current-language="zh"></script>
 <!-- 加到手机主屏后按全屏应用打开，而不是套一层浏览器地址栏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -96,6 +102,44 @@ body{
   justify-content:center;
   padding:24px 12px;
   overflow-x:hidden;
+}
+/* 语言切换永远放在页面最上方，不跟开始层一起被游戏状态藏起来。
+   两个选项都露出，当前语言用青色底标记，不让玩家猜这个按钮会切去哪里。 */
+.language-switch{
+  position:fixed;
+  top:calc(env(safe-area-inset-top) + 7px);
+  right:calc(env(safe-area-inset-right) + 8px);
+  z-index:120;
+  display:flex;
+  align-items:center;
+  padding:3px;
+  border:1px solid rgba(90,224,255,.38);
+  border-radius:999px;
+  background:rgba(5,7,31,.92);
+  box-shadow:0 6px 20px rgba(0,0,0,.28),0 0 14px rgba(90,224,255,.09);
+  font-family:var(--font-display);
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.04em;
+}
+.language-switch a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:43px;
+  height:36px;
+  padding:0 8px;
+  border-radius:999px;
+  color:var(--text-dim);
+  text-decoration:none;
+  touch-action:manipulation;
+  transition:color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.language-switch a:hover,.language-switch a:focus-visible{color:var(--text);}
+.language-switch a[aria-current="page"]{
+  color:#e9fdff;
+  background:rgba(90,224,255,.18);
+  box-shadow:0 0 10px rgba(90,224,255,.16);
 }
 /* 竖排：标题 / HUD / 棋盘 / 方向键，各占一整行。
    方向键自己是一个独立的栅格（.pad-grid），不参与这里的列宽 —— 这两者一旦
@@ -1757,6 +1801,11 @@ body::before{
   .enemy-card{display:none;}
 }
 </style>
+
+<nav class="language-switch" aria-label="语言 / Language">
+  <a href="./" hreflang="zh-Hans" data-language-choice="zh" aria-current="page">中文</a>
+  <a href="en/" hreflang="en" data-language-choice="en">EN</a>
+</nav>
 
 <div class="cabinet">
   <div class="marquee">

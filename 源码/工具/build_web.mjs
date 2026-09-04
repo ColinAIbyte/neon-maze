@@ -56,6 +56,7 @@ mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(`${OUT_DIR}/index.html`, html);
 mkdirSync(`${OUT_DIR}/assets`, { recursive: true });
 const assets = [
+  'language-router.js',
   'doudou-hero.webp',
   'neon-logo-v2.webp',
   'neon-space-bg-v2.webp',
@@ -64,14 +65,19 @@ const assets = [
 for (const name of assets){
   copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);
 }
+// 英文页是独立入口，IP 自动路由会跳到这里。发布镜像若只有中文首页，
+// 国外玩家就会被自动送到 404，所以 en/ 必须一起进镜像。
+mkdirSync(`${OUT_DIR}/en`, { recursive: true });
+copyFileSync(here('../../en/index.html'), `${OUT_DIR}/en/index.html`);
 
 // 静态托管上没有这个文件时，访问不存在的路径会是平台自带的英文报错页。
 writeFileSync(`${OUT_DIR}/404.html`, notFound);
 
 const kb = (html.length/1024).toFixed(0);
-console.log(`已生成根目录 index.html（${kb} KB，零外部网络依赖）`);
+console.log(`已生成根目录 index.html（${kb} KB，游戏本体零外部网络依赖）`);
 console.log('     根目录 404.html');
 console.log('已镜像 发布到网站/index.html');
 console.log('     发布到网站/404.html');
-console.log(`     发布到网站/assets/（${assets.length} 个本地美术资源）`);
+console.log(`     发布到网站/assets/（${assets.length} 个本地资源）`);
+console.log('     发布到网站/en/index.html');
 console.log('整个目录拖到任意静态托管即可。');

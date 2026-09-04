@@ -8,6 +8,10 @@ const fragmentUrl = new URL('../neon_maze_fragment.html', import.meta.url);
 const rootIndexUrl = new URL('../../index.html', import.meta.url);
 const weappCoreUrl = new URL('../微信小游戏版/js/core.js', import.meta.url);
 const weappAtlasUrl = new URL('../微信小游戏版/images/neon-stalkers-tracking-eyes-v9.webp', import.meta.url);
+const routerUrl = new URL('../../assets/language-router.js', import.meta.url);
+const publishedRouterUrl = new URL('../../发布到网站/assets/language-router.js', import.meta.url);
+const englishUrl = new URL('../../en/index.html', import.meta.url);
+const publishedEnglishUrl = new URL('../../发布到网站/en/index.html', import.meta.url);
 const assets = [
   'doudou-hero.webp',
   'neon-logo-v2.webp',
@@ -50,6 +54,16 @@ if (fragment.includes('__dbg')) fail.push('源片段仍包含调试钩子 __dbg'
 if (/<(?:meta|title)\b/i.test(fragment.slice(0, fragment.indexOf('<style>'))))
   fail.push('源片段开头混入了只能放在页面 head 的标签');
 if (actual !== expected) fail.push('根目录 index.html 已和 neon_maze_fragment.html 漂移，请运行 build_web.mjs');
+if (!existsSync(routerUrl) || !actual.includes('assets/language-router.js'))
+  fail.push('中文发布页缺少 IP 语言路由脚本');
+if (!existsSync(englishUrl) || !readFileSync(englishUrl, 'utf8').includes('../assets/language-router.js'))
+  fail.push('英文发布页缺少 IP 语言路由脚本');
+if (!existsSync(publishedRouterUrl)
+    || !readFileSync(publishedRouterUrl).equals(readFileSync(routerUrl)))
+  fail.push('发布镜像里的语言路由脚本缺失或漂移');
+if (!existsSync(publishedEnglishUrl)
+    || !readFileSync(publishedEnglishUrl).equals(readFileSync(englishUrl)))
+  fail.push('发布镜像里的英文页缺失或漂移');
 const srcHash = createHash('sha1').update(fragment).digest('hex').slice(0, 12);
 if (!existsSync(weappCoreUrl)) {
   fail.push('缺少微信小游戏 core.js，请运行 build_weapp.mjs');

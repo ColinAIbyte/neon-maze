@@ -3,6 +3,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { wrap } from './web_shell.mjs';
+import { toEnglish } from './i18n_en.mjs';
 
 const fragmentUrl = new URL('../neon_maze_fragment.html', import.meta.url);
 const rootIndexUrl = new URL('../../index.html', import.meta.url);
@@ -48,6 +49,7 @@ function webpDimensions(url){
 const fragment = readFileSync(fragmentUrl, 'utf8');
 const actual = readFileSync(rootIndexUrl, 'utf8');
 const expected = wrap(fragment);
+const expectedEnglish = toEnglish(expected);
 const fail = [];
 
 if (fragment.includes('__dbg')) fail.push('源片段仍包含调试钩子 __dbg');
@@ -56,8 +58,19 @@ if (/<(?:meta|title)\b/i.test(fragment.slice(0, fragment.indexOf('<style>'))))
 if (actual !== expected) fail.push('根目录 index.html 已和 neon_maze_fragment.html 漂移，请运行 build_web.mjs');
 if (!existsSync(routerUrl) || !actual.includes('assets/language-router.js'))
   fail.push('中文发布页缺少 IP 语言路由脚本');
-if (!existsSync(englishUrl) || !readFileSync(englishUrl, 'utf8').includes('../assets/language-router.js'))
-  fail.push('英文发布页缺少 IP 语言路由脚本');
+if (!existsSync(englishUrl)) {
+  fail.push('缺少英文发布页');
+} else {
+  const english = readFileSync(englishUrl, 'utf8');
+  if (english !== expectedEnglish)
+    fail.push('英文页不是由当前完整游戏生成，请运行 build_web.mjs');
+  if (!english.includes('data-current-language="en"'))
+    fail.push('英文发布页缺少正确的 IP 语言路由标记');
+  for (const marker of ['class="brand-lockup"', 'class="power-card"', 'class="enemy-card"', 'id="dailyBox"',
+                        'id="owlOverlay"', 'class="record-box hidden"']) {
+    if (!english.includes(marker)) fail.push('英文页缺少当前完整版结构：' + marker);
+  }
+}
 if (!existsSync(publishedRouterUrl)
     || !readFileSync(publishedRouterUrl).equals(readFileSync(routerUrl)))
   fail.push('发布镜像里的语言路由脚本缺失或漂移');

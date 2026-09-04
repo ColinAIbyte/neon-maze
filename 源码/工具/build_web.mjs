@@ -16,6 +16,7 @@
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { wrap, TITLE } from './web_shell.mjs';
+import { toEnglish } from './i18n_en.mjs';
 
 const here = p => fileURLToPath(new URL(p, import.meta.url));
 const ROOT_DIR = here('../../');
@@ -37,6 +38,10 @@ if (/<(?:meta|title)\b/i.test(fragmentLead)) {
 }
 
 const html = wrap(fragment);
+// /en/ is the same current game, generated from the same fragment.  Never copy
+// a separately maintained English page here: that is how the old game came
+// back when players switched languages.
+const englishHtml = toEnglish(html);
 
 const notFound = `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
@@ -65,10 +70,11 @@ const assets = [
 for (const name of assets){
   copyFileSync(here('../../assets/' + name), `${OUT_DIR}/assets/${name}`);
 }
-// 英文页是独立入口，IP 自动路由会跳到这里。发布镜像若只有中文首页，
-// 国外玩家就会被自动送到 404，所以 en/ 必须一起进镜像。
+// 英文页由同一份最新游戏生成；只有文案不同，玩法、UI 和存档完全一致。
 mkdirSync(`${OUT_DIR}/en`, { recursive: true });
-copyFileSync(here('../../en/index.html'), `${OUT_DIR}/en/index.html`);
+mkdirSync(`${ROOT_DIR}en`, { recursive: true });
+writeFileSync(`${ROOT_DIR}en/index.html`, englishHtml);
+writeFileSync(`${OUT_DIR}/en/index.html`, englishHtml);
 
 // 静态托管上没有这个文件时，访问不存在的路径会是平台自带的英文报错页。
 writeFileSync(`${OUT_DIR}/404.html`, notFound);
@@ -79,5 +85,6 @@ console.log('     根目录 404.html');
 console.log('已镜像 发布到网站/index.html');
 console.log('     发布到网站/404.html');
 console.log(`     发布到网站/assets/（${assets.length} 个本地资源）`);
+console.log('     en/index.html（与中文版共用同一游戏源）');
 console.log('     发布到网站/en/index.html');
 console.log('整个目录拖到任意静态托管即可。');

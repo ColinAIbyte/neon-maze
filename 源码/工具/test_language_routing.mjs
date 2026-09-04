@@ -81,7 +81,10 @@ for (const [name,html,current] of [['中文',zh,'zh'],['英文',en,'en']]){
   if(!html.includes(`data-language-choice="${current}"`)) fail.push(name + '页缺少当前语言选项');
 }
 if(!shell.includes('assets/language-router.js')) fail.push('中文页外壳没有加载语言路由脚本');
-if(!en.includes('../assets/language-router.js')) fail.push('英文页没有加载语言路由脚本');
+if(!en.includes('data-current-language="en"')) fail.push('英文页没有正确声明当前语言');
+if(!en.includes('<base href="../">')) fail.push('英文页没有复用根目录资源');
+if(!en.includes('class="brand-lockup"') || !en.includes('class="power-card"') || !en.includes('class="enemy-card"') || !en.includes('id="dailyBox"'))
+  fail.push('英文页不是当前完整三栏游戏');
 
 if(fail.length){
   fail.forEach(item=>console.error('✗ ' + item));

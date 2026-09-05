@@ -1,45 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <base href="../">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Neon Maze · Doudou</title>
-<meta name="description" content="An original six-level neon maze adventure. Collect · Power Up · Outsmart.">
-<meta name="author" content="Super Dad">
+<title>全球排行榜 · Neon Maze</title>
+<meta name="description" content="原创霓虹迷宫游戏，六关递进。收集 · 强化 · 智取。">
+<meta name="author" content="超级奶爸">
 <meta name="theme-color" content="#020218">
-<link rel="canonical" href="https://playneonmaze.com/en/">
-<link rel="alternate" hreflang="zh-Hans" href="https://playneonmaze.com/">
-<link rel="alternate" hreflang="en" href="https://playneonmaze.com/en/">
-<link rel="alternate" hreflang="x-default" href="https://playneonmaze.com/">
+<link rel="canonical" href="https://playneonmaze.com/leaderboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://playneonmaze.com/leaderboard/">
+<link rel="alternate" hreflang="en" href="https://playneonmaze.com/en/leaderboard/">
+<link rel="alternate" hreflang="x-default" href="https://playneonmaze.com/leaderboard/">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
 <!-- 不根据 IP 强制跳转，也不把访客 IP 发给第三方。首次访问只参考浏览器
      语言显示轻提示；玩家手动点过中 / EN 后，手动选择永远优先。 -->
-<script src="assets/language-router.js" data-current-language="en"></script>
+<script src="assets/language-router.js" data-current-language="zh"></script>
 <!-- 加到手机主屏后按全屏应用打开，而不是套一层浏览器地址栏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <!-- 分享到微信/群里时的卡片。缺了这些，别人看到的只有一条光秃秃的网址 -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Neon Maze · Doudou">
-<meta property="og:description" content="An original six-level neon maze adventure. Collect · Power Up · Outsmart.">
-<meta property="og:url" content="https://playneonmaze.com/en/">
-<meta property="og:locale" content="en_US">
-<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:title" content="Neon Maze · 豆豆">
+<meta property="og:description" content="原创霓虹迷宫游戏，六关递进。收集 · 强化 · 智取。">
+<meta property="og:url" content="https://playneonmaze.com/leaderboard/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
 <meta property="og:image" content="https://playneonmaze.com/assets/neon-maze-share.jpg">
 <meta property="og:image:secure_url" content="https://playneonmaze.com/assets/neon-maze-share.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Neon Maze and its original hero Doudou">
+<meta property="og:image:alt" content="Neon Maze 与原创主角豆豆">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Neon Maze · Doudou">
-<meta name="twitter:description" content="An original six-level neon maze adventure. Collect · Power Up · Outsmart.">
+<meta name="twitter:title" content="Neon Maze · 豆豆">
+<meta name="twitter:description" content="原创霓虹迷宫游戏，六关递进。收集 · 强化 · 智取。">
 <meta name="twitter:image" content="https://playneonmaze.com/assets/neon-maze-share.jpg">
-<meta name="twitter:image:alt" content="Neon Maze and its original hero Doudou">
+<meta name="twitter:image:alt" content="Neon Maze 与原创主角豆豆">
 <!-- Optional cloud and analytics configuration, disabled by default. -->
 <script src="config.js"></script>
 <script src="analytics.js"></script>
@@ -283,8 +283,8 @@ body{
 }
 .tagline{display:flex;align-items:center;justify-content:center;gap:11px;}
 .tag-words{display:inline-flex;align-items:center;gap:9px;}
-/* 分隔符用真的Dot，不用「·」。这三个词说的就是这游戏在干嘛，
-   中间摆两颗会发光的Dot，一眼就知道这是个Collect的游戏。 */
+/* 分隔符用真的豆子，不用「·」。这三个词说的就是这游戏在干嘛，
+   中间摆两颗会发光的豆子，一眼就知道这是个吃豆的游戏。 */
 .tag-words i{
   width:4px;height:4px;border-radius:50%;
   background:var(--amber);
@@ -330,8 +330,8 @@ body{
   box-shadow:0 0 0 1px rgba(138,107,255,.08) inset, 0 8px 24px rgba(0,0,0,.4);
 }
 /* flex-shrink:0 —— HUD 上多了三个图标按钮之后，这几块被压到了 11~27px 宽，
-   里面的"SCORE""LEVEL""LIVES"就跟旁边的数字挤成一团。它们的宽度本来就由内容
-   决定，不该参与收缩；该让步的是中间那根Combo条。 */
+   里面的"分数""关卡""生命"就跟旁边的数字挤成一团。它们的宽度本来就由内容
+   决定，不该参与收缩；该让步的是中间那根连击条。 */
 .hud .stat{display:flex;flex-direction:column;gap:2px;min-width:0;flex-shrink:0;}
 .hud .stat .k{font-size:9px;letter-spacing:.14em;color:var(--text-dim);white-space:nowrap;}
 .hud .stat .v{font-size:16px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -376,7 +376,7 @@ body{
 /* 关掉方向键时按钮本身要显出"已关"的状态，否则玩家看不出是自己关的 */
 .icon-btn.off{color:var(--panel-border);}
 .icon-btn.on{color:var(--amber);border-color:var(--amber);}
-/* Combo弹一下：105%~110%、150ms，一次性。
+/* 连击弹一下：105%~110%、150ms，一次性。
    刻意不做持续抖动 —— 玩家这时候正盯着迷宫躲幽灵，余光里"跳一下"就够了，
    一直动反而分散注意力。 */
 @keyframes comboBumpA{
@@ -413,7 +413,7 @@ body{
 }
 .stage{
   /* none 而不是 manipulation：棋盘上不该有任何浏览器手势——不缩放、不双击
-     放大、也不跟着手指滚。Swipe to turn是自己在 JS 里读 touch 事件算的，
+     放大、也不跟着手指滚。滑动转向是自己在 JS 里读 touch 事件算的，
      touch-action 只影响浏览器的默认行为，不影响事件本身。 */
   touch-action:none;
   position:relative;
@@ -503,8 +503,8 @@ body{
   transition:transform .08s ease;
   /* 手机上不加这句，点下去到真的响应之间会有约 300ms 的空档 —— 浏览器要先
      等一会儿，确认你不是想双击放大。方向键、图标按钮、「玩法」胶囊早就各自
-     写了这一句，所以它们点着跟手；偏偏最主要的这几个按钮（开始 / Got it /
-     Play again / 继续 / 分享）漏了，于是最常点的地方反而最迟钝。 */
+     写了这一句，所以它们点着跟手；偏偏最主要的这几个按钮（开始 / 知道了 /
+     再来一局 / 继续 / 分享）漏了，于是最常点的地方反而最迟钝。 */
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
 }
@@ -519,7 +519,7 @@ body{
    文字会透上来糊成一片。说明这一层做成不透明。 */
 #helpOverlay{background:#0a0614;}
 
-/* HOW TO PLAY面板。内容一定超过一屏，所以自己滚动，而不是把弹层撑爆。
+/* 玩法说明面板。内容一定超过一屏，所以自己滚动，而不是把弹层撑爆。
    flex:1 + min-height:0 是关键：不加的话它只按内容的自然高度参与布局，
    在 justify-content:center 的弹层里被挤成一小条（实测只剩 192px，
    而内容有 899px，玩家要滚七八次才能看完）。加上之后它吃满标题与按钮
@@ -527,7 +527,7 @@ body{
    以下，少了它 overflow 根本不会生效。 */
 /* 底部那道渐隐是**滚动提示**，不是装饰。
    说明内容 1050px 而可视区只有 573px —— 将近一半在折叠线以下（奖励分、
-   意见反馈、关于这个游戏三节全在下面），而原来屏幕上没有任何迹象表明Also
+   意见反馈、关于这个游戏三节全在下面），而原来屏幕上没有任何迹象表明还有
    下文。连知道内容存在的人都没往下滚，小朋友更不会。
    用 background-attachment 的 local/scroll 组合做：内容滚到底时这道影子会
    自己消失，纯 CSS，不需要每帧去算滚动位置。 */
@@ -577,7 +577,7 @@ body{
   pointer-events:none;
 }
 .help-more.hidden{opacity:0;}
-/* 「关于这个游戏」这一页。跟HOW TO PLAY一样铺满屏幕、内容自己滚 ——
+/* 「关于这个游戏」这一页。跟玩法说明一样铺满屏幕、内容自己滚 ——
    它比说明短得多，但小屏加上系统安全区仍然可能装不下，而"装不下就滚"是这里
    唯一不用按屏幕尺寸分情况讨论的做法。 */
 #aboutOverlay{
@@ -609,7 +609,7 @@ body{
   z-index:80;                 /* 要压在礼花之上 */
 }
 
-/* 卡片。所有内容都在它里面，包括「Got it」—— 没有任何一处绝对定位。 */
+/* 卡片。所有内容都在它里面，包括「知道了」—— 没有任何一处绝对定位。 */
 .about-card{
   width:520px;
   max-width:calc(100vw - 32px);
@@ -702,13 +702,13 @@ body{
 /* 邮箱单独一行，和上面那句不挤在一起 */
 #aboutOverlay .about-mail{ margin:0 0 24px; line-height:1.7; }
 
-/* 「Got it」：正常文档流里居中，不浮在卡片外。 */
+/* 「知道了」：正常文档流里居中，不浮在卡片外。 */
 .about-close{
   display:block;
   width:120px;
   min-height:46px;
   margin:0 auto;
-  /* 发光比「START GAME」弱：那是主线上的按钮，这个只是关掉一张说明卡。
+  /* 发光比「开始游戏」弱：那是主线上的按钮，这个只是关掉一张说明卡。
      立体的那 4px 底边保留，按下去仍然有"按到了"的手感。 */
   box-shadow:0 4px 0 #c99a2e, 0 6px 12px rgba(255,207,92,.14);
   transition:transform .12s ease, box-shadow .12s ease;   /* 100~150ms */
@@ -734,7 +734,7 @@ body{
   .about-close{ width:120px; }
 }
 
-/* 邮箱链接。用青色而不是琥珀：琥珀在这个界面里是"SCORE和奖励"的颜色，
+/* 邮箱链接。用青色而不是琥珀：琥珀在这个界面里是"分数和奖励"的颜色，
    而这里既要看出可点、又不该比正文更抢眼 —— 一条下划线加一点青就够了。
    光晕故意压得很淡（3px），它不是霓虹招牌的一部分。 */
 .mail-link{
@@ -821,7 +821,7 @@ body{
 .pad:active{background:var(--wall-core);}
 
 /* 手机虚拟摇杆：沿用街机霓虹语言，但不占据文档流，因此不会把棋盘重新挤小。
- * 它只在触屏设备真正开打时出现；Swipe to turn仍保留，两种输入走同一个 requestDir。
+ * 它只在触屏设备真正开打时出现；滑动转向仍保留，两种输入走同一个 requestDir。
  * 松手只让摇杆帽回中，不让豆豆急停——迷宫的节奏是持续前进、提前选下个转角。 */
 .touch-joystick{
   --joy-size:104px;
@@ -911,7 +911,7 @@ body{
   /* 礼花必须盖在结算弹层**上面**。这块画布原本排在 overOverlay 前面、两者又都
      没有 z-index，于是弹层压在它上头，而弹层底色是 rgba(6,3,16,.86)——等于给
      礼花蒙了一层 86% 不透明的黑布，放了跟没放一样。
-     上面已经有 pointer-events:none，盖上去也不会挡住「Play again」。
+     上面已经有 pointer-events:none，盖上去也不会挡住「再来一局」。
      说明弹层另外提到了 z-index:80，压在礼花之上——结算页上「?」还能点，
      礼花又要放 18 秒，不让它盖住说明文字。 */
   z-index:60;
@@ -924,7 +924,7 @@ body{
   letter-spacing:.03em;
 }
 
-/* 开始页的BEST。字号刻意压过标题以外的一切 —— 它是这一屏的主角。 */
+/* 开始页的最高分。字号刻意压过标题以外的一切 —— 它是这一屏的主角。 */
 .best-line{
   display:flex;align-items:baseline;justify-content:center;gap:9px;
   font-family:var(--font-display);
@@ -940,25 +940,25 @@ body{
 }
 
 .best-combo{
-  /* 再压暗一档：这一屏的主角是BEST和那句欢迎语，Combo是给已经在乎的人看的。 */
+  /* 再压暗一档：这一屏的主角是最高分和那句欢迎语，连击是给已经在乎的人看的。 */
   font-size:10.5px;letter-spacing:.12em;color:var(--text-dim);
   align-self:center;
   opacity:.6;
 }
 
 /* 开始页那句迎接的话。
-   刻意不加发光：这一屏发光的东西已经够多（标题、BEST、按钮），再加一个
+   刻意不加发光：这一屏发光的东西已经够多（标题、最高分、按钮），再加一个
    就没有"轻声说一句"的效果了。米白偏暖，和满屏的紫青拉开一点温度。 */
 /* 开始页中央一层极轻的金色光晕。
-   不是装饰，是把视线往中间收一点：这一屏的信息横向铺得比较开（BEST、
+   不是装饰，是把视线往中间收一点：这一屏的信息横向铺得比较开（最高分、
    练习条、榜单），一点点暖光能让"投币 → 欢迎语 → 开始"这条主线更聚拢。
    透明度压到 .07：要的是"感觉这里暖一点"，不是看得出有一团光。
    叠在原有半透明底色之上，不改任何既有颜色。 */
 #startOverlay{
-  /* 行距收紧：这一屏要装的东西比别的弹层多（欢迎语、BEST、练习条、榜单、
+  /* 行距收紧：这一屏要装的东西比别的弹层多（欢迎语、最高分、练习条、榜单、
      两个按钮、那句故事）。
      实测 375x812：可用 304px，而前三名全展开需要 309px —— 只差 5px。
-     从行距里省，而不是把「START GAME」做小：那是主按钮，缩它是拿最重要的东西
+     从行距里省，而不是把「开始游戏」做小：那是主按钮，缩它是拿最重要的东西
      换最不重要的空间。7px 省出 6px，正好够，且各元素之间仍然分得开。 */
   gap:0;
   padding:clamp(10px,2.2vw,24px);
@@ -1007,12 +1007,12 @@ body{
   color:#e9e0d2;
   opacity:.9;
   letter-spacing:.02em;
-  margin:0 0 10px !important;   /* 与Previous best之间 10px（规格 8~12） */
+  margin:0 0 10px !important;   /* 与最高纪录之间 10px（规格 8~12） */
   max-width:none !important;
 }
 
 /* 开始页最后那句故事，也是「关于」的情感入口。
-   浅金而不是琥珀：琥珀是SCORE和按钮的颜色，这一句不该跟它们抢。
+   浅金而不是琥珀：琥珀是分数和按钮的颜色，这一句不该跟它们抢。
    悬停只轻微提亮，不放大、不变色 —— 它是一句话，不是一个控件。 */
 .story-line{
   display:inline-flex;
@@ -1051,7 +1051,7 @@ body{
 }
 .lang-link:hover, .lang-link:focus-visible{ opacity:.9; text-decoration:underline; }
 /* 「新」徽章。独立成块，不拼在名字后面 ——
-   拼上去读出来就是"Super Dad新"，看着像名字的一部分或者程序出错。 */
+   拼上去读出来就是"超级奶爸新"，看着像名字的一部分或者程序出错。 */
 .board-new{
   flex-shrink:0;
   margin-left:6px;
@@ -1064,7 +1064,7 @@ body{
   color:var(--amber);
 }
 
-/* 「查看全部纪录 / Hide records」。弱按钮：一行小字加一点下划线，
+/* 「查看全部纪录 / 收起纪录」。弱按钮：一行小字加一点下划线，
    它是个出口，不该看起来比纪录本身重要。 */
 .board-more{
   display:block;
@@ -1085,7 +1085,7 @@ body{
 }
 .board-more:hover, .board-more:focus-visible{ opacity:1; color:var(--cyan); }
 
-/* LEVEL选择：六个小方块，没到过的画一把锁。
+/* 关卡选择：六个小方块，没到过的画一把锁。
    刻意做得比「开始」小、比排行榜轻 —— 它是备选路，不该抢主线的位置。 */
 .levelsel{
   display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;
@@ -1094,7 +1094,7 @@ body{
 /* 图鉴入口挂在选关那一行末尾，不另起一行：它和星星是同一类东西（长期收集），
    而开始页多一行就少一行别的。 */
 .lv-codex{ font-size:13px; }
-/* Daily Challenge。一行装下"打哪关、我今天最好多少、开始"，不占第二行 ——
+/* 每日挑战。一行装下"打哪关、我今天最好多少、开始"，不占第二行 ——
    开始页的高度是这个游戏最紧张的资源（历史上按钮被挤出过屏幕）。 */
 .daily{
   display:flex; align-items:center; gap:8px;
@@ -1154,8 +1154,8 @@ body{
   pointer-events:none;
 }
 
-/* 通关GRADE。字母做得很大很亮 —— 它是通关那一屏唯一需要一眼看到的东西，
-   SCORE明细可以慢慢读，这个字母是"我打得怎么样"的答案。
+/* 通关评级。字母做得很大很亮 —— 它是通关那一屏唯一需要一眼看到的东西，
+   分数明细可以慢慢读，这个字母是"我打得怎么样"的答案。
    S 用金色、A 青色、B 紫色、C 灰 —— 颜色本身就是梯度，不用再解释。 */
 .grade{
   display:flex;align-items:center;justify-content:center;gap:10px;
@@ -1200,7 +1200,7 @@ body{
   letter-spacing:.08em;
 }
 /* 「关于」弹层里那几段文字的排版**全部在上面 #aboutOverlay 那一块**。
-   这里原先Also一份 .about / .about + .about / .about-by，带着一串 !important
+   这里原先还有一份 .about / .about + .about / .about-by，带着一串 !important
    跟上面那份对着干 —— 段间距被压成 10px（规格 8px）、手机上署名一直是 13px
    （规格 12px），因为 !important 盖过了媒体查询。同一个元素两处定义、还都
    加 !important，最后生效的是哪条只能靠数行号，已删。
@@ -1208,7 +1208,7 @@ body{
    "《豆豆 / 迷宫》"是合法的 —— 但一个专有名词被劈成两半读起来就是磕的，
    跟"做了出 / 来"是同一类问题。只圈住这一处，不影响其余正常断行。 */
 .nb{white-space:nowrap;}
-/* 通关那句话。用暖色但不用最亮的琥珀 —— 那是留给SCORE和GRADE的；
+/* 通关那句话。用暖色但不用最亮的琥珀 —— 那是留给分数和评级的；
    这句应当被看见，但不该抢在成绩前面。 */
 .warm{
   color:var(--tang);
@@ -1224,7 +1224,7 @@ body{
   opacity:.75;
   text-align:center;
 }
-/* 可点的那一版署名。要让人看出能点，又不能抢「START GAME」的注意力：
+/* 可点的那一版署名。要让人看出能点，又不能抢「开始游戏」的注意力：
    本体仍是暗色小字，只有后半句「我们的故事 ›」用琥珀 —— 一个恰好够被看见的
    钩子。整行都是热区（不只那半句），手指够得着。 */
 .credits-link{
@@ -1370,9 +1370,9 @@ body{
 .challenge b{color:var(--cyan);}
 .challenge .ch-score{color:var(--amber);font-weight:700;margin:0 4px;}
 /* 按钮吸在弹层底部，内容从它下面滚过去。
-   通关结算是全场最长的一屏（GRADE + 五行战绩 + 奖励明细 + 破纪录 + 排名 +
+   通关结算是全场最长的一屏（评级 + 五行战绩 + 奖励明细 + 破纪录 + 排名 +
    结尾那句），实测超出可视区 241px —— 玩家刚打穿六关，却要先摸索着往下滚
-   才能找到「Play again」。这不是靠删内容能长久解决的：以后每加一行就会再犯，
+   才能找到「再来一局」。这不是靠删内容能长久解决的：以后每加一行就会再犯，
    所以让按钮永远在。
    上方那道渐变是必需的：没有它，文字会直接怼到按钮边缘，看着像被切断。 */
 .over-actions{
@@ -1405,7 +1405,7 @@ body{
   /* 装不下时**由榜单让位**，但有底线。
      原来写的是 flex-shrink:0（完全不让），因为更早的一版被压到只剩 20px、
      两行记录叠在一起。可完全不让也有代价：屏幕一矮，被挤出去的就是它下面
-     那句"A little game made by a dad and his son" —— 而那句是这一屏最该被看到的。
+     那句"一个爸爸和儿子一起做的小游戏" —— 而那句是这一屏最该被看到的。
      现在允许收缩，但给一个 70px 的下限（标题 + 两行），再矮它就自己滚。
      让位的顺序是对的：榜单是可以滚的列表，那句话不是。 */
   /* 下限只留标题 + 一行：真正的收缩发生在里层的 .board-list 上，
@@ -1518,7 +1518,7 @@ body.in-game .ad-slot-rail{display:none !important;}
   text-align:right;
 }
 .board-top .board-score{color:var(--amber);}
-/* 名次和「第几关·Combo」压暗：留着是给想看的人，但它们不该和名字、SCORE一样亮。 */
+/* 名次和「第几关·连击」压暗：留着是给想看的人，但它们不该和名字、分数一样亮。 */
 .board-meta{color:var(--text-dim);font-size:10px;min-width:62px;text-align:right;opacity:.62;}
 /* ---------- 竖屏 ----------
    左右键直接铺到两边（1fr），中间留给上下键。正方形按钮在手机上并不好按：
@@ -1584,9 +1584,9 @@ body.in-game .marquee{
    的理由就没了 —— 而它在 375×812 上要吃掉 191px，占屏高 23.5%，是全屏第二大
    的一块，仅次于棋盘本身。
 
-   连带必须做的一件事：Pause键原本嵌在方向键正中，方向键一走它就没了。所以
-   HUD 里那个Pause不再是桌面专属，改成一直显示。漏掉这一步的话，手机上除了
-   打完一局，没有任何办法Pause。 */
+   连带必须做的一件事：暂停键原本嵌在方向键正中，方向键一走它就没了。所以
+   HUD 里那个暂停不再是桌面专属，改成一直显示。漏掉这一步的话，手机上除了
+   打完一局，没有任何办法暂停。 */
 .pad-area{display:none;}
 #hudPauseBtn{display:flex;}
 
@@ -1608,14 +1608,14 @@ body.in-game .marquee{
   .lang-link::after{  content:''; position:absolute; inset:-10px 0; }
   .help-pill::after{ content:''; position:absolute; inset:-11px -4px; }
   .story-line::after{content:''; position:absolute; inset:-10px 0; }
-  /* 邮箱链接自己占一行，下面到「Got it」Also 24px，撑 ±11 不会碰到它 */
+  /* 邮箱链接自己占一行，下面到「知道了」还有 24px，撑 ±11 不会碰到它 */
   .mail-link::after{ content:''; position:absolute; inset:-11px -6px; }
   .lv::after{        content:''; position:absolute; inset:-8px -4px; }
-  /* Pause和Mute视觉上相隔 10px，但两个 44px 触摸热区会重叠。
+  /* 暂停和静音视觉上相隔 10px，但两个 44px 触摸热区会重叠。
      只在触屏设备拉开间距，图标本身大小不变。 */
   .hud .hud-controls{gap:18px;}
   /* 兜底：真正的按钮直接给 min-height，不用伪元素 —— 它们本来就在自己一行上，
-     长高不会挤到别人。开始页那个「HOW TO PLAY」实测只有 42，差 2px。 */
+     长高不会挤到别人。开始页那个「玩法说明」实测只有 42，差 2px。 */
   .btn{ min-height:44px; }
 }
 
@@ -1643,7 +1643,7 @@ body.in-game .marquee{
      否则整个游戏贴在屏幕顶上，下面吊着 190px 的黑，像是没加载完。 */
   body{ display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; }
   .marquee{padding:0 0 2px;}
-  /* HUD 现在只剩Mute一个按钮，宽松了不少，仍略收一点 */
+  /* HUD 现在只剩静音一个按钮，宽松了不少，仍略收一点 */
   .hud{padding:9px 11px;gap:8px;}
   .icon-btn{width:30px;height:30px;}
   .icon-btn svg{width:17px;height:17px;}
@@ -1814,10 +1814,10 @@ body::before{
 .hud .high-score-stat{display:none;}
 
 @media (max-width:1119px){
-  /* 用宽度而不是 pointer 判定Move布局：平板接鼠标后仍然需要给棋盘腾空间。 */
+  /* 用宽度而不是 pointer 判定移动布局：平板接鼠标后仍然需要给棋盘腾空间。 */
   body.in-game .marquee{max-height:0 !important;opacity:0 !important;margin:0 !important;padding:0 !important;}
   /* 手机标题区的实际内容高于 120px，“玩法 / 关于”会被裁掉一半，
-     却仍留在可点击树中。开始页和Pause页已有完整入口，Move端直接精简这行。 */
+     却仍留在可点击树中。开始页和暂停页已有完整入口，移动端直接精简这行。 */
   .marquee .tagline{display:none;}
 }
 
@@ -1849,7 +1849,7 @@ body::before{
     border-radius:7px;
   }
   .overlay{inset:3px;--ov-pad:10px;padding:10px;gap:7px;border-radius:7px;}
-  /* 横屏高度只够放游戏本身，开始卡片只保留“是什么 / THE BASICS /
+  /* 横屏高度只够放游戏本身，开始卡片只保留“是什么 / 怎么玩 /
      开始”。排行榜和选关在竖屏可见，不能为了它们把主按钮裁掉。 */
   #startOverlay .start-card{
     width:calc(100% - 12px);max-height:calc(100% - 8px);
@@ -1895,7 +1895,7 @@ body::before{
   .pad-area{display:flex;flex:none;width:min(100%,580px);height:44px;min-height:44px;}
   .pad-area .pad-grid{display:none;}
   .pad-area::before{
-    content:'Swipe on the maze or use the joystick';
+    content:'在迷宫上滑动或使用摇杆转向';
     width:calc(100% - min(118px,30vw));margin-left:min(118px,30vw);padding:8px 12px;
     border:1px solid rgba(71,82,137,.58);border-radius:999px;
     background:rgba(6,8,31,.72);color:var(--text-dim);
@@ -1935,7 +1935,7 @@ body::before{
   .pad-area{grid-column:2;grid-row:3;display:flex;height:100%;}
   .pad-grid{display:none;}
   .pad-area::before{
-    content:'TIP  ·  Power has a timer — choose your moment';
+    content:'TIP  ·  能量有时限，看准时机再出手';
     width:min(100%,520px);padding:8px 18px;border:1px solid rgba(71,82,137,.58);border-radius:999px;
     background:rgba(6,8,31,.72);font-family:var(--font-display);font-size:10px;letter-spacing:.11em;
     color:var(--text-dim);text-align:center;
@@ -1961,107 +1961,107 @@ body::before{
   .howto-card .rail-title{margin-bottom:13px;}
 }
 @media (min-width:1120px) and (min-height:720px) and (max-height:799px){
-  /* 矮屏先保住完整HOW TO PLAY；角色图鉴在更高的屏幕再展开。 */
+  /* 矮屏先保住完整玩法说明；角色图鉴在更高的屏幕再展开。 */
   .enemy-card{display:none;}
 }
 </style>
 
-<nav class="language-switch" aria-label="Language / 语言">
-  <a href="./" hreflang="zh-Hans" data-language-choice="zh">中文</a>
-  <a href="en/" hreflang="en" data-language-choice="en" aria-current="page">EN</a>
+<nav class="language-switch" aria-label="语言 / Language">
+  <a href="./" hreflang="zh-Hans" data-language-choice="zh" aria-current="page">中文</a>
+  <a href="en/" hreflang="en" data-language-choice="en">EN</a>
 </nav>
 
 <div class="cabinet">
   <div class="marquee">
-    <h1 class="brand-lockup" aria-label="Neon Maze · Doudou">
+    <h1 class="brand-lockup" aria-label="Neon Maze · 豆豆">
       <img class="brand-logo" src="assets/neon-logo-v2.webp" alt="" width="380" height="380" decoding="async">
       <span class="brand-neon">NEON</span>
       <span class="brand-maze">MAZE</span>
     </h1>
     <!-- 「?」跟在副标题后面。原来它和另外两个按钮全塞在 HUD 里，那一行还要
-         放SCORE、Combo、LEVEL、LIVES，挤得数值都快贴到一起了。副标题这行本来就
+         放分数、连击、关卡、生命，挤得数值都快贴到一起了。副标题这行本来就
          空着半行。 -->
     <p class="tagline">
-      <span class="tag-words">COLLECT<i></i>POWER UP<i></i>OUTSMART</span>
-      <button class="help-pill" id="helpBtn" title="HOW TO PLAY" aria-label="HOW TO PLAY">
+      <span class="tag-words">收集<i></i>强化<i></i>智取</span>
+      <button class="help-pill" id="helpBtn" title="玩法说明" aria-label="玩法说明">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9"/>
           <path d="M9.2 9.3a2.9 2.9 0 1 1 3.6 3.4c-.6.2-.9.7-.9 1.3v.6"/>
           <circle cx="12" cy="17.6" r="1.15" class="solid"/>
-        </svg>How to Play
+        </svg>玩法
       </button>
       <!-- 「关于」跟「玩法」并排，同一种胶囊。图标用心形而不是问号：这一页讲的
            不是规则，是这游戏怎么来的，图标先把这件事说清楚。 -->
-      <button class="help-pill" id="aboutBtn" title="ABOUT NEON MAZE" aria-label="ABOUT NEON MAZE">
+      <button class="help-pill" id="aboutBtn" title="关于 Neon Maze" aria-label="关于 Neon Maze">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path class="solid" d="M12 20.3s-7.4-4.7-7.4-9.7a4.2 4.2 0 0 1 7.4-2.7 4.2 4.2 0 0 1 7.4 2.7c0 5-7.4 9.7-7.4 9.7z"/>
-        </svg>About
+        </svg>关于
       </button>
     </p>
 
-    <section class="power-card" aria-label="Power-ups">
+    <section class="power-card" aria-label="能量机制">
       <h2 class="rail-title">POWER UPS</h2>
       <div class="power-item">
         <i class="power-icon star" aria-hidden="true">★</i>
-        <div class="power-copy"><b>Power Star</b><span>Fight back for a short time</span></div>
+        <div class="power-copy"><b>能量星</b><span>短时间反击敌人</span></div>
       </div>
       <div class="power-item">
         <i class="power-icon gem" aria-hidden="true">◆</i>
-        <div class="power-copy"><b>Phase Crystal</b><span>Walk through walls for 10 seconds</span></div>
+        <div class="power-copy"><b>相位晶石</b><span>10 秒内穿越墙体</span></div>
       </div>
       <div class="power-item">
         <i class="power-icon portal" aria-hidden="true">◎</i>
-        <div class="power-copy"><b>Neon Portal</b><span>Warp between matching portals</span></div>
+        <div class="power-copy"><b>霓虹传送门</b><span>同色门之间瞬间跃迁</span></div>
       </div>
     </section>
 
-    <div class="mascot-stage" aria-label="Doudou character showcase">
+    <div class="mascot-stage" aria-label="豆豆角色展示">
       <!-- 角色展示只会在桌面三栏布局出现。用 picture 的媒体条件拦在资源选择阶段，
            手机端不会先下载 500KB+ 的隐藏图片；data URI 兜底不产生网络请求。 -->
       <picture>
         <source media="(min-width:1120px) and (min-height:720px)" srcset="assets/doudou-hero.webp">
-        <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Original hero Doudou" width="512" height="512" decoding="async">
+        <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="原创主角豆豆 Doudou" width="512" height="512" decoding="async">
       </picture>
       <span class="mascot-label">MEET DOUDOU</span>
     </div>
   </div>
 
   <div class="mission-strip" aria-hidden="true">
-    <span class="collect">COLLECT</span><i></i>
-    <span class="power">POWER UP</span><i></i>
-    <span class="outsmart">OUTSMART</span>
+    <span class="collect">收集 COLLECT</span><i></i>
+    <span class="power">强化 POWER UP</span><i></i>
+    <span class="outsmart">智取 OUTSMART</span>
   </div>
 
   <div class="hud">
     <div class="stat score-stat">
-      <span class="k">SCORE</span>
+      <span class="k">分数</span>
       <span class="v" id="scoreVal">0</span>
     </div>
     <div class="combo-wrap">
-      <span class="k" id="comboLabel" style="font-size:9px;letter-spacing:.14em;color:var(--text-dim);">COMBO x1</span>
+      <span class="k" id="comboLabel" style="font-size:9px;letter-spacing:.14em;color:var(--text-dim);">连击 x1</span>
       <div class="combo-bar"><div class="combo-fill" id="comboFill"></div></div>
     </div>
     <div class="stat level-stat">
-      <span class="k">LEVEL</span>
+      <span class="k">关卡</span>
       <span class="v" id="levelVal">1</span>
     </div>
     <div class="stat lives-stat">
-      <span class="k">LIVES</span>
+      <span class="k">生命</span>
       <span class="v lives" id="livesVal"></span>
     </div>
-    <!-- HUD 只留Mute。方向键开关挪到了上方向键旁边，「?」挪到了副标题那行 ——
-         这一行还要放SCORE、Combo、LEVEL、LIVES，再塞三个按钮就满了。
+    <!-- HUD 只留静音。方向键开关挪到了上方向键旁边，「?」挪到了副标题那行 ——
+         这一行还要放分数、连击、关卡、生命，再塞三个按钮就满了。
          图标用内联 SVG 而不是 emoji：🔊 在不同手机上字形差别很大，安卓上偏细
          偏灰，和旁边的线条图标凑不到一起，尺寸也不受控。 -->
-    <!-- 桌面专用的Pause键。方向键在桌面被隐藏了，而Pause原本就嵌在方向键正中，
+    <!-- 桌面专用的暂停键。方向键在桌面被隐藏了，而暂停原本就嵌在方向键正中，
          不在这儿补一个，桌面玩家就只剩 P 键 —— 而没人知道有 P 键。 -->
     <div class="hud-controls">
-      <button class="icon-btn" id="hudPauseBtn" title="Pause" aria-label="Pause">
+      <button class="icon-btn" id="hudPauseBtn" title="暂停" aria-label="暂停">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M9 6.5v11M15 6.5v11"/>
         </svg>
       </button>
-      <button class="icon-btn" id="muteBtn" title="Mute / Unmute" aria-label="Mute toggle">
+      <button class="icon-btn" id="muteBtn" title="静音/取消静音" aria-label="静音开关">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 9.5h3.6L12 5.6v12.8L7.6 14.5H4z" class="solid"/>
           <g id="soundWaves"><path d="M15.4 9.4a3.7 3.7 0 0 1 0 5.2"/><path d="M18 7a7.3 7.3 0 0 1 0 10"/></g>
@@ -2070,35 +2070,35 @@ body::before{
       </button>
     </div>
     <div class="stat high-score-stat">
-      <span class="k">LOCAL BEST</span>
+      <span class="k">本机最高</span>
       <span class="v" id="highScoreVal">0</span>
     </div>
-    <button class="hall-entry hall-rail" data-open-hall>🏆 Global Leaderboard</button>
-    <section class="enemy-card" aria-label="Enemy characters">
+    <button class="hall-entry hall-rail" data-open-hall>🏆 全球排行榜</button>
+    <section class="enemy-card" aria-label="敌人角色">
       <h2 class="rail-title">ENEMIES</h2>
-      <div class="enemy-roster" aria-label="Enemy Codex">
+      <div class="enemy-roster" aria-label="敌人图鉴">
         <button type="button" class="enemy-choice chaser" data-enemy="chaser"
-          data-profile="Dash: locks onto your position and chases" aria-label="Dash, chaser, view behavior"
+          data-profile="闪闪：锁定你的位置直接追踪" aria-label="闪闪，追踪型，查看特点"
           aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
         <button type="button" class="enemy-choice ambush" data-enemy="ambush"
-          data-profile="Cutter: predicts your route and cuts you off" aria-label="Cutter, ambusher, view behavior"
+          data-profile="狐狐：预判你的去向，提前拦截" aria-label="狐狐，预判型，查看特点"
           aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
         <button type="button" class="enemy-choice shy" data-enemy="shy"
-          data-profile="Shy: flees when you get close" aria-label="Shy, evasive, view behavior"
+          data-profile="软软：你一靠近它就跑" aria-label="软软，回避型，查看特点"
           aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
         <button type="button" class="enemy-choice patrol" data-enemy="patrol"
-          data-profile="Rounder: patrols a fixed loop" aria-label="Rounder, patrol, view behavior"
+          data-profile="慢慢：沿固定路线循环巡逻" aria-label="慢慢，巡逻型，查看特点"
           aria-pressed="false" aria-controls="enemyDetail"><span class="enemy-thumb" aria-hidden="true"></span></button>
       </div>
-      <p class="enemy-detail" id="enemyDetail" aria-live="polite">Hover an enemy · See its behavior</p>
+      <p class="enemy-detail" id="enemyDetail" aria-live="polite">悬停怪物 · 查看特点</p>
     </section>
-    <section class="howto-card" aria-label="Quick instructions">
+    <section class="howto-card" aria-label="玩法速览">
       <h2 class="rail-title">HOW TO PLAY</h2>
       <ul>
-        <li><i aria-hidden="true">↔</i><span>Arrow keys / WASD<br>Swipe / Joystick on mobile</span></li>
-        <li><i aria-hidden="true" style="color:var(--amber)">●</i><span>Collect every energy dot</span></li>
-        <li><i aria-hidden="true" style="color:var(--cyan)">★</i><span>Power up and fight back</span></li>
-        <li><i aria-hidden="true" style="color:var(--pink)">◉</i><span>Learn four enemy patterns</span></li>
+        <li><i aria-hidden="true">↔</i><span>方向键 / WASD<br>手机滑动 / 摇杆转向</span></li>
+        <li><i aria-hidden="true" style="color:var(--amber)">●</i><span>收集全部能量点</span></li>
+        <li><i aria-hidden="true" style="color:var(--cyan)">★</i><span>掌握能量，反击敌人</span></li>
+        <li><i aria-hidden="true" style="color:var(--pink)">◉</i><span>读懂四种敌人路线</span></li>
       </ul>
     </section>
   </div>
@@ -2116,7 +2116,7 @@ body::before{
       <!-- 开始页只留一句。原来这里是六行说明，加上榜单和署名之后总高超出
            弹层 61px，"开始"按钮直接被切在屏幕外——第一次玩的人看到的是一屏
            文字和一个找不到的按钮。完整规则已经在标题下方的「?」里了。 -->
-      <!-- BEST放在最上面、字最大。这游戏的计分系统很深（Combo、悬赏阶梯、
+      <!-- 最高分放在最上面、字最大。这游戏的计分系统很深（连击、悬赏阶梯、
            四种奖励分），但玩家如果没有一个"要超过的数"，这套东西有一半是白
            设计的。BEST 就是那个数，它得在按「开始」之前就看见。 -->
       <!-- 一句迎接的话。第一次来和再回来说的不一样 —— 这游戏本来就是给
@@ -2124,24 +2124,24 @@ body::before{
            文案由 renderWelcome() 按有没有纪录决定，不写死在这儿。 -->
       <p class="welcome" id="welcomeLine"></p>
       <div class="best-line hidden" id="bestLine"></div>
-      <!-- 首屏只留**一句**。原来两行，第二行讲Combo和反杀 —— 那是玩起来自然会
+      <!-- 首屏只留**一句**。原来两行，第二行讲连击和反杀 —— 那是玩起来自然会
            撞见的东西，写在这儿只是提高了开始前的阅读量。按设备分文案，用 CSS
            切换而不是 JS：JS 判断要等脚本跑完，会先闪一下错的那句。 -->
       <p class="start-tip">
-        <span class="tip-key">Arrow keys / WASD</span><span class="tip-touch">Swipe / Joystick</span>
-        　·　Clear every dot to finish
+        <span class="tip-key">方向键 / WASD 移动</span><span class="tip-touch">滑动 / 摇杆转向</span>
+        　·　吃光豆子即可过关
       </p>
       <div class="challenge hidden" id="challengeBox"></div>
-      <!-- LEVEL选择。只列已经打到过的关；没到过的显示锁。
+      <!-- 关卡选择。只列已经打到过的关；没到过的显示锁。
            摆在「开始」上面而不是下面：正式挑战仍然是主线，练习是备选。 -->
-      <!-- Daily Challenge。摆在选关上面：它是"今天玩什么"的默认答案，
+      <!-- 每日挑战。摆在选关上面：它是"今天玩什么"的默认答案，
            而选关是"我想练哪一关"的自选项。 -->
       <div class="daily hidden" id="dailyBox"></div>
       <div class="levelsel" id="levelSel"></div>
       <div class="board" id="startBoard"></div>
-      <button class="hall-preview hidden" id="hallPreview" data-open-hall aria-label="Open Global Leaderboard"></button>
-      <p class="cloud-notice hidden" id="cloudNotice"><span>After each run, confirm your nickname to publish your score.</span><span>Stars &amp; unlocks stay in this browser.</span></p>
-      <!-- 「HOW TO PLAY」跟「开始」并排，而不是让玩家去找标题旁边那个「?」。
+      <button class="hall-preview hidden" id="hallPreview" data-open-hall aria-label="打开全球排行榜"></button>
+      <p class="cloud-notice hidden" id="cloudNotice"><span>结束后确认昵称，再将成绩公开到全球榜。</span><span>星星与解锁仅存本机。</span></p>
+      <!-- 「玩法说明」跟「开始」并排，而不是让玩家去找标题旁边那个「?」。
            原来这儿写的是"完整玩法　点标题下方的 ?"——那要求玩家先读一行字、
            再把视线挪回标题去找一个 25px 的图标、还得猜到它是规则。三道弯，
            实际几乎没人会走完。按钮就摆在他眼睛已经落着的地方（开始键旁边），
@@ -2150,140 +2150,140 @@ body::before{
       <!-- 主次要拉得更开：原来两个按钮边框粗细相近、间距也小，看着像
            一组并列选项。开始是主线，玩法是备选，第一眼不该需要挑。 -->
       <div class="over-actions start-actions">
-        <button class="btn btn-hero" id="startBtn">START GAME</button>
-        <button class="btn hall-entry" data-open-hall>🏆 Global Leaderboard</button>
+        <button class="btn btn-hero" id="startBtn">开始游戏</button>
+        <button class="btn hall-entry" data-open-hall>🏆 全球排行榜</button>
       </div>
-      <button class="help-pill" id="startHelpBtn">HOW TO PLAY</button>
-      <!-- 紧跟在「START GAME」下面 —— 视线离开按钮的第一站。点它直接打开「关于」，
+      <button class="help-pill" id="startHelpBtn">玩法说明</button>
+      <!-- 紧跟在「开始游戏」下面 —— 视线离开按钮的第一站。点它直接打开「关于」，
            不用再去找标题旁的图标。
-           2026-08-21 业主把这句从"♥ A little game made by a dad and his son"改成「怀旧游戏」，
+           2026-08-21 业主把这句从"♥ 一个爸爸和儿子一起做的小游戏"改成「怀旧游戏」，
            心也一并去掉。那段自述没有丢，它完整地留在「关于」里。 -->
-      <button class="story-line" id="storyLine">AN ORIGINAL NEON MAZE</button>
+      <button class="story-line" id="storyLine">原创霓虹迷宫</button>
       </div>
     </div>
 
-    <!-- Pause页也要能看玩法。开打之后标题栏会收起来（body.in-game），那个「?」
+    <!-- 暂停页也要能看玩法。开打之后标题栏会收起来（body.in-game），那个「?」
          跟着一起没了 —— 也就是说玩到一半想不起规则的人，全程无处可查，而这
-         正是最想查的时刻。Pause是他唯一会主动打开的界面，说明就该放在这儿。 -->
+         正是最想查的时刻。暂停是他唯一会主动打开的界面，说明就该放在这儿。 -->
     <div class="overlay hidden" id="pauseOverlay">
-      <h2 id="pauseTitle">PAUSED</h2>
-      <!-- 切走标签页会自动Pause，回来时这一行会换成说明原因的话 —— 否则玩家
-           只看到一个Pause页，不知道是自己按的还是游戏出了什么事。 -->
-      <p id="pauseWhy" class="bonus-hint">Press P, Enter, or tap Resume to continue</p>
+      <h2 id="pauseTitle">已暂停</h2>
+      <!-- 切走标签页会自动暂停，回来时这一行会换成说明原因的话 —— 否则玩家
+           只看到一个暂停页，不知道是自己按的还是游戏出了什么事。 -->
+      <p id="pauseWhy" class="bonus-hint">按 P、Enter 或点「继续游戏」回到游戏</p>
       <div class="over-actions">
-        <button class="btn btn-hero" id="resumeBtn">Resume</button>
-        <button class="btn ghost btn-share" id="pauseHelpBtn">HOW TO PLAY</button>
+        <button class="btn btn-hero" id="resumeBtn">继续游戏</button>
+        <button class="btn ghost btn-share" id="pauseHelpBtn">玩法说明</button>
       </div>
     </div>
 
-    <!-- HOW TO PLAY。原来幽灵图例和操作提示是常驻在棋盘下方的，占掉整整两行，
+    <!-- 玩法说明。原来幽灵图例和操作提示是常驻在棋盘下方的，占掉整整两行，
          而这些信息只在头几局有用，之后一直杵在那里挤压手机上的可视空间。
          收进这里，想看再点。 -->
     <div class="overlay hidden" id="helpOverlay">
-      <h2>HOW TO PLAY</h2>
+      <h2>玩法说明</h2>
       <!-- 内容与 微信小游戏版/js/ui.js 里那份 HELP 保持一致。两处是分开写的
            （一边 HTML、一边 canvas 逐行画），改一处务必改另一处 —— 说明对不上
            比没有说明更糟，玩家会照着做然后发现不是那么回事。 -->
-      <!-- 一份从头读到尾的文档，不折叠。顺序本身就是分层：「THE BASICS」在最前面，
+      <!-- 一份从头读到尾的文档，不折叠。顺序本身就是分层：「怎么玩」在最前面，
            看完前三行就能开打，剩下的往下滚就是。滚动是零成本的，点开不是。 -->
       <div class="help-doc">
         <div class="help-sec">
-          <h3>THE BASICS</h3>
+          <h3>怎么玩</h3>
           <dl class="kv">
-            <dt>Move</dt><dd>Phone: <b>swipe</b> on the maze or use the lower-left <b>joystick</b>　Desktop: <b>arrows / WASD</b></dd>
-            <dt>Collect</dt><dd>Clear every dot to finish; <b>keep collecting</b> to raise the multiplier</dd>
-            <dt>Avoid enemies</dt><dd>A collision costs one life; collect a <b>Power Star</b> to fight back</dd>
-            <dt>Scoring update</dt><dd><b>Combo-scoring items are another 30% higher</b>; fixed bonuses and existing scores stay unchanged</dd>
-            <dt>Also</dt><dd>Portals · Dash · Phasing
-              <br><span class="dim">No need to memorize — you will learn as you play</span></dd>
-            <dt>Progress</dt><dd>Three stars per level: clear it, take no damage, and counter two enemies. Earned stars never disappear</dd>
-            <dt>Daily Challenge</dt><dd>Unlocks after reaching Level 2 and selects from unlocked levels. Only today’s local best is saved; it does not enter the main board</dd>
-            <dt>ENEMY CODEX</dt><dd>Unlocks after reaching Level 2. Review all four behaviors, times caught, and successful counters</dd>
+            <dt>移动</dt><dd>手机在迷宫上<b>滑动</b>，或使用左下角<b>摇杆</b>　电脑<b>方向键 / WASD</b></dd>
+            <dt>吃豆</dt><dd>吃光豆子就过关；<b>连着吃</b>，倍率越叠越高</dd>
+            <dt>躲开敌人</dt><dd>碰到少一条命；收集<b>能量星</b>就能反过来吃它们</dd>
+            <dt>本版计分</dt><dd><b>连击项目再提高 30%</b>；通关等固定奖励和已有成绩不变</dd>
+            <dt>还有</dt><dd>传送门 · 冲刺 · 穿墙
+              <br><span class="dim">不用背，玩着就会</span></dd>
+            <dt>成长记录</dt><dd>每关三颗星：通关、无伤、反击两个对手；已获星星不会丢失</dd>
+            <dt>每日挑战</dt><dd>到达第 2 关后开放，从已解锁关卡选择；只记本机当日同关最高分，不进正式排行榜</dd>
+            <dt>对手图鉴</dt><dd>到达第 2 关后可查看四种对手的特点、被抓次数和反击次数</dd>
           </dl>
         </div>
 
         <!-- 全部摊开，不折叠。
-             这里原来是分层的：只留「THE BASICS」，其余收进两个折叠条。想法是不让
+             这里原来是分层的：只留「怎么玩」，其余收进两个折叠条。想法是不让
              第一次玩的人被 1050px 的规则劝退 —— 但实际用下来是反的：折叠条
              把"往下读"变成了"先做个决定"，而多数人不会为了一份说明去做决定，
              于是连想看的人也没看到。滚动是零成本的，点开不是。
              所以恢复成一份从头读到尾的文档，只保留顺序上的分层：
-             「THE BASICS」在最前面，看完前三行就能开打，剩下的往下滚就是。 -->
+             「怎么玩」在最前面，看完前三行就能开打，剩下的往下滚就是。 -->
           <div class="help-sec">
-            <h3>Combo</h3>
-            <p>Dots, Power Stars, countered enemies and crystals all extend the <b>same combo</b>, adding one level with <b>no cap</b>.<br>
-              The full combo window is <b>10% longer</b>: a <b>1.76s</b> base, growing with your combo to <b>2.75s</b>. Standing still drains it three times as fast, about <b>0.6–0.9s</b>.</p>
+            <h3>连击</h3>
+            <p>小豆、大豆（能量星）、反击敌人、拿晶石，每次都让同一条连击涨一级并续满时间，<b>上不封顶</b>。<br>
+              连击持续时间延长 <b>10%</b>：跑动基础窗口 <b>1.76 秒</b>，连击越高越宽，最长 <b>2.75 秒</b>；停下仍按 <b>3 倍</b>速度消耗。</p>
           </div>
           <div class="help-sec">
-            <h3>THE FOUR NEON ENEMIES</h3>
+            <h3>四位霓虹对手</h3>
             <ul class="ghost-list">
-              <li><i style="color:var(--cyan);background:var(--cyan)"></i><b>Dash</b>　locks onto your position and chases</li>
-              <li><i style="color:var(--danger);background:var(--danger)"></i><b>Cutter</b>　predicts your route and cuts you off</li>
-              <li><i style="color:var(--tang);background:var(--tang)"></i><b>Shy</b>　flees when you get close</li>
-              <li><i style="color:var(--pink);background:var(--pink)"></i><b>Rounder</b>　patrols a fixed loop</li>
+              <li><i style="color:var(--cyan);background:var(--cyan)"></i><b>闪闪</b>　锁定你的位置直接追踪</li>
+              <li><i style="color:var(--danger);background:var(--danger)"></i><b>狐狐</b>　预判你的去向，提前拦截</li>
+              <li><i style="color:var(--tang);background:var(--tang)"></i><b>软软</b>　你一靠近它就跑</li>
+              <li><i style="color:var(--pink);background:var(--pink)"></i><b>慢慢</b>　沿固定路线循环巡逻</li>
             </ul>
           </div>
           <div class="help-sec">
-            <h3>SPECIAL MECHANICS</h3>
+            <h3>特殊机关</h3>
             <dl class="kv">
-              <dt>Power Star</dt><dd>fight back for a short time</dd>
-              <dt>Portal</dt><dd>paired at the four corners; matching colors connect</dd>
-              <dt>Dash</dt><dd>run straight to build speed; any turn resets it</dd>
-              <dt>Phase Crystal</dt><dd>walk through walls for ten seconds</dd>
+              <dt>能量星</dt><dd>短时间内可以反击敌人</dd>
+              <dt>传送门</dt><dd>地图四角成对，颜色相同的两个互通</dd>
+              <dt>冲刺</dt><dd>直线一直跑会越跑越快，一转弯就归零</dd>
+              <dt>相位晶石</dt><dd>十秒之内可以穿墙走</dd>
             </dl>
           </div>
           <div class="help-sec">
-            <h3>SCORING</h3>
-            <p><b>Combo-scoring items are another 30% higher.</b> Values below already include it. The complete payout is rounded once when banked.</p>
+            <h3>能拿多少分</h3>
+            <p><b>连击项目再提高 30%</b>：以下数值已含本次加成，不要重复乘；小数分在最终入账取整。</p>
             <dl class="kv">
-              <dt>Dot</dt><dd><b>25.35</b> × Combo, then rounded</dd>
-              <dt>Power Star</dt><dd><b>126.75</b> × Combo, then rounded</dd>
-              <dt>Phase Crystal</dt><dd><b>760.5</b> × Combo, then rounded</dd>
-              <dt>Enemy</dt><dd><b>16.9k → 33.8k → 50.7k…</b><span class="dim">the nth enemy inside one Power Star is worth n × 16.9k; it extends the same combo, but its bounty is not multiplied by Combo</span></dd>
+              <dt>豆子</dt><dd><b>25.35</b> × 连击，最终取整</dd>
+              <dt>能量星</dt><dd><b>126.75</b> × 连击，最终取整</dd>
+              <dt>相位晶石</dt><dd><b>760.5</b> × 连击，最终取整</dd>
+              <dt>敌人</dt><dd><b>1.69万 → 3.38万 → 5.07万…</b><span class="dim">同一颗能量星内按 1.69 万逐只递增；同样续连击，但悬赏不再乘吃豆倍率</span></dd>
             </dl>
           </div>
           <div class="help-sec">
-            <h3>FULL SCORING & PARAMETERS</h3>
+            <h3>完整计分与参数</h3>
             <dl class="kv">
-              <dt>Perfect level</dt><dd><b>1950</b> × level number (11,700 on Level 6)</dd>
-              <dt>Enemy sweep</dt><dd><b>130k</b>　counter every enemy within one Power Star</dd>
-              <dt>Lives left at clear</dt><dd><b>2925</b> × lives</dd>
-              <dt>Flawless run</dt><dd><b>19500</b></dd>
-              <dt>Enemy speed</dt><dd><b>2.35 tiles/s</b> base speed on all six levels<br><span class="dim">after three deaths on one level, enemies slow by 10% until it is cleared or restarted</span></dd>
-              <dt>Power Star duration</dt><dd><b>9s on all six levels</b>; another Power Star resets the timer to 9s<br>
-                <span class="dim">you move 15% faster and enemies 15% slower</span></dd>
-              <dt>Dash</dt><dd>5 straight tiles build speed to <b>1.22×</b></dd>
-              <dt>Portal</dt><dd><b>0s</b> cooldown; you pause on arrival to choose a direction</dd>
-              <dt>Phasing</dt><dd><b>10s</b>; movement slows, but turns register instantly</dd>
-              <dt>Combo multiplier</dt><dd>scores at the current multiplier, then rises one level; enemies also extend the same combo, but their bounties are not multiplied by Combo</dd>
-              <dt>Existing scores</dt><dd>this update changes only combo-scoring items; existing scores remain unchanged</dd>
+              <dt>整关无伤</dt><dd><b>1950</b> × 关卡号（第 6 关就是 11700）</dd>
+              <dt>全灭对手</dt><dd><b>13万</b>　一次能量星内吃光全场</dd>
+              <dt>通关剩余命</dt><dd><b>2925</b> × 条数</dd>
+              <dt>全程无伤</dt><dd><b>19500</b></dd>
+              <dt>敌人速度</dt><dd>六关基础速度统一为 <b>2.35 格/秒</b><br><span class="dim">同一关失败三次后仍享本关减速 10% 的辅助；各关规则相同</span></dd>
+              <dt>能量星时长</dt><dd>六关统一 <b>9 秒</b>；再吃一颗刷新至 9 秒，不叠加<br>
+                <span class="dim">期间你快 15%，敌人慢 15%</span></dd>
+              <dt>冲刺</dt><dd>直线连走 5 格提速到 <b>1.22 倍</b></dd>
+              <dt>传送门</dt><dd>冷却 <b>0 秒</b>，落地会停一下等你选方向</dd>
+              <dt>穿墙</dt><dd><b>10 秒</b>；期间移动放慢，转向随按随到</dd>
+              <dt>连击倍率</dt><dd>按吃之前的倍率计分，再涨一级；敌人悬赏独立递增，但也续连击</dd>
+              <dt>历史成绩</dt><dd>本次只调整连击项目，已有成绩保持原值，不再统一乘 1.3</dd>
             </dl>
           </div>
 
         <!-- 「关于这个游戏」和「反馈」不在这里 —— 它们搬去了 #aboutOverlay。
-             HOW TO PLAY只讲玩法：来查规则的人要的是"Portal怎么用"，作者的话和
+             玩法说明只讲玩法：来查规则的人要的是"传送门怎么用"，作者的话和
              联系邮箱夹在参数表后面，对他既没用又是干扰。而那段话本身值得一个
              自己的页面，不该当成规则的第八节。 -->
       </div>
       <!-- 渐隐影子对成年人够用，但小朋友需要一句明说的。滚到底自动消失。 -->
-      <div class="help-more" id="helpMore">↓ More below</div>
-      <button class="btn" id="helpCloseBtn">Got it</button>
+      <div class="help-more" id="helpMore">↓ 下面还有</div>
+      <button class="btn" id="helpCloseBtn">知道了</button>
     </div>
 
     <!-- 关于这个游戏。自己一个页面，从开始页那行署名点进来。
          内容与 微信小游戏版/js/ui.js 的 ABOUT、微信小程序版 game.wxml 的
          about 弹层保持一致 —— 三处是分开写的，test_help_accuracy 会一起核。
          作者的原话，不要替他改写或压缩。 -->
-    <!-- ENEMY CODEX。
-         做这一栏的理由和HOW TO PLAY完全不同：说明是"开打前先看"，图鉴是
+    <!-- 对手图鉴。
+         做这一栏的理由和玩法说明完全不同：说明是"开打前先看"，图鉴是
          "被抓了十次之后回来看"。它把反复失败攒成一份收藏 —— 同一件事，
          从"我又输了"变成"我认识它们了"。
          没见过的不写内容、只留一个灰条：留白本身就是要去填的格子。 -->
     <div class="overlay hidden" id="owlOverlay" role="dialog" aria-modal="true"
          aria-labelledby="owlTitle" tabindex="-1">
-      <h2 id="owlTitle">ENEMY CODEX</h2>
+      <h2 id="owlTitle">对手图鉴</h2>
       <div class="help-doc" id="owlList"></div>
-      <button class="btn" id="owlCloseBtn">Got it</button>
+      <button class="btn" id="owlCloseBtn">知道了</button>
     </div>
 
     <div class="overlay hidden" id="aboutOverlay" role="dialog" aria-modal="true"
@@ -2292,61 +2292,61 @@ body::before{
            自己那片底）才关闭。少了这一层，点正文选个字都会把弹层关掉。
            标题也放进来：这样标题、正文、署名、反馈共用同一个盒子，也就共用
            同一条左边缘（标题自己居中，但它居中的范围和正文一样宽）。 -->
-      <!-- 一张卡片装下全部内容，连「Got it」也在里面。
+      <!-- 一张卡片装下全部内容，连「知道了」也在里面。
            点卡片不关闭、点卡片外面（也就是 #aboutOverlay 那片底）才关闭 ——
            少了这一层包裹，点正文选个字都会把弹层关掉。
            九样东西按阅读顺序排在正常文档流里，没有一处绝对定位。 -->
       <div class="about-card" id="aboutPanel">
-        <h2 id="aboutTitle">ABOUT NEON MAZE</h2>
+        <h2 id="aboutTitle">关于 Neon Maze</h2>
         <!-- 业主 2026-08-21 定的：**一整段，不分段**，也不写任何 <br> ——
              中文该在哪儿断行由宽度决定，手写的换行只在某一个屏幕宽度上好看，
              换台设备就断在奇怪的地方。原文照抄，不要替他改写或压缩。 -->
-        <p class="about about-story">One summer my son wanted a simple, exciting game, so we built one together. He playtested and gave notes; I made the changes. Later his friends joined the testing, and that is how <span class="nb">Neon Maze</span>, its original hero Doudou, and these six levels came to be.</p>
+        <p class="about about-story">暑期，儿子想玩一款简单刺激的小游戏，于是我们一起把它做出来。他负责试玩和提意见，我负责修改完善。后来，其它小朋友也加入试玩队伍，才有了现在的 <span class="nb">Neon Maze</span> 和原创主角豆豆，以及这 6 个关卡。</p>
         <!-- 落款：在正文这一栏里靠右，不是推到卡片外沿。 -->
-        <p class="about-by">Super Dad</p>
+        <p class="about-by">超级奶爸</p>
         <hr class="about-rule">
         <!-- 只留邮箱。微信号是能直接找到本人的实名社交账号，而这个游戏是公开
              链接、还打算给小朋友传 —— 联系方式留一个够用的就行，邮箱可以随时
              不看，微信不能。 -->
-        <h3 class="about-fb-title">Feedback</h3>
-        <p class="about about-fb">If you have suggestions or run into a problem, I would love to hear from you.</p>
-        <p class="about about-mail">Email: <a class="mail-link" href="mailto:2685897@qq.com">2685897@qq.com</a></p>
+        <h3 class="about-fb-title">反馈与建议</h3>
+        <p class="about about-fb">如果你有任何建议，或在游戏中发现了问题，欢迎来信告诉我。</p>
+        <p class="about about-mail">邮箱：<a class="mail-link" href="mailto:2685897@qq.com">2685897@qq.com</a></p>
         <section class="hidden" id="cloudAbout">
           <hr class="about-rule">
-          <h3 class="about-fb-title">Global board &amp; saved progress</h3>
-          <p class="about">Normal runs save locally first; only after nickname confirmation do we submit the score and run data. The global board shows nickname, score, level, best combo and clear status. Practice and Daily Challenge runs are not uploaded. Stars and unlocks stay in this browser.</p>
-          <p class="about">A randomly generated anonymous player ID is also submitted for score ownership and basic validation. It is not an account and does not sync progress across devices. Do not use your real name or contact details as your nickname.</p>
+          <h3 class="about-fb-title">全球榜与存档</h3>
+          <p class="about">正式挑战先自动保存在本机；确认昵称后才提交成绩和对局数据。全球榜公开昵称、成绩、关卡、最高连击与通关状态。练习和每日挑战不上传。星星与解锁仅保存在当前浏览器。</p>
+          <p class="about">同时提交随机生成的匿名玩家 ID，用于成绩归属与基础校验；它不是账号，不支持跨设备同步。请勿在昵称中填写真实姓名或联系方式。</p>
         </section>
-        <button class="btn about-close" id="aboutCloseBtn">Got it</button>
+        <button class="btn about-close" id="aboutCloseBtn">知道了</button>
       </div>
     </div>
 
     <div class="overlay hidden" id="overOverlay">
-      <h2 id="overTitle">GAME OVER</h2>
+      <h2 id="overTitle">游戏结束</h2>
       <div class="big-score" id="finalScore">0</div>
-      <!-- 成绩会先自动存档，输入框只是把「Anonymous Doudou」换成玩家的名字。
+      <!-- 成绩会先自动存档，输入框只是把「无名豆豆」换成玩家的名字。
            必须放在总分后、长战绩前，确保通关一打开就能看见。 -->
       <div class="record-box hidden" id="recordBox">
-        <div class="record-state">✓ SCORE SAVED AUTOMATICALLY <span class="record-rank" id="recordRank"></span></div>
+        <div class="record-state">✓ 成绩已自动存档 <span class="record-rank" id="recordRank"></span></div>
         <div class="name-row hidden" id="nameRow">
           <input id="nameInput" class="name-input" type="text" maxlength="8"
-                 placeholder="Your name (optional)" autocomplete="off" spellcheck="false">
-          <button class="btn btn-sm" id="nameSaveBtn">Save name</button>
+                 placeholder="输入名字（可选）" autocomplete="off" spellcheck="false">
+          <button class="btn btn-sm" id="nameSaveBtn">保存名字</button>
         </div>
       </div>
       <section class="result-cloud hidden" id="resultCloud" aria-live="polite"></section>
       <!-- 内容由 endGame 填充；这里留空，免得占位文本被误当成线上文案 -->
       <p id="overSub"></p>
       <div class="board" id="overBoard"></div>
-      <button class="btn ghost btn-share" id="shareBtn">Share score</button>
+      <button class="btn ghost btn-share" id="shareBtn">分享成绩</button>
       <div class="over-actions">
-        <button class="btn" id="restartBtn">Play again</button>
-        <button class="btn hall-entry" id="resultHallBtn" data-open-hall data-hall-mine>🏆 View global ranking</button>
+        <button class="btn" id="restartBtn">再来一局</button>
+        <button class="btn hall-entry" id="resultHallBtn" data-open-hall data-hall-mine>🏆 查看全球排名</button>
         <!-- 小玩家的原话是"能不能从失败的那关开始"。那这个入口就该出现在她
              失败的那一刻、那一屏上，而不是让她回开始页自己找。 -->
-        <button class="btn ghost btn-share hidden" id="practiceBtn">Practice this level</button>
+        <button class="btn ghost btn-share hidden" id="practiceBtn">练习这一关</button>
       </div>
-      <div class="credits">A little game made by a dad and his son</div>
+      <div class="credits">一个爸爸和儿子一起做的小游戏</div>
     </div>
   </div>
 
@@ -2354,22 +2354,22 @@ body::before{
        曾经为了做横屏布局把它们并进 .cabinet 的栅格，横屏后来撤掉了，这个耦合
        却留着 —— 结果整个界面的宽度被方向键的列宽卡住：375 的屏幕上棋盘只有
        277 宽，白白浪费四分之一。各管各的，棋盘才能铺满。
-       Pause键占十字正中那格（本来就空着，也是拇指最顺手的位置）。 -->
+       暂停键占十字正中那格（本来就空着，也是拇指最顺手的位置）。 -->
   <div class="pad-area">
     <div class="pad-grid">
-      <button class="pad up"    data-dir="up"    aria-label="Up">▲</button>
-      <button class="pad left"  data-dir="left"  aria-label="Left">◀</button>
-      <button class="pad pause" id="pauseBtn" title="Pause" aria-label="Pause">
+      <button class="pad up"    data-dir="up"    aria-label="上">▲</button>
+      <button class="pad left"  data-dir="left"  aria-label="左">◀</button>
+      <button class="pad pause" id="pauseBtn" title="暂停" aria-label="暂停">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M9 6.5v11M15 6.5v11"/>
         </svg>
       </button>
-      <button class="pad right" data-dir="right" aria-label="Right">▶</button>
-      <button class="pad down"  data-dir="down"  aria-label="Down">▼</button>
+      <button class="pad right" data-dir="right" aria-label="右">▶</button>
+      <button class="pad down"  data-dir="down"  aria-label="下">▼</button>
     </div>
   </div>
 
-  <div class="touch-joystick" id="touchJoystick" role="group" aria-label="Virtual movement joystick">
+  <div class="touch-joystick" id="touchJoystick" role="group" aria-label="虚拟移动摇杆">
     <span class="joy-mark up" aria-hidden="true">▲</span>
     <span class="joy-mark right" aria-hidden="true">▶</span>
     <span class="joy-mark down" aria-hidden="true">▼</span>
@@ -2382,7 +2382,7 @@ body::before{
      超宽桌面可在 config.js 打开占位预览；手机和游戏进行中始终不显示。 -->
 <aside class="ad-slot-rail hidden" id="adSlotRail" data-ad-placement="desktop-side"
        data-ad-status="placeholder" aria-hidden="true">
-  <span>Ad placement preview</span><small>160 × 600 · No ads are connected</small>
+  <span>广告位预览</span><small>160 × 600 · 当前未接入广告</small>
 </aside>
 
 <script>
@@ -2551,15 +2551,15 @@ const MAX_LEVEL = 6;
 
 /* 每关一个短名字。
    六关本来只有"比上一关难一点"的区别，玩家记不住任何一关。名字挑的是**这一关
-   真正新增的那件事**，不是形容词：第 2 关多一只追击者、第 3 关满图Portal、
+   真正新增的那件事**，不是形容词：第 2 关多一只追击者、第 3 关满图传送门、
    第 6 关七只幽灵且恐惧只剩 5 秒。这样名字就是提示，不是装饰。 */
-const LEVEL_NAMES = ['First Steps', 'Hunters Awake', 'Wormholes', 'Surrounded', 'Full Speed', 'Final Maze'];
+const LEVEL_NAMES = ['初入迷宫', '猎手苏醒', '虫洞交错', '四面围猎', '极速追击', '终极迷宫'];
 function levelName(lvl){ return LEVEL_NAMES[(Math.max(1,lvl)-1) % LEVEL_NAMES.length]; }
 
-/* ---------- 开关前的LEVEL卡片 ----------
+/* ---------- 开关前的关卡卡片 ----------
  *
  * 每关开打前定住一下，报出"第 N 关 · 名字"。为的是让六关各自留下记忆点——
- * 玩家事后该记得"第三关那个满地Portal"，而不是"第三关比第二关难一点"。
+ * 玩家事后该记得"第三关那个满地传送门"，而不是"第三关比第二关难一点"。
  *
  * 画在**棋盘画布**上，不做成 DOM 弹层：网页 / 小游戏 / 小程序 / iOS 四个端
  * 共用同一个 render()，画在画布上四端自动都有；做成弹层则要在小游戏的 canvas
@@ -2613,7 +2613,7 @@ const canvas = document.getElementById('mazeCanvas');
 canvas.width = COLS*TILE; canvas.height = ROWS*TILE;
 const ctx = canvas.getContext('2d');
 
-/* Enemy美术是一次加载、每帧 drawImage 的贴图；加载失败时下面仍保留完整的
+/* 敌人美术是一次加载、每帧 drawImage 的贴图；加载失败时下面仍保留完整的
    Canvas 矢量兜底。这样精细度不再依赖每帧堆 shadowBlur，弱机也更轻。 */
 const IS_WECHAT_MINIGAME =
   typeof wx !== 'undefined' && typeof wx.createImage === 'function';
@@ -2642,7 +2642,7 @@ const ENEMY_SPRITE_SIZE = 30;
 const ENEMY_SPRITE_BRIGHT_PASS_ALPHA = .26;
 
 /* 眼白留在贴图里，黑瞳孔由 Canvas 单独画。每种脸的两只眼睛大小和倾斜都不同，
-   所以这里记录各自的中心、瞳孔半径与可Move范围；坐标以 30px 游戏尺寸为基准。
+   所以这里记录各自的中心、瞳孔半径与可移动范围；坐标以 30px 游戏尺寸为基准。
    大小眼的不对称继续保留，但四只怪都会明确看向自己的行进方向。 */
 const CHARACTER_EYES = {
   chaser:[{x:-5.43,y:.60,r:1.78,tx:1.35,ty:1.35},{x:6.61,y:3.14,r:1.32,tx:1.08,ty:.62}],
@@ -2660,7 +2660,7 @@ function drawCharacterSprite(id,size,visualMode='normal'){
   const sw=aw/2,sh=ah/2,dw=size*fit.w,dh=size*fit.h;
   ctx.save();
   /* tracking-eyes-v9 是透明底、截图校色、圆润无尖刺并保留可爱小嘴的硬边像素图；
-     贴图只留眼白，黑瞳孔由 drawCharacterTrackingEyes 按Move方向实时绘制。
+     贴图只留眼白，黑瞳孔由 drawCharacterTrackingEyes 按移动方向实时绘制。
      关掉平滑，30px 时异形眼睛、轮廓和面罩才不会被浏览器抹成一团；
      第一遍正常覆盖保住黑色粗轮廓，第二遍 screen 只加轻微霓虹。
      可反击时整张贴图统一变成冰蓝/白色；即使小程序端不支持 filter，下面仍会画
@@ -2744,10 +2744,10 @@ const CAN_OWN_CANVAS =
 let wallCache = null;        // 离屏画布；null = 还没建或环境建不出来
 let wallCacheDirty = true;   // 建关/换关、resize 之后要重画
 let wallCacheFailed = false; // 离屏不可用（微信垫片等）时退回每帧现画
-let dotCache = null;         // 普通Dot同样是静态层，吃到时只擦掉对应小块
+let dotCache = null;         // 普通豆子同样是静态层，吃到时只擦掉对应小块
 let dotCacheDirty = true;
 let dotCacheFailed = false;
-let staticFrameDirty = true; // 开始/Pause/结算页只在必要时重画一次
+let staticFrameDirty = true; // 开始/暂停/结算页只在必要时重画一次
 
 function fitMazeCanvas(){
   if (!CAN_OWN_CANVAS) return;
@@ -2826,8 +2826,8 @@ let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
    其余三项仍是基础分，经 SCORE_MULT 从原来的 1.5 提到 1.95。 */
 const BONUS = { PERFECT_LEVEL: 1000, GHOST_SWEEP: 130000, LIFE_LEFT: 1500, FLAWLESS_RUN: 10000 };
 
-/* 2026-09-03：六关采用第一关的基础速度，不再随LEVEL提速。
-   地图、Enemy数量和 AI 保持原样；能量减速、失败辅助也在各关使用同一套倍率。 */
+/* 2026-09-03：六关采用第一关的基础速度，不再随关卡提速。
+   地图、敌人数量和 AI 保持原样；能量减速、失败辅助也在各关使用同一套倍率。 */
 const GHOST_BASE_SPEED = 2.35;
 let deathsThisLevel = 0, deathsThisRun = 0, sweepsThisRun = 0, ghostsEatenThisRun = 0;
 // 星星第三颗看的是「这一关」反杀了几只，所以不能复用 ThisRun 那个。
@@ -2842,7 +2842,7 @@ let runBonuses = [];     // everything across the run, shown on the end screen
    声明跟在写入后面是一颗 TDZ 雷：哪天有人把调用挪前一点，炸点离源头很远。 */
 let ghostEatChain = 0;              // 同一颗能量豆内连续吃了几只（悬赏阶梯）
 let deathPause = 0, deathFlash = 0; // 死亡定格与红闪，见 loseLife
-let comboMilestoneHit = 0;          // 本局Combo里程碑已报到哪档，见 checkComboMilestone
+let comboMilestoneHit = 0;          // 本局连击里程碑已报到哪档，见 checkComboMilestone
 /* 温柔降难：同一关连续死 3 次（中途没通关），本关幽灵速度 ×0.9。
    运行时乘数 —— GHOST_BASE_SPEED 不变；过关或手动重开时归 1。
    只存内存，不落盘。 */
@@ -2860,7 +2860,7 @@ let mercySpeedMult = 1;
    非 raw 项目原来乘 1.5，现在乘 1.5 × 1.30 = 1.95。 */
 const SCORE_BOOST = 1.3;
 const SCORE_MULT = 1.95;
-/* 本轮只增加能续Combo的收集/反击奖励。固定结算奖励和Existing scores不再放大。 */
+/* 本轮只增加能续连击的收集/反击奖励。固定结算奖励和历史成绩不再放大。 */
 const COMBO_SCORE_BOOST = 1.3;
 
 /** 吃幽灵的悬赏步长：同一颗能量豆内第 n 只 = n × 这个数。不乘 SCORE_MULT。
@@ -2873,7 +2873,7 @@ const GHOST_BOUNTY_STEP = 13000;
  * must still bank and display whole numbers. The help text states this rule.
  */
 function addScore(base, raw){
-  // raw=true 跳过历史总倍率 1.95；本轮Combo加成只由 addComboScore 负责。
+  // raw=true 跳过历史总倍率 1.95；本轮连击加成只由 addComboScore 负责。
   const points = raw ? Math.round(base) : Math.round(base * SCORE_MULT);
   score += points;
   return points;
@@ -2899,24 +2899,24 @@ const HOUSE_DOOR = {x:9, y:8};
 const HOUSE_EXIT_TILE = {x:9, y:7};
 
 const GHOST_DEFS = [
-  {id:'chaser',  color:'--cyan',   label:'Dash'},
-  {id:'ambush',  color:'--danger', label:'Cutter'},
-  {id:'shy',     color:'--tang',   label:'Shy'},
-  {id:'patrol',  color:'--pink',   label:'Rounder'},
+  {id:'chaser',  color:'--cyan',   label:'闪闪'},
+  {id:'ambush',  color:'--danger', label:'狐狐'},
+  {id:'shy',     color:'--tang',   label:'软软'},
+  {id:'patrol',  color:'--pink',   label:'慢慢'},
 ];
 
 // 5th ghost, joins from level 2 on: a second chaser. Same id so every
 // id-keyed lookup (targeting AI, color) treats it exactly like the first,
 // but flagged `flank` so it aims beside the player instead of at them.
-const EXTRA_CHASER_DEF = {id:'chaser', color:'--cyan', label:'Dash', flank:true};
+const EXTRA_CHASER_DEF = {id:'chaser', color:'--cyan', label:'闪闪', flank:true};
 const FLANK_OFFSET_TILES = 4;
 
 // 6th ghost (level 3+): an ambusher that reads much further ahead, so it cuts
 // you off well before the regular ambusher would.
-const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--danger', label:'Cutter', lookahead:7};
+const EXTRA_AMBUSH_DEF = {id:'ambush', color:'--danger', label:'狐狐', lookahead:7};
 // 7th ghost (final level only): a patroller running the loop backwards, so the
 // two patrollers sweep opposite halves instead of trailing each other.
-const EXTRA_PATROL_DEF = {id:'patrol', color:'--pink', label:'Rounder', reverseRoute:true};
+const EXTRA_PATROL_DEF = {id:'patrol', color:'--pink', label:'慢慢', reverseRoute:true};
 
 /** Roster grows with the level: 4 -> 5 (L2) -> 6 (L3) -> 7 (final). */
 function ghostDefsForLevel(lvl){
@@ -2939,8 +2939,8 @@ function ghostReleaseGap(){
 /* ---------- durable local save ----------
  *
  * 旧版本把关键进度拆在多个 localStorage 键里。它们继续保留，避免升级时丢掉
- * 排行榜、图鉴和Daily Challenge；同时把玩家最在意的四项合成一个带版本号的稳定存档：
- * BEST、已解锁LEVEL、星级和设置。读取时逐字段校验并从旧键合并，任意一个旧键
+ * 排行榜、图鉴和每日挑战；同时把玩家最在意的四项合成一个带版本号的稳定存档：
+ * 最高分、已解锁关卡、星级和设置。读取时逐字段校验并从旧键合并，任意一个旧键
  * 损坏都不会拖垮其他数据。以后扩展结构只需迁移这一个入口。
  */
 const LOCAL_SAVE_KEY = 'doudou.save.v1';
@@ -3022,7 +3022,7 @@ function loadLocalSave(mutedFallback=false){
     && typeof raw.settings.muted === 'boolean';
   if (!hasMuted) saved.settings.muted = mutedFallback;
 
-  // 进度可以取并集；设置不能取 OR，否则玩家明确Unmute也会被旧键恢复。
+  // 进度可以取并集；设置不能取 OR，否则玩家明确取消静音也会被旧键恢复。
   try {
     saved.maxLevel = Math.max(saved.maxLevel,
       saveInteger(localStorage.getItem('doudou.reached'), 1, MAX_LEVEL, 1));
@@ -3043,7 +3043,7 @@ function loadLocalSave(mutedFallback=false){
 let localSave = loadLocalSave();
 function saveLocalState(mutedOverride){
   // 中文/英文或两个游戏标签页共享存储。每次写前合并最新进度，防止陈旧页
-  // 记录一次碰撞就把另一页新拿到的星星、解锁和BEST覆盖回去。
+  // 记录一次碰撞就把另一页新拿到的星星、解锁和最高分覆盖回去。
   const latest = loadLocalSave(localSave.settings.muted);
   if (validPlayerId(latest.playerId)) localSave.playerId = latest.playerId;
   localSave.highScore = Math.max(localSave.highScore, latest.highScore);
@@ -3052,7 +3052,7 @@ function saveLocalState(mutedOverride){
     const bits = (localSave.stars[lv] || 0) | (latest.stars[lv] || 0);
     if (bits) localSave.stars[lv] = bits;
   }
-  // 只有用户点Mute按钮时才覆盖设置；普通进度保存沿用最新明确选择。
+  // 只有用户点静音按钮时才覆盖设置；普通进度保存沿用最新明确选择。
   localSave.settings.muted = typeof mutedOverride === 'boolean'
     ? mutedOverride : latest.settings.muted;
   localSave.version = LOCAL_SAVE_VERSION;
@@ -3073,7 +3073,7 @@ saveLocalState();
 /* 调色板全程不变，所以查一次就存下来。
  *
  * 之所以值得单独说：原来这行每次调用都是一次 getComputedStyle，而它被写在了
- * 画Dot的双层循环里 —— 实测第一关每帧 361 次。getComputedStyle 不是读个属性
+ * 画豆子的双层循环里 —— 实测第一关每帧 361 次。getComputedStyle 不是读个属性
  * 那么便宜，它会迫使浏览器把样式重新解析一遍，是那种不看数字永远不会怀疑到的
  * 大头。缓存之后每帧只剩十来次（各画一次就命中）。
  *
@@ -3091,7 +3091,7 @@ const cssVar = (name)=>{
 
 /* ---------- retro synthesized audio (no external assets) ---------- */
 const Audio2 = (()=>{
-  /* Mute状态要存下来。原来只活在内存里 —— 玩家特意关掉声音（比如在教室、
+  /* 静音状态要存下来。原来只活在内存里 —— 玩家特意关掉声音（比如在教室、
      在孩子睡觉的房间），下次打开又哗啦响起来，还得再关一次。
      键带版本号：以后要改语义（比如分成音效/音乐两档）时，老值不会被误读。
      存储在无痕模式或配额满时会直接抛，所以照例包一层。 */
@@ -3165,8 +3165,8 @@ const Audio2 = (()=>{
     /**
      * 吃幽灵。声音随第几只越来越隆重。
      *
-     * 原来是固定的四个上行音，和Collect子那声"哇卡"是同一个量级 —— 可现在一只
-     * 幽灵值一万分，抵得上几百颗Dot，反馈却听不出区别，玩家不会觉得自己刚
+     * 原来是固定的四个上行音，和吃豆子那声"哇卡"是同一个量级 —— 可现在一只
+     * 幽灵值一万分，抵得上几百颗豆子，反馈却听不出区别，玩家不会觉得自己刚
      * 干了件大事。声音是这里唯一能表达"分量"的手段（画面上就是幽灵消失）。
      *
      * n 越大：音阶越长、起点越高、底下那记闷响越重。第四只往后加一层八度，
@@ -3201,7 +3201,7 @@ const Audio2 = (()=>{
       // 吃到水果先"嗡"一下再叮 —— 那一声低频是"规则变了"的信号
       tone(90, t, 0.34, {type:'sine', gain:0.20, slideTo:200, slideDur:0.34});
       tone(700,t+0.06,0.09,{type:'triangle',gain:0.16}); tone(1050,t+0.15,0.16,{type:'triangle',gain:0.16}); },
-    /** Combo里程碑（x10 / x20 / x50）：明亮的上行音阶，档越高音符越多、越亮。 */
+    /** 连击里程碑（x10 / x20 / x50）：明亮的上行音阶，档越高音符越多、越亮。 */
     comboMilestone(m){
       const t=now();
       const tier = m>=50 ? 2 : m>=20 ? 1 : 0;
@@ -3212,16 +3212,16 @@ const Audio2 = (()=>{
         if (tier >= 1) tone(base * Math.pow(1.26, i) / 2, t + i*0.05, 0.12, {type:'sine', gain:0.06});
       }
     },
-    /** Phasing倒数：3/2/1，越数越高越急 */
+    /** 穿墙倒数：3/2/1，越数越高越急 */
     phaseTick(n){ const t=now(); const f = n===3?520 : n===2?620 : 760;
       tone(f, t, 0.10, {type:'triangle', gain:0.13 + (3-n)*0.03}); },
-    /** Phasing结束：往下一沉，和吃到时的上扬正好相反 */
+    /** 穿墙结束：往下一沉，和吃到时的上扬正好相反 */
     phaseEnd(){ const t=now(); tone(300,t,0.26,{type:'sine',gain:0.15,slideTo:120,slideDur:0.26}); },
     death(){ const t=now(); [520,440,360,280,200].forEach((f,i)=>tone(f, t+i*0.11, 0.13, {type:'sawtooth', gain:0.15})); },
     levelUp(){ const t=now(); [440,554,660,880].forEach((f,i)=>tone(f, t+i*0.09, 0.14, {type:'square', gain:0.14})); },
     gameOver(){ const t=now(); [392,349,294,220,164].forEach((f,i)=>tone(f, t+i*0.16, 0.2, {type:'sawtooth', gain:0.15})); },
     victory(){ const t=now(); [523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f, t+i*0.13, 0.22, {type:'triangle', gain:0.15})); },
-    /* 破纪录的声音要和"GAME OVER"截然相反：后者是下行的丧气音阶，前者一路往上。
+    /* 破纪录的声音要和"游戏结束"截然相反：后者是下行的丧气音阶，前者一路往上。
        死了但破了纪录是个矛盾的时刻，声音必须替玩家定性——这是好事。 */
     newBest(){ const t=now(); [659,784,988,1319].forEach((f,i)=>{
       tone(f, t+i*0.11, 0.26, {type:'triangle', gain:0.17});
@@ -3249,7 +3249,7 @@ function resetLevel(fullReset){
   pelletsTotal = pelletsLeft; // fixed at level load, so eating progress reads 0 -> 1
   buildEyeField();            // 迷宫定下来了，把眼睛的回家地图重算一遍
   buildWallEdges();           // 墙的线段表也只跟迷宫有关，一关算一次就够
-  buildPortals();             // Portal坐标表：checkPortal 和绘制都不用再全图扫
+  buildPortals();             // 传送门坐标表：checkPortal 和绘制都不用再全图扫
   wallCacheDirty = true;      // 墙的离屏缓存跟着迷宫一起失效
   dotCacheDirty = true;
   staticFrameDirty = true;
@@ -3275,7 +3275,7 @@ function resetLevel(fullReset){
     x: SPAWN.ghosts[i].x, y: SPAWN.ghosts[i].y,
     dir:{x:0,y:-1},
     baseSpeed: ghostSpeed, speed: ghostSpeed,
-    // 单门依次放行，避免同速Enemy在出口永久叠成一团。
+    // 单门依次放行，避免同速敌人在出口永久叠成一团。
     state: i===0 ? 'exiting' : 'house',
     releaseAt: i * ghostReleaseGap(),
     warpCd:0, warpCdCh:null, warpStandingOn:null,
@@ -3289,12 +3289,12 @@ function resetLevel(fullReset){
   frightTimer = 0; ghostEatChain = 0;
   deathsThisLevel = 0; ghostsEatenThisLevel = 0; levelBonuses = [];
   mercySpeedMult = 1;   // 过关或重开：温柔降难复位（见 loseLife）
-  introTimer = 0;   // 复位LEVEL时清掉卡片，免得它挂在上一关的画面上
+  introTimer = 0;   // 复位关卡时清掉卡片，免得它挂在上一关的画面上
   deathPause = 0; deathFlash = 0;
   if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0;
     currentRunId = createPlayerId(); runActiveSeconds = 0; lastCloudEntry = null;
     if (window.NeonCompetition) window.NeonCompetition.reset();
-    /* 每一局默认都**不是**Daily Challenge。startDaily 在 startPractice 回来之后才把它
+    /* 每一局默认都**不是**每日挑战。startDaily 在 startPractice 回来之后才把它
        打开——放这儿而不是放 startDaily 里清，是为了让"忘了清"这件事不可能发生：
        任何开局路径都经过这里。 */
     dailyRun = false; }
@@ -3315,22 +3315,22 @@ function resetLevel(fullReset){
  * 能接关的话这个成就就不值钱了，而通关的满足感恰恰是整个游戏的终点。
  *
  * 所以拆成两种模式，边界划得很硬：
- *   正式挑战：六关连打，计分、进排行榜、有GRADE、有通关庆祝
- *   练习：单独打某一关，**完全不计分**，没有排行榜、不更新BEST、
+ *   正式挑战：六关连打，计分、进排行榜、有评级、有通关庆祝
+ *   练习：单独打某一关，**完全不计分**，没有排行榜、不更新最高分、
  *        清掉也不算通关，只说一句"练习完成"
  * 练习是拿来练手的，不是拿来刷成绩的——它换来的是"再试一次"的成本从
  * 四关变成零，而通关的含金量一分没少。
  *
- * 只能练**已经打到过**的LEVEL：没到过第五关就直接跳过去练，六关递进的设计
- * 就白做了，而且小孩会一头撞进远超自己水平的LEVEL。
+ * 只能练**已经打到过**的关卡：没到过第五关就直接跳过去练，六关递进的设计
+ * 就白做了，而且小孩会一头撞进远超自己水平的关卡。
  */
 const REACHED_KEY = 'doudou.reached';
 let practiceLevel = null;          // null = 正式挑战
 let practiceOfferLevel = 1;        // 结算页那个「练习第 N 关」按钮指向哪一关
 
 function maxLevelReached(){
-  // 选关/Daily Challenge打开时再读最新解锁：另一标签页或兼容旧构建可能刚通关。
-  // 这里只会在菜单和开局路径调用，避免每帧读存储；旧值也不能重新锁回LEVEL。
+  // 选关/每日挑战打开时再读最新解锁：另一标签页或兼容旧构建可能刚通关。
+  // 这里只会在菜单和开局路径调用，避免每帧读存储；旧值也不能重新锁回关卡。
   const saved = readStoredJSON(LOCAL_SAVE_KEY);
   if (saveObject(saved)) localSave.maxLevel = Math.max(localSave.maxLevel,
     saveInteger(saved.maxLevel, 1, MAX_LEVEL, 1));
@@ -3341,7 +3341,7 @@ function maxLevelReached(){
   return localSave.maxLevel;
 }
 function noteLevelReached(lv){
-  // 只有正式挑战里到达的LEVEL才算解锁 —— 练习不能拿来给自己解锁下一关
+  // 只有正式挑战里到达的关卡才算解锁 —— 练习不能拿来给自己解锁下一关
   if (practiceLevel) return;
   const reached = saveInteger(lv, 1, MAX_LEVEL, 1);
   if (reached <= localSave.maxLevel) return;
@@ -3469,7 +3469,7 @@ function stepEntity(ent, dt, chooseDir, onArrive){
 
 /** How long the mystery fruit lets the player walk through walls. */
 const FRUIT_PHASE_SECONDS = 10;
-/** Phasing期间的速度倍率，同时顶替Dash加成。见 applySpeedModifiers 里的说明。 */
+/** 穿墙期间的速度倍率，同时顶替冲刺加成。见 applySpeedModifiers 里的说明。 */
 const FRUIT_PHASE_SPEED_MULT = 0.88;
 
 /**
@@ -3531,31 +3531,31 @@ function rescueFromWall(){
 // 数值走过 1.0 → 2.0 → 1.2。一度需要 2.0，是因为它在兼职兜一个 bug：
 // 站在落地那扇门上不动，冷却一到就会被自己传回去。那件事已经由上面的
 // warpStandingOn 单独解决，冷却不必再当安全网，只剩一个职责 ——
-// 别让Portal变成可以无限刷的走位手段。
+// 别让传送门变成可以无限刷的走位手段。
 // 现在试 0：完全不冷却。
 // 敢归零是因为安全网已经不靠它了 —— 上面的 warpStandingOn 保证"站在落地那扇
 // 门上永远不会再触发"，所以不会有自动来回弹射。归零之后想再穿一次，必须**自己
 // 走回门上**，而每次落地又有 0.75 秒的选方向停顿，成本天然存在。
-// 换来的是被追急时可以贴着Portal反复周旋 —— 这是不是好玩，得真人试了才知道。
+// 换来的是被追急时可以贴着传送门反复周旋 —— 这是不是好玩，得真人试了才知道。
 const PORTAL_COOLDOWN_SECONDS = 0;
 
 /**
- * 落地之后重新安顿好朝向、待转向和Dash蓄力。
+ * 落地之后重新安顿好朝向、待转向和冲刺蓄力。
  *
  * 不做这一步的话，玩家是**朝着一堵墙、满速、还带着一个过期转向指令**落地的：
  *   - 朝向照搬穿越前的方向，可落点的走廊往往完全不是那个走向。实测多数
- *     Portal的落点**只有一个出口**（第一关四个全是），所以"落地面壁"是常态，
+ *     传送门的落点**只有一个出口**（第一关四个全是），所以"落地面壁"是常态，
  *     玩家得先愣一下、再重按方向键才动得了。
- *   - want 是穿越前缓存的转向，跨过Portal之后早就没意义了，留着会在落点
+ *   - want 是穿越前缓存的转向，跨过传送门之后早就没意义了，留着会在落点
  *     附近某个路口冷不丁触发一次莫名其妙的拐弯。
- *   - Dash蓄力原样保留 = 1.22 倍速落地。换了个完全陌生的角落还开着最高速，
+ *   - 冲刺蓄力原样保留 = 1.22 倍速落地。换了个完全陌生的角落还开着最高速，
  *     这是最难控的一点。
  *
  * 处理顺序刻意是"能直走就直走"优先：保住流畅感，只有走不通时才接管。
  */
 function orientAfterWarp(ent){
-  ent.want = {x:0, y:0};        // 过期的转向指令不跨Portal
-  ent.straightTiles = 0;        // 换地方了，Dash从零重新起
+  ent.want = {x:0, y:0};        // 过期的转向指令不跨传送门
+  ent.straightTiles = 0;        // 换地方了，冲刺从零重新起
   if (ent.trail){ ent.trail.length = 0; ent.trailAt = ent.distTravelled || 0; }
 
   const cx = Math.round(ent.x), cy = Math.round(ent.y);
@@ -3565,7 +3565,7 @@ function orientAfterWarp(ent){
    *
    * 之前是"只有一个出口就替他转过去、立刻满速跑起来"。看着体贴，实际很糟：
    * 人被瞬间挪到地图另一个角，还没看清自己在哪、幽灵在哪，就已经在跑了。
-   * Portal本来是用来脱险的，结果落地那一下反而最容易送命。
+   * 传送门本来是用来脱险的，结果落地那一下反而最容易送命。
    *
    * 停住不等于慢：按下方向的**那一帧**就走（人站在格心上，stepEntity 会立刻
    * 重新选方向）。所以想好了的人零延迟，没想好的人有时间看——两头都照顾到。
@@ -3619,11 +3619,11 @@ function checkPortal(ent){
   /* 脚下这扇门就是刚把你送过来的那扇 —— 不再触发，直到你走开。
    *
    * 这条比冷却更根本。原先只靠冷却兜底，于是出现了这个 bug：落在有岔路的
-   * Portal上、玩家没按方向（正在看局面），冷却一到就被传回去，然后来回弹个
+   * 传送门上、玩家没按方向（正在看局面），冷却一到就被传回去，然后来回弹个
    * 不停 —— 实测第二关干等 6 秒能弹 9 次。
    *
    * 靠"把冷却调长"去压这个问题是治标的：等得越久只是弹得越慢，而代价是
-   * 真正想再用一次Portal时也得干等。把"站着不算触发"单独写出来之后，
+   * 真正想再用一次传送门时也得干等。把"站着不算触发"单独写出来之后，
    * 冷却就回归成一个纯粹的玩法旋钮，可以按手感自由调短。
    */
   if (ent.warpStandingOn && ent.warpStandingOn.x === cx && ent.warpStandingOn.y === cy) return;
@@ -3644,7 +3644,7 @@ function checkPortal(ent){
       Audio2.warp();
       // 第一次用到才讲。写在说明里没人看，而这一刻他刚被传走，正想知道
       // 发生了什么 —— 同一句话在这个时候的效果，比放在文档里高得多。
-      hintOnce('portal', 'Portals are paired at the four corners — matching colors connect', 500);
+      hintOnce('portal', '传送门：四角成对，颜色相同的两个互通', 500);
     }
     return;
   }
@@ -3699,15 +3699,15 @@ function applyCornerAssist(ent){
   if (w.x === ent.dir.x && w.y === ent.dir.y) return;          // straight on
   if (w.x === -ent.dir.x && w.y === -ent.dir.y) return;        // reversal's job
 
-  /* Phasing时转向立刻生效，不必等到前方那个路口。
+  /* 穿墙时转向立刻生效，不必等到前方那个路口。
    *
    * 平时只允许提前 0.45 格是有道理的：转弯得落在真的路口上，否则会拐进墙里。
-   * 但Phasing时**每一格都是路口**，这条限制就纯粹是在碍事了——玩家眼看着目标在
+   * 但穿墙时**每一格都是路口**，这条限制就纯粹是在碍事了——玩家眼看着目标在
    * 左边，却要先往前飘过大半格才拐得动。这个道具最大的卖点就是"想去哪去哪"，
    * 转向却不跟手，卖点就没了。
    *
    * 就近取整而不是取前方那一格：这样最多只修正半格，而且允许**往回**贴一点。
-   * 往回在平时是不行的（会退进墙里），Phasing时正好没有这个问题。
+   * 往回在平时是不行的（会退进墙里），穿墙时正好没有这个问题。
    * 仍然落在格心上，不让玩家跑到格线之间——那会让 stepEntity 再也找不到
    * 重新选方向的时机，人就卡死了（幽灵那个 bug 就是这么来的）。 */
   if (ent.phase > 0){
@@ -3908,7 +3908,7 @@ function buildWallEdges(){
   wallEdges = e;
 }
 
-/* Portal坐标表。一共就四格，原来 checkPortal 和每帧的绘制都要做 399 格
+/* 传送门坐标表。一共就四格，原来 checkPortal 和每帧的绘制都要做 399 格
    全图扫描才能找到它们 —— 建关时存下来，之后都是 O(4)。 */
 let portalTiles = { '1': [], '2': [] };
 function buildPortals(){
@@ -3924,7 +3924,7 @@ function buildPortals(){
    渲染到一块离屏画布，之后每帧一次 drawImage；resize/DPR 变化由
    fitMazeCanvas 标脏重建。离屏造不出来（微信垫片等）就退回每帧现画，
    行为和原来一模一样。鬼门那两条线从不变色，一并进缓存。
-   Phasing期间不走缓存：那时墙要变淡变虚线，是每帧都在变的少数时刻。 */
+   穿墙期间不走缓存：那时墙要变淡变虚线，是每帧都在变的少数时刻。 */
 function drawWallsNormal(c2){
   c2.save();
   c2.lineCap = 'round';
@@ -3992,7 +3992,7 @@ function rebuildWallCache(){
   }
 }
 
-/* 普通Dot不需要每帧重建 175 个圆弧。它们和墙一样先画进离屏层；吃掉一颗时
+/* 普通豆子不需要每帧重建 175 个圆弧。它们和墙一样先画进离屏层；吃掉一颗时
    只清掉那颗周围的一小块。最后十颗为了保留“呼吸提示”才退回动态绘制。 */
 function drawRegularDots(c2, glow){
   const r = PELLET_R;
@@ -4093,18 +4093,18 @@ function bestDirTo(ent, target, excludeReverse){
 
 /* ---------- combo / scoring ----------
  *
- * Combo窗口：吃到一颗之后有这么久去够下一颗，超时归零。
+ * 连击窗口：吃到一颗之后有这么久去够下一颗，超时归零。
  *
- * 原来是 1.15 秒平摊倒计时，问题出在**地图后期**：Dot越来越稀，玩家为了够
- * 剩下几颗必然要穿过已经吃空的走廊，Combo断在这儿不是因为菜，是因为地图就长
+ * 原来是 1.15 秒平摊倒计时，问题出在**地图后期**：豆子越来越稀，玩家为了够
+ * 剩下几颗必然要穿过已经吃空的走廊，连击断在这儿不是因为菜，是因为地图就长
  * 那样。这种"冤枉断连"会让人觉得规则在耍赖。
  *
  * 但单纯把窗口调大到 1.5 秒又会把"别停下"这层紧张感一起冲掉——站着不动也能
- * 保住Combo，那Combo就不再奖励什么了。
+ * 保住连击，那连击就不再奖励什么了。
  *
  * 所以改成两档衰减：**在跑就慢扣，停下就快扣**。
  *   跑动中：基础余量从 1.6 提到 1.76 秒（+10%）
- *   停下来：仍然 3 倍速扣；随Combo宽限，约 0.6–0.9 秒就断
+ *   停下来：仍然 3 倍速扣；随连击宽限，约 0.6–0.9 秒就断
  * 规则本身还是"别停、往前冲"，只是不再因为地图空了而惩罚玩家。
  */
 const COMBO_WINDOW = 1.76;
@@ -4113,13 +4113,13 @@ const COMBO_IDLE_DECAY = 3.0;
 
 /* 连得越长，窗口给得越宽 —— 但**有上限**。
  *
- * 理由不是"让玩家轻松"，而是难度曲线本身是反的：Combo越高，剩下的Dot越少、
+ * 理由不是"让玩家轻松"，而是难度曲线本身是反的：连击越高，剩下的豆子越少、
  * 越分散，续上一颗的难度自然越大。窗口不变的话，等于越到后面越苛刻，
- * 高Combo不是靠本事保住的，是靠地图还没被吃空。
+ * 高连击不是靠本事保住的，是靠地图还没被吃空。
  *
  * 宽限也同步 +10%，封在 +0.99 秒（x45 触顶），总窗口最多 2.75 秒。
- * 再宽下去，高Combo就变成"断不了"，那份"别断啊"的
- * 紧张感——也就是Combo唯一的乐趣——就没了。停下不动仍然是 3 倍速扣，
+ * 再宽下去，高连击就变成"断不了"，那份"别断啊"的
+ * 紧张感——也就是连击唯一的乐趣——就没了。停下不动仍然是 3 倍速扣，
  * 所以"别停"这条规矩一点没松。
  */
 const COMBO_GRACE_PER = 0.022;  // 原 0.02 ×1.1
@@ -4129,13 +4129,13 @@ function comboWindow(){
   return COMBO_WINDOW + Math.min(COMBO_GRACE_MAX, combo * COMBO_GRACE_PER);
 }
 
-/** 剩几颗Dot开始呼吸闪烁 / 几颗开始明显跳动。见Dot的绘制。 */
-/* ---------- 两种Dot的尺寸与光晕 ----------
+/** 剩几颗豆子开始呼吸闪烁 / 几颗开始明显跳动。见豆子的绘制。 */
+/* ---------- 两种豆子的尺寸与光晕 ----------
  *
  * 这几个数以前是散在 drawMaze 里的字面量，于是出过一次很难发现的事故：
- * "剩最后几颗时让Dot喘气"这个效果，把小豆的半径从 2.6 一路胀到 5.1、光晕
+ * "剩最后几颗时让豆子喘气"这个效果，把小豆的半径从 2.6 一路胀到 5.1、光晕
  * 涨到 24 —— 而大豆的半径最小才 3.2、光晕固定 12。结果是**反过来的**：
- * 最该显眼的能量豆，被普通Dot在大小和亮度上同时盖过去，玩家分不出哪颗
+ * 最该显眼的能量豆，被普通豆子在大小和亮度上同时盖过去，玩家分不出哪颗
  * 是能量豆。
  *
  * 现在的规矩：小豆**只亮不胀**，半径恒定；能量豆永远更大、也永远更亮。
@@ -4149,32 +4149,32 @@ const PELLET_GLOW_SWING = 4.5;   // 最后几颗仍会呼吸，但不再糊成�
 const PELLET_GLOW_BASE_SWING = 1;// 呼吸的固定部分
 const POWER_R           = 5.0;   // 能量豆半径中心值
 const POWER_R_SWING     = 0.7;   // 能量豆脉动幅度 → 4.3 ~ 5.7
-const POWER_GLOW        = 9;     // Power Star仍比小豆更亮，但边界清楚
+const POWER_GLOW        = 9;     // 能量星仍比小豆更亮，但边界清楚
 
 const LAST_PELLET_HINT = 10;
 // 剩三颗才转成明显跳动：那时候才真的开始「到底在哪」，五颗时一般还看得见
 const LAST_PELLET_LOUD = 3;
 
 /**
- * 续上Combo：加一级、把倒计时打满。**不加分**——给谁加、加多少由调用方决定。
+ * 续上连击：加一级、把倒计时打满。**不加分**——给谁加、加多少由调用方决定。
  *
- * 抽出来是因为原先只有"Collect子"这一条路会续Combo，于是出现了一个很别扭的冲突：
+ * 抽出来是因为原先只有"吃豆子"这一条路会续连击，于是出现了一个很别扭的冲突：
  * 游戏用 1 万 / 2 万 / 3 万的悬赏拼命鼓励玩家转身去追幽灵，可追幽灵要横穿
- * 半张图、好几秒吃不到豆 —— **Combo就这么断了**。一边发奖金让你去做一件事，
+ * 半张图、好几秒吃不到豆 —— **连击就这么断了**。一边发奖金让你去做一件事，
  * 一边因为你做了而没收你的倍率，两套核心机制在互相拆台。
  *
- * 吃幽灵是这游戏里最难、最需要胆量的操作，它理应喂养Combo，而不是掐断它。
+ * 吃幽灵是这游戏里最难、最需要胆量的操作，它理应喂养连击，而不是掐断它。
  * 水果同理：它拿 combo 当倍率却不续期，等于只吃不喂。
  */
 function sustainCombo(){
   combo = combo + 1;
   comboTimer = comboWindow();
-  if (combo === 5) hintOnce('combo', 'Combo x5! Dots, Power Stars and counters all extend it; dots and crystals use the multiplier', 0);
+  if (combo === 5) hintOnce('combo', '连击 x5！小豆、大豆和反击都续连击；豆子与晶石按倍率加分', 0);
   checkComboMilestone();
   updateHud();
 }
 
-/** 同一入口处理小豆、大豆、晶石和Enemy：加成后只取整一次，再续Combo。 */
+/** 同一入口处理小豆、大豆、晶石和敌人：加成后只取整一次，再续连击。 */
 function addComboScore(base, raw){
   const points = addScore(base * COMBO_SCORE_BOOST, raw);
   sustainCombo();
@@ -4185,9 +4185,9 @@ function addPelletScore(base){
   return addComboScore(base * combo);
 }
 
-/* ---------- Combo里程碑 ----------
+/* ---------- 连击里程碑 ----------
  *
- * Combo上不封顶，可越往上爬反馈越不变 —— x8 和 x80 在屏幕上是一模一样的，
+ * 连击上不封顶，可越往上爬反馈越不变 —— x8 和 x80 在屏幕上是一模一样的，
  * 玩家没有理由为了保住 x47 而绷紧。给它几个台阶，让"别断"这件事自己有分量。
  *
  * 三条规矩：
@@ -4206,9 +4206,9 @@ function checkComboMilestone(){
       comboMilestoneHit = m;
       Audio2.comboMilestone(m);
       startComboFx();
-      toast(m >= 50 ? `Combo x${m}! The whole maze is cheering`
-          : m >= 20 ? `Combo x${m}! Unstoppable`
-          :           `Combo x${m}! Great rhythm`);
+      toast(m >= 50 ? `连击 x${m}！全场为你鼓掌`
+          : m >= 20 ? `连击 x${m}！停不下来了`
+          :           `连击 x${m}！好节奏`);
     }
   }
 }
@@ -4234,14 +4234,14 @@ function hintSeen(id){
   return !!hintSeenCache[id];
 }
 
-/* ---------- 长期进度：星星册 · ENEMY CODEX · Daily Challenge ----------
+/* ---------- 长期进度：星星册 · 对手图鉴 · 每日挑战 ----------
  *
- * 前面那些 localStorage 键（SCORE、名字、提示、Mute）记的都是**一局之内**或者
+ * 前面那些 localStorage 键（分数、名字、提示、静音）记的都是**一局之内**或者
  * 一次性的事。这一个不同：它记的是这个孩子玩了几个月之后手里攒下了什么。
  *
  * 合成一个键而不是三个：这三样天天都在写（每过一关写星星、每被抓一次写图鉴、
  * 每天写一次挑战），分成三个键就要读写三次、失败三次、迁移三次。而它们的
- * LIVES周期是同一个 —— 都是"这个人的存档"，要清就一起清。
+ * 生命周期是同一个 —— 都是"这个人的存档"，要清就一起清。
  *
  * 出错一律吞掉走默认值：无痕模式、存储配额满、别的站点写脏了同名键，都不该
  * 让游戏打不开。星星丢了是可惜，白屏是事故。
@@ -4299,33 +4299,33 @@ function saveProgress(){
   saveLocalState();
   // 双写旧键也必须用合并后的星星，不能留下第二份已经回退的存档。
   progress.stars = {...localSave.stars};
-  // 图鉴和Daily Challenge仍写旧进度键；后续版本可独立迁移，不扩大本次风险。
+  // 图鉴和每日挑战仍写旧进度键；后续版本可独立迁移，不扩大本次风险。
   try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
 }
 loadProgress();
 
-/* ---------- ENEMY CODEX ----------
+/* ---------- 对手图鉴 ----------
  *
  * 这一栏是把**挫败翻译成收藏**。被同一个对手抓了十次，孩子记住的原本只是
  * "我又死了"；图鉴让那十次变成一行数字和一句"它是这么动的"。
  *
  * 所以每条的 how 必须是**可执行的对策**，不是形容词。"很凶"没用，
  * "拐个弯就甩掉了"才有用 —— 这句话下次真的会改变他的手指。
- * 名字和颜色跟 GHOST_DEFS 走，行为描述跟HOW TO PLAY里那四行走，改了记得同步。
+ * 名字和颜色跟 GHOST_DEFS 走，行为描述跟玩法说明里那四行走，改了记得同步。
  */
 const OWL_CODEX = [
-  { id:'chaser', name:'Dash', color:'--cyan',
-    how:'Locks onto your position. Use junctions to open a gap; later levels add flanking partners.',
-    tip:'Dash tracks you — use junctions to open a gap' },
-  { id:'ambush', name:'Cutter', color:'--danger',
-    how:'It targets **where you are going**, not where you are. Keep running straight and it will cut you off.',
-    tip:'Cutter gets ahead of you — do not keep running one way' },
-  { id:'shy',    name:'Shy', color:'--tang',
-    how:'It chases from afar, then retreats toward a corner. Watch its escape route, but do not collide with it.',
-    tip:'Shy backs away up close — watch its escape route' },
-  { id:'patrol', name:'Rounder', color:'--pink',
-    how:'Patrols fixed targets. Read its direction before crossing; the final level adds a reverse patrol.',
-    tip:'Rounder follows its loop — remember the route to avoid it' },
+  { id:'chaser', name:'闪闪', color:'--cyan',
+    how:'锁定你的位置追踪。利用岔路拉开距离，后续关卡还会有同伴包抄。',
+    tip:'闪闪会追踪你 —— 利用岔路拉开距离' },
+  { id:'ambush', name:'狐狐', color:'--danger',
+    how:'不追你，追你**要去的地方**。老朝一个方向跑，正好撞它怀里。',
+    tip:'狐狐会抄到你前面 —— 别一直朝一个方向跑' },
+  { id:'shy',    name:'软软', color:'--tang',
+    how:'离得远时追踪，靠近时转向角落。观察它的退路，但不要直接撞上去。',
+    tip:'软软靠近时会退开 —— 留意退路，别直接碰撞' },
+  { id:'patrol', name:'慢慢', color:'--pink',
+    how:'沿固定目标巡逻。看准它经过的方向再穿过路口，最后一关还要留意反向巡逻。',
+    tip:'慢慢只走它那个圈 —— 记住它的路线就能避开' },
 ];
 
 /** 记一笔图鉴。kind: 'met' 见过 · 'caught' 被它抓 · 'ate' 反杀它 */
@@ -4337,7 +4337,7 @@ function noteOwl(id, kind){
   saveProgress();
 }
 
-/** 这一关会出场的对手都算"见过"——开LEVEL时记一次，不等它真的追上来。 */
+/** 这一关会出场的对手都算"见过"——开关卡时记一次，不等它真的追上来。 */
 function noteOwlsSeen(lvl){
   const ids = new Set(ghostDefsForLevel(lvl).map(d => d.id));
   let dirty = false;
@@ -4370,11 +4370,11 @@ function owlCodexView(){
  * 的人也知道自己差在哪，不会去改玩法。分成三种，他会**换一种打法**再来 ——
  * 那才是这套东西存在的理由。
  */
-const STAR_GOALS = ['Clear this level', 'Take no damage', 'Counter 2 enemies'];
+const STAR_GOALS = ['通关这一关', '一次都不死', '反杀 2 个对手'];
 
 /** 结算这一关拿到几颗，写进存档，返回本次**新拿到**的颗数。 */
 function awardStars(lvl){
-  let bits = 1;                                  // 能走到这儿就是清光了Dot
+  let bits = 1;                                  // 能走到这儿就是清光了豆子
   if (deathsThisLevel === 0)      bits |= 2;
   if (ghostsEatenThisLevel >= 2)  bits |= 4;
   const had = progress.stars[lvl] || 0;
@@ -4388,18 +4388,18 @@ function countBits(b){ return (b&1?1:0) + (b&2?1:0) + (b&4?1:0); }
 function starsOf(lvl){ return countBits(progress.stars[lvl] || 0); }
 function totalStars(){ let t = 0; for (let i=1;i<=MAX_LEVEL;i++) t += starsOf(i); return t; }
 
-/* ---------- Daily Challenge ----------
+/* ---------- 每日挑战 ----------
  *
  * 这一条是给"爸爸和儿子"设计的，不是给排行榜设计的。
  *
- * 排行榜比的是历史BEST —— 一旦一方冲出一个高分，另一方要追很久，中间那些
- * 天就没得比了。Daily Challenge每天零点清空：今天谁高谁就赢了今天。这才是一对父子
+ * 排行榜比的是历史最高分 —— 一旦一方冲出一个高分，另一方要追很久，中间那些
+ * 天就没得比了。每日挑战每天零点清空：今天谁高谁就赢了今天。这才是一对父子
  * 每天能玩一轮的东西。
  *
- * LEVEL由日期和已解锁范围决定：解锁进度相同的玩家当天选到同一关。
+ * 关卡由日期和已解锁范围决定：解锁进度相同的玩家当天选到同一关。
  * 只从**已解锁**的关里挑 —— 出一关孩子还没打到的，今天他就直接出局了。
  *
- * 它走练习模式的路子，所以整局不进排行榜。这是故意的：Daily Challenge允许反复重来，
+ * 它走练习模式的路子，所以整局不进排行榜。这是故意的：每日挑战允许反复重来，
  * 能进榜的话刷分就太容易了，而排行榜的价值全在"不好刷"。
  */
 function todayKey(){
@@ -4410,7 +4410,7 @@ function todayKey(){
 function dailyLevel(){
   const top = Math.max(1, maxLevelReached());
   /* 先把日期打散再取模。直接 todayKey() % top 的话，连着几天的日期号只差 1，
-     LEVEL就只是 1→2→3 地顺着走，一眼能猜到明天是哪关。
+     关卡就只是 1→2→3 地顺着走，一眼能猜到明天是哪关。
 
      打散必须用 Math.imul：写成 todayKey() * 2654435761 的话，乘积是 5.4e16，
      超过 Number.MAX_SAFE_INTEGER（9.0e15），结果被舍到 8 的倍数上，于是
@@ -4434,11 +4434,11 @@ function recordDaily(sc){
   saveProgress();
   return true;
 }
-let dailyRun = false;   // 本局是不是Daily Challenge，endGame 要用
+let dailyRun = false;   // 本局是不是每日挑战，endGame 要用
 
 /* ---------- 开局的滑动手势 ----------
  *
- * 这一条以前是弹一行字："滑动屏幕 或 按方向键Move"。换成动画有两个理由：
+ * 这一条以前是弹一行字："滑动屏幕 或 按方向键移动"。换成动画有两个理由：
  *
  * 一是**读字有门槛**。这游戏主要给小朋友玩，一年级的孩子读一行字要好几秒，
  * 而这几秒里幽灵已经出来了。手势是看一眼就懂的，不认字也懂。
@@ -4470,7 +4470,7 @@ function checkPowerPelletNearby(){
       if (tileAt(x, y) !== 'o') continue;
       const pdx = x-player.x, pdy = y-player.y;
       if (pdx*pdx + pdy*pdy <= POWER_HINT_TILES*POWER_HINT_TILES){
-        hintOnce('power', 'Power Star: collect it to fight back', 0);
+        hintOnce('power', '能量星：收集后就能反击敌人', 0);
         return;
       }
     }
@@ -4489,7 +4489,7 @@ function drawSwipeHint(){
   if (!swipeHint) return;
   // 弹层盖着的时候不算数，跟文字提示同一个规矩：没真的显示就不能算用掉
   if (gameState !== 'playing') return;
-  /* LEVEL卡片期间也不画：那段时间 elapsed 是冻住的，手势会定格成一个不动的
+  /* 关卡卡片期间也不画：那段时间 elapsed 是冻住的，手势会定格成一个不动的
      点，看起来像卡住了。等卡片过去再从头划。 */
   if (introTimer > 0) return;
   if (!swipeHint.until){
@@ -4597,9 +4597,9 @@ function eatPelletAt(x,y){
     triggerChomp();
     startPowerMode();
     ghostEatChain = 0;
-    /* 恐惧时长不乘Combo（见 frightSeconds），原来的「幽灵受惊 ×combo」会让玩家
-       以为Combo越高恐惧越久 —— 不是。toast 只报告真正发生的事。 */
-    toast('Power Star! You can fight back now');
+    /* 恐惧时长不乘连击（见 frightSeconds），原来的「幽灵受惊 ×combo」会让玩家
+       以为连击越高恐惧越久 —— 不是。toast 只报告真正发生的事。 */
+    toast('能量星！现在可以反击敌人');
     Audio2.power();
   }
 }
@@ -4618,7 +4618,7 @@ function eatPelletAt(x,y){
 // "I got faster" without costing control.
 const FRIGHT_PLAYER_SPEED_MULT = 1.15;
 const FRIGHT_GHOST_SPEED_MULT = 0.85;
-// 六关可反击时间统一为 9 秒。续星刷新，而不是累加；不受Combo multiplier影响。
+// 六关可反击时间统一为 9 秒。续星刷新，而不是累加；不受连击倍率影响。
 const FRIGHT_SECONDS = 9;
 function frightSeconds(){
   return FRIGHT_SECONDS;
@@ -4627,7 +4627,7 @@ function frightSeconds(){
 function startPowerMode(){
   frightTimer = frightSeconds();
   ghosts.forEach(g=>{
-    // 已被吃掉、正在回家的Enemy保持 eaten；其余场上Enemy统一进入可反击状态。
+    // 已被吃掉、正在回家的敌人保持 eaten；其余场上敌人统一进入可反击状态。
     if (g.state!=='house' && g.state!=='eaten'){
       if (g.state!=='frightened') g.dir = opposite(g.dir);
       g.state = 'frightened';
@@ -4666,12 +4666,12 @@ function endPowerMode(){
 const MOMENTUM_RAMP_TILES = 5;
 const MOMENTUM_MAX = 1.22;
 /* 闪烁频率。WCAG 2.1 的通用闪烁阈值是每秒 3 次，这两个都压在下面。
-   Phasing比无敌更慢，因为它持续 10 秒而无敌只有 1.6~2.4 秒 —— 越长越要温和。 */
+   穿墙比无敌更慢，因为它持续 10 秒而无敌只有 1.6~2.4 秒 —— 越长越要温和。 */
 const PHASE_PULSE_HZ = 2;
 const INVULN_PULSE_HZ = 3;
 /* 能量结束的小夜枭警示也保持温和：2Hz 足够醒目，不再每秒四次硬闪。 */
 const GHOST_WARNING_HZ = 2;
-/* Phasing结束时整张迷宫只做轻微呼吸；红色倒计时条负责真正的警示。 */
+/* 穿墙结束时整张迷宫只做轻微呼吸；红色倒计时条负责真正的警示。 */
 const PHASE_WALL_WARNING_HZ = 2;
 /* 游戏内豆豆必须给通道留出读路空间。30px 图框里的实色角色约 23px，
    和 26px 通道、小游戏的矢量豆豆尺寸相配；不再使用原来的 38px 大头像。 */
@@ -4695,16 +4695,16 @@ function momentumMult(){
 
 function applySpeedModifiers(){
   const powered = frightTimer > 0;
-  /* Phasing时**不吃Dash加成**，另外再慢一档。
+  /* 穿墙时**不吃冲刺加成**，另外再慢一档。
    *
-   * Dash的设计意图是"敢走长直线就奖励你"。可Phasing的时候没有墙逼你转弯，长直线
+   * 冲刺的设计意图是"敢走长直线就奖励你"。可穿墙的时候没有墙逼你转弯，长直线
    * 是白送的，动量必然顶满 1.22 倍 —— 奖励的不是胆量，只是道具本身。结果第六关
-   * Phasing状态下是 6.86×1.22≈8.4 格/秒，横穿整张图 2.3 秒，根本来不及瞄。
+   * 穿墙状态下是 6.86×1.22≈8.4 格/秒，横穿整张图 2.3 秒，根本来不及瞄。
    *
    * 道具变得难用，等于把最有意思的一个道具做废了：玩家吃到它反而不敢乱走。
-   * 现在改成Phasing期间锁 0.88 倍，比平时还慢一点 —— 换来的是能贴着想去的那颗豆
+   * 现在改成穿墙期间锁 0.88 倍，比平时还慢一点 —— 换来的是能贴着想去的那颗豆
    * 停下、能在墙里精确改道。速度它本来就不缺，缺的是控制。
-   * （第六关 6.86×0.88≈6.0，仍然快过Enemy的统一基础速度 2.35。） */
+   * （第六关 6.86×0.88≈6.0，仍然快过敌人的统一基础速度 2.35。） */
   const phasing = player.phase > 0;
   player.speed = player.baseSpeed
     * (powered ? FRIGHT_PLAYER_SPEED_MULT : 1)
@@ -4751,12 +4751,12 @@ function handleGhostCollisions(){
     if (isEdible(g)){
       ghostEatChain++;
       /* 悬赏：同一颗能量豆内，第 n 只实际值 n × 1.69 万分。
-         原来是 200×2^n（封顶第 4 只），换算下来最多两千出头 —— 和一路Collect子
+         原来是 200×2^n（封顶第 4 只），换算下来最多两千出头 —— 和一路吃豆子
          的收益比起来，主动去追幽灵完全不划算，玩家自然选择躲。现在一只就抵
-         得上几百颗Dot，"敢不敢转身"才成为真正的决策。
+         得上几百颗豆子，"敢不敢转身"才成为真正的决策。
          按线性递增而不是翻倍：翻倍到第 7 只会是 64 万，一次全灭就锁死排行榜，
          后面再玩多久都没意义。 */
-      // 悬赏再 +30%，并续同一条Combo；不额外叠乘Collect倍率。
+      // 悬赏再 +30%，并续同一条连击；不额外叠乘吃豆倍率。
       const pts = addComboScore(ghostEatChain * GHOST_BOUNTY_STEP, true);
       g.state='eaten';
       g.eatenThisFright = true;   // 这轮不能再吃第二次，见 isEdible
@@ -4764,11 +4764,11 @@ function handleGhostCollisions(){
       ghostsEatenThisLevel++;
       noteOwl(g.id, 'ate');
       applySpeedModifiers();
-      toast('Counter! +' + fmtNum(pts));
+      toast('反击! +' + fmtNum(pts));
       /* 悬赏是阶梯式的，可玩家第一次只看到"+16,900"这一个数，没法知道它会往上
          涨 —— 而"要不要冒险再追一只"正是这套设计想让他做的决定。晚 1.4 秒发，
          让上面那条加分先显示完，别把两条消息挤成一条。 */
-      hintOnce('bounty', 'Within one Power Star: the 2nd enemy is 33.8k, the 3rd is 50.7k — each one is worth more', 1400);
+      hintOnce('bounty', '同一颗能量星里：第 2 只 3.38 万，第 3 只 5.07 万，越吃越值钱', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
 
@@ -4782,7 +4782,7 @@ function handleGhostCollisions(){
       if (ghostEatChain >= ghosts.length){
         sweepsThisRun++;
         Audio2.sweep();
-        toast('Enemy sweep! +' + fmtNum(awardBonus('Enemy sweep', BONUS.GHOST_SWEEP, true)));
+        toast('全灭对手！+' + fmtNum(awardBonus('全灭对手', BONUS.GHOST_SWEEP, true)));
       }
     } else if (invuln<=0){
       loseLife(g);
@@ -4837,7 +4837,7 @@ function loseLife(killer){
   if (deathsThisLevel === 3 && mercySpeedMult === 1){
     mercySpeedMult = 0.9;
     mercyJustKicked = true;
-    toast('The enemies have slowed down');
+    toast('对手们放慢脚步啦');
   }
   updateHud();
   Audio2.death();
@@ -4857,7 +4857,7 @@ function loseLife(killer){
   }
   /* 从 900 挪到 1600：死因提示占着前 1.4 秒，900 会把它顶掉。
      两条都值得看，那就排队，不要抢。 */
-  hintOnce('power', 'Collect a Power Star to fight back!', 1600);
+  hintOnce('power', '收集能量星，可以反击敌人！', 1600);
   if (lives<=0){ endGame(false); return; }
   player.x=SPAWN.player.x; player.y=SPAWN.player.y; player.dir={x:0,y:0}; player.want={x:0,y:0};
   player.warpCd=0; player.warpCdCh=null; player.warpChoiceUntil=0; player.warpStandingOn=null;
@@ -4894,7 +4894,7 @@ const FX_COLORS = ['#ffd166','#ff5a6e','#ff9ad5','#7ee0c9','#ffb26b','#ffffff'];
  *
  * 为什么必须这么做：礼花每个粒子原来都是 shadowBlur=8 的一次 arc+fill，
  * 而 shadowBlur 是 canvas 2D 最贵的操作。实测通关礼花期间**平均每帧 352 次、
- * 单帧峰值 506 次**带阴影绘制，四秒里十万次 —— 比当初Dot那个问题（394/帧）
+ * 单帧峰值 506 次**带阴影绘制，四秒里十万次 —— 比当初豆子那个问题（394/帧）
  * 还重，而且它出现在最该流畅的一刻，还要持续十八秒。孩子的手机正是在这里卡。
  *
  * 贴图只在第一次用到时生成六张（每色一张），之后每帧就是 drawImage —— 一次
@@ -5086,7 +5086,7 @@ function startFireworks(ms){
   fxLoopStart(w, h);
 }
 
-/* Combo里程碑的一小把彩带：轻、短、只从上沿往下飘。
+/* 连击里程碑的一小把彩带：轻、短、只从上沿往下飘。
  *
  * 和通关礼花的区别就两点：粒子只有一小把（26 颗对 60+），而且**不再产生新的
  * 爆发**（fxUntil=0）——飘完这一把就自己收场，全程一秒多。粒子从画布上沿外
@@ -5131,7 +5131,7 @@ const LEGACY_SCORE_KEY = 'doudou.scores.v1';
 const NAME_KEY = 'doudou.name';
 const BOARD_SIZE = 8;
 const NAME_MAX = 8;
-const DEFAULT_NAME = 'Anonymous Doudou';
+const DEFAULT_NAME = '无名豆豆';
 let bestScoreCache = null, bestComboCache = null;
 
 /**
@@ -5164,7 +5164,7 @@ function migrateLegacy(){
 }
 
 /* v2 就是提高 30% 之前的当前排行榜。新局全部多拿 30%，旧纪录如果原样保留，
-   同一套打法只因打开游戏的日期不同就不再可比。首次读取 v3 时把 v2 的每条SCORE
+   同一套打法只因打开游戏的日期不同就不再可比。首次读取 v3 时把 v2 的每条分数
    同步乘 1.3；v2 原件不删除，迁移失败或以后需要排查时仍有退路。 */
 function migratePreviousScores(){
   try {
@@ -5199,7 +5199,7 @@ function sanitizeScore(r){
     return Math.min(hi, Math.max(lo, Math.round(n)));
   };
   const score = num(r.score, 0, 1e12);
-  if (score === null) return null;              // SCORE是这条记录存在的理由，没有就丢
+  if (score === null) return null;              // 分数是这条记录存在的理由，没有就丢
   const lv = num(r.level, 1, MAX_LEVEL), cb = num(r.combo, 1, 1e6);
   return {
     id: typeof r.id === 'string' ? r.id.slice(0, 64) : ('r' + score + '-' + Math.random().toString(36).slice(2, 8)),
@@ -5226,7 +5226,7 @@ function loadScores(){
   catch (e) {
     /* JSON 坏了。原来直接返回空数组 —— 玩家的纪录就这么无声清零了，而且
        下一次保存会把坏值覆盖掉，再也找不回来。先留一份原始副本再清空：
-       占不了多少空间，万一是可修复的，人Also得救。 */
+       占不了多少空间，万一是可修复的，人还有得救。 */
     try { localStorage.setItem(SCORE_KEY + '.corrupt.' + Date.now(), String(raw).slice(0, 20000)); } catch (e2) {}
     return [];
   }
@@ -5265,7 +5265,7 @@ function cleanName(raw){
  *
  * 静态站不能安全保存 service_role 私钥。这里只读取可以公开的 anon key，并且只
  * 调用数据库里明确授权的 RPC / 只读视图。没配 config.js、网络失败或 Supabase
- * Pause时全部安静降级成本机榜，游戏本身不依赖云服务。
+ * 暂停时全部安静降级成本机榜，游戏本身不依赖云服务。
  */
 const CLIENT_VERSION = 'web-2026.09.04';
 const Analytics = {
@@ -5470,10 +5470,10 @@ function renameScore(id, name){
 }
 
 /**
- * 个人BEST。新版统一存档保存历史峰值，旧排行榜继续作为迁移来源。
+ * 个人最高分。新版统一存档保存历史峰值，旧排行榜继续作为迁移来源。
  *
  * 旧版一直从榜单第一名派生；首次读取时会把榜单峰值写进统一存档。之后即使
- * 排行榜旧键损坏或迁移，已经确认过的历史BEST也不会随之消失。
+ * 排行榜旧键损坏或迁移，已经确认过的历史最高分也不会随之消失。
  *
  * 返回 0 表示还没有任何记录（第一次玩），调用方据此决定要不要显示。
  */
@@ -5490,9 +5490,9 @@ function bestScore(){
 }
 
 /**
- * 历史Best Combo。同样从榜单派生——每条记录里本来就存着那一局的 combo。
+ * 历史最高连击。同样从榜单派生——每条记录里本来就存着那一局的 combo。
  * **只加这一个**，不做最佳时间、最佳击杀、每关纪录：并列的纪录多了会互相稀释，
- * 小孩不需要一张 Excel。SCORE管"打得多好"，Combo管"打得多顺"，两个够了。
+ * 小孩不需要一张 Excel。分数管"打得多好"，连击管"打得多顺"，两个够了。
  */
 function bestCombo(){
   if (bestComboCache !== null) return bestComboCache;
@@ -5500,7 +5500,7 @@ function bestCombo(){
   return bestComboCache;
 }
 
-/** 开始页的LEVEL选择。只在解锁了第二关之后才出现——第一次玩的人屏幕上
+/** 开始页的关卡选择。只在解锁了第二关之后才出现——第一次玩的人屏幕上
  *  只该有一个「开始」，多一行按钮就是多一个要理解的东西。 */
 function renderLevelSelect(){
   const el = document.getElementById('levelSel');
@@ -5512,24 +5512,24 @@ function renderLevelSelect(){
      总数放在最左边而不是最右边：孩子的视线是从这一行的开头进来的，
      "我攒了几颗"应该是他看到的第一个数，而不是扫完六个按钮之后的补充说明。 */
   const tot = totalStars(), max = MAX_LEVEL * 3;
-  let html = `<span class="levelsel-k">PRACTICE <b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
+  let html = `<span class="levelsel-k">练习 <b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
   for (let i = 1; i <= MAX_LEVEL; i++){
     const locked = i > top;
     const st = starsOf(i);
     /* 锁着的关也画三颗空星。空着的格子是这套东西的全部动力来源 ——
        看不见要填什么，就没有要填的冲动。 */
     const stars = `<span class="lv-st"><b>${'★'.repeat(st)}</b>${'★'.repeat(3 - st)}</span>`;
-    const tip = `Practice Level ${i} · ${levelName(i)}　★ ${STAR_GOALS.join(' / ')}`;
-    html += `<button class="lv" data-lv="${i}"${locked ? ' disabled aria-label="Locked"' : ` title="${tip}"`}>`
+    const tip = `练习第 ${i} 关 · ${levelName(i)}　★ ${STAR_GOALS.join(' / ')}`;
+    html += `<button class="lv" data-lv="${i}"${locked ? ' disabled aria-label="未解锁"' : ` title="${tip}"`}>`
           + `<span class="lv-n">${locked ? '🔒' : i}</span>` + stars + '</button>';
   }
   /* 图鉴入口挂在这一行末尾。跟选关同一个门槛（打到第二关才出现）：
      第一次玩的人屏幕上不该多出一个还看不懂的东西。
      用 document.getElementById 而不是 el.querySelector：小游戏那份 DOM 垫片
      的元素桩上没有 querySelector，只有 document 上有。这行是开始页初始化链的
-     一环 —— 在垫片下抛异常的话，它后面的键盘、Pause、手势全都不会接线，
+     一环 —— 在垫片下抛异常的话，它后面的键盘、暂停、手势全都不会接线，
      而且一声不吭。 */
-  html += '<button class="lv lv-codex" id="owlBtn" title="ENEMY CODEX" aria-label="ENEMY CODEX">🦉</button>';
+  html += '<button class="lv lv-codex" id="owlBtn" title="对手图鉴" aria-label="对手图鉴">🦉</button>';
   el.innerHTML = html;
   const ob = document.getElementById('owlBtn');
   if (ob) ob.addEventListener('click', ()=>{ Audio2.unlock(); openOwl(); });
@@ -5546,7 +5546,7 @@ function renderLevelSelect(){
  * 开始页那句迎接的话。
  *
  * 第一次来和再回来说的不是同一句：这游戏是给一个小孩和他的朋友们做的，
- * 他们会一次次回来 —— 那就该认得出他们。判据用"有没有LOCAL RECORDS"，因为它
+ * 他们会一次次回来 —— 那就该认得出他们。判据用"有没有本机纪录"，因为它
  * 恰好等于"以前玩过没有"，不需要另存一个标记。
  */
 function renderWelcome(){
@@ -5554,18 +5554,18 @@ function renderWelcome(){
   if (!el) return;
   let played = false;
   try { played = loadScores().length > 0; } catch (e) {}
-  el.textContent = played ? 'Welcome back — Doudou is ready for another run.' : 'Doudou is ready to enter the neon maze!';
+  el.textContent = played ? '欢迎回来，豆豆等你再闯一次。' : '豆豆已就位，准备进入霓虹迷宫！';
 
-  /* 老玩家不再显示"Swipe to turn · Clear every dot to finish"。
+  /* 老玩家不再显示"滑动转向 · 吃光豆子即可过关"。
      他早就会走了，而这一行占掉的高度，正是那句故事需要的 —— 有纪录的人屏幕上
-     多出BEST和榜单两块，实测整屏溢出 67px，而故事那句正好被挤到看不见的
+     多出最高分和榜单两块，实测整屏溢出 67px，而故事那句正好被挤到看不见的
      地方。它是这一屏最该被看到的一句，不能为一句他已经知道的操作说明让位。
-     想查规则的人旁边就有「HOW TO PLAY」。 */
+     想查规则的人旁边就有「玩法说明」。 */
   const tip = document.querySelector ? document.querySelector('.start-tip') : null;
   if (tip && tip.classList) tip.classList.toggle('hidden', played);
 }
 
-/** 开始页顶部那行Previous best。没有记录时整行不出现，免得挂一个 0 在那儿。 */
+/** 开始页顶部那行最高纪录。没有记录时整行不出现，免得挂一个 0 在那儿。 */
 function renderBest(){
   const el = document.getElementById('bestLine');
   if (!el) return;
@@ -5576,10 +5576,10 @@ function renderBest(){
      纯文本，没有空格就会连成 "BEST128,650"。网页版这边是 flex + gap 布局，
      多几个空白文本节点没有任何影响。 */
   const c = bestCombo();
-  /* 「YOUR BEST」而不是 BEST：中文、而且带一个"你的" —— 这是他自己的成绩，
+  /* 「你的最高纪录」而不是 BEST：中文、而且带一个"你的" —— 这是他自己的成绩，
      不是一块公共排行榜上的数字。街机感由「投币」和字体扛着，够了。 */
-  el.innerHTML = `<span class="best-k">YOUR BEST</span> <span class="best-v">${fmtNum(b)}</span>`
-    + (c > 1 ? ` <span class="best-combo">Best Combo x${c}</span>` : '');
+  el.innerHTML = `<span class="best-k">你的最高纪录</span> <span class="best-v">${fmtNum(b)}</span>`
+    + (c > 1 ? ` <span class="best-combo">最高连击 x${c}</span>` : '');
 }
 
 /* 榜单是不是展开着。放在模块级而不是 DOM 上：开始页和结算页共用这一个
@@ -5623,16 +5623,16 @@ async function renderCloudScoreboard(elId, highlightId){
   boardMode[elId] = 'cloud';
   Analytics.track('leaderboard_view',{mode:'cloud'});
   el.classList.remove('hidden');
-  el.innerHTML = '<div class="board-head"><div class="board-title">GLOBAL BOARD</div>'
-    + '<button class="board-switch board-local">LOCAL RECORDS</button></div>'
-    + '<div class="board-status">Loading…</div>';
+  el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+    + '<button class="board-switch board-local">本机纪录</button></div>'
+    + '<div class="board-status">正在读取…</div>';
   wireBoard(elId, highlightId);
   const result = await CloudLeaderboard.top(20);
   if (boardMode[elId] !== 'cloud') return;
   if (result.status !== 'ok'){
-    el.innerHTML = '<div class="board-head"><div class="board-title">GLOBAL BOARD</div>'
-      + '<button class="board-switch board-local">LOCAL RECORDS</button></div>'
-      + '<div class="board-status">Cannot connect right now. Your score is saved locally.</div>';
+    el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+      + '<button class="board-switch board-local">本机纪录</button></div>'
+      + '<div class="board-status">暂时无法连接，成绩仍已保存在本机</div>';
     return;
   }
   const rows = result.data || [];
@@ -5641,13 +5641,13 @@ async function renderCloudScoreboard(elId, highlightId){
       + `<span class="board-rank">${i+1}</span>`
       + `<span class="board-name">${r.name}</span>`
       + `<span class="board-score">${fmtNum(r.score)}</span>`
-      + `<span class="board-meta">${r.won ? 'Cleared' : 'Level '+r.level} · x${r.combo}</span>`
+      + `<span class="board-meta">${r.won ? '通关' : '第'+r.level+'关'} · x${r.combo}</span>`
       + '</div>').join('');
-  el.innerHTML = '<div class="board-head"><div class="board-title">GLOBAL BOARD</div>'
-    + '<button class="board-switch board-local">LOCAL RECORDS</button></div>'
+  el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+    + '<button class="board-switch board-local">本机纪录</button></div>'
     + (rows.length ? '<div class="board-list">'+html+'</div>'
-                   : '<div class="board-status">No cloud scores yet</div>')
-    + '<div class="board-note board-cloud-note">Public names &amp; scores · One best per player ID</div>';
+                   : '<div class="board-status">还没有云端成绩</div>')
+    + '<div class="board-note board-cloud-note">昵称与成绩公开 · 每个玩家 ID 只显示最高分</div>';
 }
 
 function renderScoreboard(elId, highlightId){
@@ -5666,14 +5666,14 @@ function renderScoreboard(elId, highlightId){
   const list = loadScores();
   /* 一条纪录都没有时**整块藏起来**，不留占位。
      原来显示一句"还没有记录，来跑一局"——它既没帮玩家开始，又在首屏多堆了
-     一层弱信息。第一次打开的人屏幕上该只有：投币 / 一句操作 / START GAME /
-     HOW TO PLAY / 署名。 */
+     一层弱信息。第一次打开的人屏幕上该只有：投币 / 一句操作 / 开始游戏 /
+     玩法说明 / 署名。 */
   if (!list.length){
     if (!CloudLeaderboard.enabled()){ el.innerHTML = ''; el.classList.add('hidden'); return; }
     el.classList.remove('hidden');
-    el.innerHTML = '<div class="board-head"><div class="board-title">LOCAL RECORDS</div>'
-      + '<button class="board-switch board-cloud">GLOBAL BOARD</button></div>'
-      + '<div class="board-status">Your completed runs will be saved here</div>';
+    el.innerHTML = '<div class="board-head"><div class="board-title">本机纪录</div>'
+      + '<button class="board-switch board-cloud">全球榜</button></div>'
+      + '<div class="board-status">完成一局后会保存在这里</div>';
     wireBoard(elId, highlightId);
     return;
   }
@@ -5691,33 +5691,33 @@ function renderScoreboard(elId, highlightId){
       `<span class="board-rank">${i+1}</span>` +
       `<span class="board-name">${r.name || DEFAULT_NAME}</span>` +
       /* 「新」是**独立的徽章**，不是拼在名字后面的字。
-         拼上去的话读出来就是"Super Dad新"，看着像名字的一部分或者程序出错。
+         拼上去的话读出来就是"超级奶爸新"，看着像名字的一部分或者程序出错。
          只标刚刚打出来的那一条：justAddedId 存在内存里，刷新或开下一局就没了，
          所以旧纪录永远不会挂着"新"。 */
-      (r.id === justAddedId ? '<span class="board-new">NEW</span>' : '') +
+      (r.id === justAddedId ? '<span class="board-new">新</span>' : '') +
       `<span class="board-score">${fmtNum(r.score)}</span>` +
-      `<span class="board-meta">${r.won ? 'Cleared' : 'Level '+r.level} · x${r.combo}</span>` +
+      `<span class="board-meta">${r.won ? '通关' : '第'+r.level+'关'} · x${r.combo}</span>` +
     '</div>';
 
   el.innerHTML =
-    /* 叫「LOCAL RECORDS」不叫「排行榜」：数据只在 localStorage 里，
+    /* 叫「本机纪录」不叫「排行榜」：数据只在 localStorage 里，
        换台电脑、清个缓存就没了。叫排行榜会让玩家以为是全网共用的在线榜单，
        进而以为自己在和别人比 —— 那是个不存在的承诺。 */
-    '<div class="board-head"><div class="board-title">LOCAL RECORDS</div>'
-      + (CloudLeaderboard.enabled() ? '<button class="board-switch board-cloud">GLOBAL BOARD</button>' : '')
+    '<div class="board-head"><div class="board-title">本机纪录</div>'
+      + (CloudLeaderboard.enabled() ? '<button class="board-switch board-cloud">全球榜</button>' : '')
       + '</div>' +
     /* 只有**行**这一段滚，标题和「查看全部纪录」固定在外面。
        原来整块一起滚：屏幕一矮，榜单被压到 70px，那个展开按钮就跟着滚到看不见的
        地方 —— 一个看不见的展开入口等于没有。 */
     '<div class="board-list">' + shown.map(row).join('') + '</div>' +
     (more ? `<button class="board-more" data-board="${elId}">`
-          + (boardExpanded ? 'Hide records' : `View all records (${list.length})`)
+          + (boardExpanded ? '收起纪录' : `查看全部纪录（${list.length}）`)
           + '</button>' : '') +
-    /* 「Records are stored only in this browser」只在摊开时说。
-       收起时上面就写着「LOCAL RECORDS」，已经说明了同一件事；而开始页的每一行都在
+    /* 「纪录只保存在当前浏览器」只在摊开时说。
+       收起时上面就写着「本机纪录」，已经说明了同一件事；而开始页的每一行都在
        跟那句故事抢高度 —— 同一个意思占两行，让位的该是重复的那一行。 */
     (boardExpanded || !more ? '<div class="board-note">'
-      + (CloudLeaderboard.enabled() ? 'Local records shown here; connect to view the global board' : 'Records are stored only in this browser')
+      + (CloudLeaderboard.enabled() ? '此处为本机纪录；全球榜需联网查看' : '纪录只保存在当前浏览器')
       + '</div>' : '');
 
   /* 展开/收起。用事件委托挂在容器上，因为这段 innerHTML 每次都整体重建，
@@ -5754,11 +5754,11 @@ function endGame(won){
     // The per-level "no damage" bonus is deliberately NOT awarded here: the
     // level-clear path already grants it before calling endGame, and doing it
     // again paid the final level twice.
-    if (lives > 0) awardBonus(`Lives left ×${lives}`, BONUS.LIFE_LEFT * lives);
-    if (deathsThisRun === 0) awardBonus('Flawless run', BONUS.FLAWLESS_RUN);
+    if (lives > 0) awardBonus(`剩余生命 ×${lives}`, BONUS.LIFE_LEFT * lives);
+    if (deathsThisRun === 0) awardBonus('全程无伤通关', BONUS.FLAWLESS_RUN);
   }
 
-  /* 练习整局不计分：不入榜、不动BEST、不GRADE、不放礼花。
+  /* 练习整局不计分：不入榜、不动最高分、不评级、不放礼花。
      这条边界必须硬 —— 一旦练习的成绩能进榜，排行榜就没意义了
      （谁都可以反复练第一关刷分），而排行榜正是"正式挑战"的全部价值。 */
   const practice = !!practiceLevel;
@@ -5775,7 +5775,7 @@ function endGame(won){
   // The row is filed FIRST, under the remembered name, so the board is already
   // correct if the player never touches the input. Typing a name renames that
   // same row in place rather than filing a second one.
-  /* Daily Challenge的成绩存在自己那儿，不进排行榜（理由见 dailyLevel 上面那段）。
+  /* 每日挑战的成绩存在自己那儿，不进排行榜（理由见 dailyLevel 上面那段）。
      它走的是练习模式，本来也进不去 —— 这里只是把今天这一笔记下来。 */
   const dailyBeat = dailyRun && recordDaily(score);
 
@@ -5797,15 +5797,15 @@ function endGame(won){
   if (won) Audio2.victory(); else if (isNewBest) Audio2.newBest(); else Audio2.gameOver();
   const practiceCleared = practice && pelletsLeft <= 0;
   document.getElementById('overTitle').textContent =
-      dailyRun        ? ('DAILY CHALLENGE ' + (practiceCleared ? 'COMPLETE' : 'OVER') + ' · LEVEL ' + level)
-    : practiceCleared ? ('PRACTICE COMPLETE · LEVEL ' + level)
-    : practice        ? ('PRACTICE OVER · LEVEL ' + level)
-    : won             ? ('CLEARED ALL ' + MAX_LEVEL + ' LEVELS')
-    :                   'GAME OVER';
+      dailyRun        ? ('每日挑战' + (practiceCleared ? '完成' : '结束') + ' · 第 ' + level + ' 关')
+    : practiceCleared ? ('练习完成 · 第 ' + level + ' 关')
+    : practice        ? ('练习结束 · 第 ' + level + ' 关')
+    : won             ? ('通关！全 ' + MAX_LEVEL + ' 关')
+    :                   '游戏结束';
   lastFinalScore = score;
   document.getElementById('finalScore').textContent = fmtNum(score);
   document.getElementById('overSub').innerHTML =
-    dailyRun ? 'Daily Challenge saves only today’s local best for this level and does not enter the main board.'
+    dailyRun ? '每日挑战仅记录本机当日同关最高分，不计入正式排行榜。'
     : practice ? buildPracticeSummary(practiceCleared) : buildSummary(won, rank, prevBest, isNewBest);
   const overOverlay = document.getElementById('overOverlay');
   overOverlay.classList.remove('hidden');
@@ -5821,7 +5821,7 @@ function endGame(won){
      正是他最想看见它的时候。 */
   renderLevelSelect();
   renderDaily();
-  if (dailyBeat) setTimeout(()=>toast('New Daily Challenge record!'), 700);
+  if (dailyBeat) setTimeout(()=>toast('今日挑战新纪录！'), 700);
 
   const recordBox = document.getElementById('recordBox');
   const recordRank = document.getElementById('recordRank');
@@ -5830,7 +5830,7 @@ function endGame(won){
   bindNameRow();
   recordBox.classList.toggle('hidden', rank === 0);
   nameRow.classList.toggle('hidden', rank === 0);
-  recordRank.textContent = rank > 0 ? `· Local rank #${rank}` : '';
+  recordRank.textContent = rank > 0 ? `· 本机第 ${rank} 名` : '';
   if (rank > 0){
     const input = document.getElementById('nameInput');
     input.value = remembered;
@@ -5839,16 +5839,16 @@ function endGame(won){
     if (!won) setTimeout(()=>input.focus(), 60);
   }
 
-  /* 「Practice this level」只在**正式挑战里失败**时出现：
-     - 通关了不该出现（该去看GRADE、再挑战一次刷分）
-     - 本来就在练习里也不出现（重开就是同一关，「Play again」已经够了）
+  /* 「练习这一关」只在**正式挑战里失败**时出现：
+     - 通关了不该出现（该去看评级、再挑战一次刷分）
+     - 本来就在练习里也不出现（重开就是同一关，「再来一局」已经够了）
      - 第一关失败也不出现（重开就是第一关，练习没有任何区别） */
   const pb = document.getElementById('practiceBtn');
   if (pb){
     const offer = !practice && !won && level > 1;
     pb.classList.toggle('hidden', !offer);
-    pb.textContent = offer ? `Practice Level ${level}` : 'Practice this level';
-    /* LEVEL号存在变量里，不写 dataset —— 微信两个版本的元素是垫片造的假节点，
+    pb.textContent = offer ? `练习第 ${level} 关` : '练习这一关';
+    /* 关卡号存在变量里，不写 dataset —— 微信两个版本的元素是垫片造的假节点，
        上面**没有 dataset**，赋值会直接抛异常。而这行在 endGame 里，一抛就是
        "死一条命后黑屏"那种表现。同样的坑之前踩过一次（roundRect）。 */
     practiceOfferLevel = level;
@@ -5863,8 +5863,8 @@ function endGame(won){
 let lastRunId = null;
 const NAME_ROW_HTML =
   '<input id="nameInput" class="name-input" type="text" maxlength="8" ' +
-  'placeholder="Your name (optional)" autocomplete="off" spellcheck="false">' +
-  '<button class="btn btn-sm" id="nameSaveBtn">Save name</button>';
+  'placeholder="输入名字（可选）" autocomplete="off" spellcheck="false">' +
+  '<button class="btn btn-sm" id="nameSaveBtn">保存名字</button>';
 
 function commitName(){
   const input = document.getElementById('nameInput');
@@ -5879,7 +5879,7 @@ function commitName(){
   }
   renderScoreboard('overBoard', lastRunId);
   document.getElementById('nameRow').innerHTML =
-    `<div class="name-done">Saved as ${name}</div>`;
+    `<div class="name-done">已记录为 ${name}</div>`;
 }
 
 function bindNameRow(){
@@ -5896,14 +5896,14 @@ function bindNameRow(){
 
 /** Score breakdown + placing, so the number on screen is explainable. */
 /**
- * 通关GRADE S / A / B / C。
+ * 通关评级 S / A / B / C。
  *
- * 为什么要有：六关打完只给一个SCORE，玩家不知道这算好还是不好——十万分是高
+ * 为什么要有：六关打完只给一个分数，玩家不知道这算好还是不好——十万分是高
  * 是低，第一次通关的人心里没有尺子。一个字母就是尺子。而且它天然制造二周目：
  * 拿到 B 的小孩下一句一定是"怎么才能拿 S"。
  *
- * 评的是**打法**不是SCORE。SCORE已经由排行榜和 BEST 负责了，再按SCORE评一次
- * 等于同一件事说两遍；而且SCORE受运气影响很大（水果刷不刷得出来）。这里四项
+ * 评的是**打法**不是分数。分数已经由排行榜和 BEST 负责了，再按分数评一次
+ * 等于同一件事说两遍；而且分数受运气影响很大（水果刷不刷得出来）。这里四项
  * 都是玩家自己控制得了的：少死、敢吃幽灵、连得住、全灭过几次。
  *
  * 门槛按"一个认真打完六关的人大概能做到什么"来定，不是拍脑袋：
@@ -5911,44 +5911,44 @@ function bindNameRow(){
  */
 function gradeRun(){
   let pts = 0;
-  // 少死（40 分）：Flawless run满分，每死一次扣 8 分
+  // 少死（40 分）：全程无伤满分，每死一次扣 8 分
   pts += Math.max(0, 40 - deathsThisRun * 8);
   // 敢打（25 分）：吃满 18 只幽灵给满分，约等于每关吃三只
   pts += Math.min(25, ghostsEatenThisRun / 18 * 25);
-  // 连得住（20 分）：Best Combo 30 给满分
+  // 连得住（20 分）：最高连击 30 给满分
   pts += Math.min(20, maxComboSeen / 30 * 20);
   // 全灭（15 分）：三次给满分
   pts += Math.min(15, sweepsThisRun / 3 * 15);
   /* 分档：S 85 / A 65 / B 45。
-     A 线原本定在 68，实测"死一次 + 吃 12 只 + Combo 20 + 全灭 1 次"算出来 67，
+     A 线原本定在 68，实测"死一次 + 吃 12 只 + 连击 20 + 全灭 1 次"算出来 67，
      差一分掉到 B —— 那是一局打得挺好的游戏，卡在这种地方只会让人觉得系统
-     在刁难。GRADE的边界宁可松半档，也不要让明显不错的一局吃亏。 */
+     在刁难。评级的边界宁可松半档，也不要让明显不错的一局吃亏。 */
   return pts >= 85 ? 'S' : pts >= 65 ? 'A' : pts >= 45 ? 'B' : 'C';
 }
 
 /**
  * 练习模式的结算。
- * 刻意做得比正式结算**朴素**：没有排名、没有GRADE、没有"差多少破纪录"。
+ * 刻意做得比正式结算**朴素**：没有排名、没有评级、没有"差多少破纪录"。
  * 那些都是正式挑战的东西，在练习页上摆一份缩水版只会让人分不清两种模式。
  * 这里只回答一句话：这一关你过去了没有。
  */
 function buildPracticeSummary(cleared){
   const lines = [];
   lines.push('<div class="sum-grid">'
-    + `<div class="sum-row"><span class="sum-k">LEVEL</span> <span class="sum-v">Level ${level} · ${levelName(level)}</span></div>`
-    + `<div class="sum-row"><span class="sum-k">Best Combo</span> <span class="sum-v">x${maxComboSeen}</span></div>`
-    + `<div class="sum-row"><span class="sum-k">Enemies countered</span> <span class="sum-v">${ghostsEatenThisRun}</span></div>`
+    + `<div class="sum-row"><span class="sum-k">关卡</span> <span class="sum-v">第 ${level} 关 · ${levelName(level)}</span></div>`
+    + `<div class="sum-row"><span class="sum-k">最高连击</span> <span class="sum-v">x${maxComboSeen}</span></div>`
+    + `<div class="sum-row"><span class="sum-k">反击敌人</span> <span class="sum-v">${ghostsEatenThisRun} 只</span></div>`
     + '</div>');
   lines.push(cleared
-    ? '<span style="color:var(--cyan)">Level cleared — try it in the full run</span>'
-    : '<span style="color:var(--amber)">Practice again, or return to the full run</span>');
-  lines.push('<span class="bonus-hint">Practice does not score or enter local records</span>');
+    ? '<span style="color:var(--cyan)">这一关拿下了，回去正式挑战试试</span>'
+    : '<span style="color:var(--amber)">再练一次，或者回去正式挑战</span>');
+  lines.push('<span class="bonus-hint">练习不计分，也不进本机纪录</span>');
   return lines.join('<br>');
 }
 
-/* 同一种奖励可能在一局里触发很多次（例如「Enemy sweep」 22 次）。
+/* 同一种奖励可能在一局里触发很多次（例如「全灭对手」 22 次）。
    原来把 22 条原样铺开，直接把保存区挤到折叠线下面。按名称聚合后显示
-   「Enemy sweep ×22 +2,860,000」，总分不变、信息也不丢，但只占一行。 */
+   「全灭对手 ×22 +2,860,000」，总分不变、信息也不丢，但只占一行。 */
 function summarizeBonuses(bonuses){
   const grouped = [];
   const byLabel = new Map();
@@ -5973,25 +5973,25 @@ function buildSummary(won, rank, prevBest, isNewBest){
   /* 战绩排成「项目 · 数值」两列，而不是挤成一行句子。
      玩家在结算页真正想知道的是"我这局到底打得怎么样"，一行流水账要逐字读；
      排成表格能一眼扫完，也让"幽灵击杀"这种新数字有地方放。 */
-  // 通关才GRADE：半路死掉评个 C 只是补一刀，没有任何用处
+  // 通关才评级：半路死掉评个 C 只是补一刀，没有任何用处
   if (won){
     const gd = gradeRun();
-    lines.push(`<div class="grade grade-${gd}"><span class="grade-k">GRADE</span>`
+    lines.push(`<div class="grade grade-${gd}"><span class="grade-k">评级</span>`
              + `<span class="grade-v">${gd}</span></div>`);
   }
 
   const stats = [
-    ['Reached', won ? `All ${MAX_LEVEL} levels cleared` : `Level ${level} · ${levelName(level)}`],
-    ['Best Combo', `x${maxComboSeen}`],
-    ['Enemies countered', `${ghostsEatenThisRun}`],
+    ['到达关卡', won ? `全 ${MAX_LEVEL} 关通关` : `第 ${level} 关 · ${levelName(level)}`],
+    ['最高连击', `x${maxComboSeen}`],
+    ['反击敌人', `${ghostsEatenThisRun} 只`],
   ];
-  if (won) stats.push(['Perfect levels', `${perfectLevelsThisRun} / ${MAX_LEVEL}`]);
-  if (sweepsThisRun) stats.push(['Enemy sweep', `${sweepsThisRun}`]);
-  if (prevBest > 0)  stats.push(['Previous best', fmtNum(prevBest)]);
+  if (won) stats.push(['无伤关卡', `${perfectLevelsThisRun} / ${MAX_LEVEL}`]);
+  if (sweepsThisRun) stats.push(['全灭对手', `${sweepsThisRun} 次`]);
+  if (prevBest > 0)  stats.push(['最高纪录', fmtNum(prevBest)]);
   /* 每一行**必须**自己包一个 div，不能把 span 直接摊在网格里。
      微信那两个版本读的是 stripTags 之后的纯文本，而 stripTags 只把 <br> 和
      </div> 换成换行，<span> 是直接删掉的 —— 摊着写出来就是
-     "Reached第 3 关 · WormholesBest Combox1吃掉小夜枭0 只" 这样一长串糊在一起。
+     "到达关卡第 3 关 · 虫洞交错最高连击x1吃掉小夜枭0 只" 这样一长串糊在一起。
      display:contents 让这层 div 在网页版布局上等于不存在，两列网格照常，
      但 HTML 里它是真实存在的，纯文本那边就有换行了。
      k 和 v 之间那个空格同理，不然纯文本里两者会贴死。 */
@@ -6002,37 +6002,37 @@ function buildSummary(won, rank, prevBest, isNewBest){
   if (runBonuses.length){
     const total = runBonuses.reduce((s,b)=>s+b.points, 0);
     const detail = summarizeBonuses(runBonuses);
-    lines.push(`<span style="color:var(--amber)">Bonuses +${fmtNum(total)}</span><br>${detail}`);
+    lines.push(`<span style="color:var(--amber)">奖励分 +${fmtNum(total)}</span><br>${detail}`);
   }
-  /* 结算页最后必须留下一个**Play again的理由**。
-     "没能进前 8 名，Play again"是句空话——它没告诉玩家差多少、也没给目标。
+  /* 结算页最后必须留下一个**再来一局的理由**。
+     "没能进前 8 名，再来一局"是句空话——它没告诉玩家差多少、也没给目标。
      换成跟自己纪录的距离：破了就大声说，没破就报差额。差额是个具体的、
-     看得见够得着的数，比名次更能让人手指头再点一次「Play again」。 */
+     看得见够得着的数，比名次更能让人手指头再点一次「再来一局」。 */
   if (isNewBest && prevBest > 0){
-    lines.push(`<span class="new-best">🎉 New record! ${fmtNum(score - prevBest)} points higher</span>`);
+    lines.push(`<span class="new-best">🎉 新纪录！比上次高 ${fmtNum(score - prevBest)} 分</span>`);
   } else if (isNewBest){
-    lines.push(`<span class="new-best">🎉 Your first record starts here</span>`);
+    lines.push(`<span class="new-best">🎉 第一条纪录，就是它了</span>`);
   } else if (score === prevBest){
     // 打平要单独说：写成"差 0 分打破自己的纪录"读着像出了 bug。
     // 挑战那边早先修过一模一样的问题，这是同一类。
-    lines.push('<span style="color:var(--amber)">Exactly tied with your best</span>');
+    lines.push('<span style="color:var(--amber)">和自己的纪录打平，一分不差</span>');
   } else {
-    lines.push(`<span style="color:var(--amber)">${fmtNum(prevBest - score)} points short of your best</span>`);
+    lines.push(`<span style="color:var(--amber)">差 ${fmtNum(prevBest - score)} 分打破自己的纪录</span>`);
   }
-  if (rank > 0) lines.push(`<span class="bonus-hint">Local rank #${rank} — add your name</span>`);
+  if (rank > 0) lines.push(`<span class="bonus-hint">本机纪录第 ${rank} 名，留下你的名字</span>`);
 
   /* 六关全通才出现的一句话。
    *
    * 只放在这里，别处一个字都不提，理由有三：
-   *   - 通关是玩家唯一愿意停下来读字的时刻。半路死掉的人只想立刻Play again，
+   *   - 通关是玩家唯一愿意停下来读字的时刻。半路死掉的人只想立刻再来一局，
    *     这时候跟他讲游戏的来由，是在挡路。
    *   - 它得是**挣来**的。谁都能看到的话就不值钱；打穿六关的人看到，才会觉得
    *     这句是说给自己听的。
-   *   - 一句就够，不加感叹号。"A little game made by a dad and his son"这几个字本身分量就够，
+   *   - 一句就够，不加感叹号。"一个爸爸和儿子一起做的小游戏"这几个字本身分量就够，
    *     再堆形容词只会把它变轻。
    */
   if (won){
-    lines.push('<span class="warm">This game began as my son’s idea. Thank you for playing it to the end.</span>');
+    lines.push('<span class="warm">这游戏最早只是儿子的一个念头，谢谢你把它玩到最后。</span>');
   }
 
   /* 收到挑战时，结算页第一件事就是回答"我超了没" —— 这是对方发链接给你的
@@ -6040,9 +6040,9 @@ function buildSummary(won, rank, prevBest, isNewBest){
   if (challenge){
     const diff = score - challenge.score;
     // 平局单独说一句：写成"超过 0 分"读着像出了 bug
-    const line = diff > 0 ? `<span style="color:var(--cyan)">Beat ${challenge.name} by ${fmtNum(diff)} points!</span>`
-               : diff === 0 ? `<span style="color:var(--amber)">Exactly tied with ${challenge.name}</span>`
-               : `<span style="color:var(--danger)">${fmtNum(-diff)} points short of ${challenge.name}</span>`;
+    const line = diff > 0 ? `<span style="color:var(--cyan)">超过${challenge.name} ${fmtNum(diff)} 分，赢了！</span>`
+               : diff === 0 ? `<span style="color:var(--amber)">和${challenge.name}打平，一分不差</span>`
+               : `<span style="color:var(--danger)">离${challenge.name}还差 ${fmtNum(-diff)} 分</span>`;
     lines.unshift(line);
   }
   return lines.join('<br>');
@@ -6051,18 +6051,18 @@ function buildSummary(won, rank, prevBest, isNewBest){
 let maxComboSeen = 1;
 
 /**
- * Combo条显示的是**还剩多久断**，不是Combo等级。
+ * 连击条显示的是**还剩多久断**，不是连击等级。
  *
  * 原来画的是 combo/20：玩家看着它涨，却完全不知道那 1.15 秒的窗口何时耗尽，
- * Combo总是"突然断的"。Combo是本作最大的SCORE来源（能连到 x100 以上），让它变得
+ * 连击总是"突然断的"。连击是本作最大的分数来源（能连到 x100 以上），让它变得
  * 可预期，玩家才会主动去够下一颗豆，而不是事后才发现断了。
  *
  * 必须每帧调用 —— updateHud 只在得分时触发，而这根条是在没得分的时候才需要
  * 动。这也是它单独拆出来的唯一原因。
  */
 function updateComboBar(){
-  // 分母要用**当前**窗口：窗口会随Combo变宽，拿固定值当分母的话，
-  // 高Combo时条永远填不满，看起来像刚吃就快断了。
+  // 分母要用**当前**窗口：窗口会随连击变宽，拿固定值当分母的话，
+  // 高连击时条永远填不满，看起来像刚吃就快断了。
   const left = combo > 1 ? Math.max(0, comboTimer) / comboWindow() : 0;
   /* 去抖：这函数每帧都跑，元素引用缓存一次；变化不到 1% 不写入。
      用 transform 而不是 width，避免每帧 layout invalidate；urgent 类
@@ -6081,7 +6081,7 @@ function updateComboBar(){
 }
 let comboFillEl = null, comboBarLastScale = -1, comboBarLastUrgent = null;
 
-/* 幽灵悬赏把SCORE推到了六七位数，"1283000" 这种一长串瞟一眼是读不出来的。
+/* 幽灵悬赏把分数推到了六七位数，"1283000" 这种一长串瞟一眼是读不出来的。
    自己加千分位，不用 toLocaleString('en-US')：那个要靠 Intl，微信小游戏在
    iOS 上跑的是 JavaScriptCore，精简构建里 Intl 可能没有、或者直接忽略 locale
    参数。手写的话四个端（网页 / 小游戏 / 小程序 / iOS）出来的字符一模一样。
@@ -6093,7 +6093,7 @@ function fmtNum(n){
   return sign + String(Math.abs(v)).replace(/\B(?=(\d{3})+$)/g, ',');
 }
 
-let lastComboShown = 1;   // 只在Combo真的变了时才弹，见下面
+let lastComboShown = 1;   // 只在连击真的变了时才弹，见下面
 let comboBumpFlip = false;
 let hudScoreEl=null,hudLevelEl=null,hudLivesEl=null,hudHighEl=null,hudComboEl=null;
 let hudLastScore='',hudLastLevel='',hudLastLives=null,hudLastHigh='';
@@ -6115,8 +6115,8 @@ function updateHud(){
   const highText=fmtNum(Math.max(score,bestScore()));
   if (hudHighEl&&highText!==hudLastHigh){hudHighEl.textContent=highText;hudLastHigh=highText;}
   const cl=hudComboEl;
-  if (combo!==lastComboShown) cl.textContent='Combo x'+combo;
-  /* Combo的画面反馈**只在 HUD 上**：玩家这时候正贴着幽灵跑，在迷宫上糊特效
+  if (combo!==lastComboShown) cl.textContent='连击 x'+combo;
+  /* 连击的画面反馈**只在 HUD 上**：玩家这时候正贴着幽灵跑，在迷宫上糊特效
      等于害他送命。一行字变个色，看得见又挡不着。 */
   /* 两个同形动画交替，不再用 offsetWidth 强制同步回流。 */
   if (combo > 1 && combo !== lastComboShown){
@@ -6147,7 +6147,7 @@ function updateFruit(dt){
     fruit.active = false;
     addComboScore(300*combo);
     player.phase = FRUIT_PHASE_SECONDS;
-    toast('Phase Crystal! Walk through walls for ' + FRUIT_PHASE_SECONDS + 's');
+    toast('相位晶石！' + FRUIT_PHASE_SECONDS + ' 秒穿墙');
     Audio2.fruit();
   }
 }
@@ -6156,7 +6156,7 @@ function maybeSpawnFruit(){
   if (fruit.nextAt<=0){
     fruit.active = true; fruit.timer = 10; fruit.x=9; fruit.y=13;
     /* 9999 秒 ≈ 不会再到 —— 每关只刷一次是**设计意图**，不是随手填的大数：
-       Phasing是最强道具，一关给第二次，"什么时候吃"这条决策就不值钱了。
+       穿墙是最强道具，一关给第二次，"什么时候吃"这条决策就不值钱了。
        resetLevel 会把 nextAt 重置回 60，下一关重新计。 */
     fruit.nextAt = 9999;
   }
@@ -6181,7 +6181,7 @@ function requestDir(dir){
 
 /* 只在**游戏真的掌握控制权**时才拦键盘。
  *
- * 原来是无条件拦方向键，于是HOW TO PLAY打开时——那是一份要上下滚的长文档——
+ * 原来是无条件拦方向键，于是玩法说明打开时——那是一份要上下滚的长文档——
  * 方向键被游戏吃掉，键盘用户滚不动它。空格同理。
  *
  * 反过来也不能一个都不拦：正常游玩时方向键若走浏览器默认行为，页面会跟着
@@ -6206,7 +6206,7 @@ function currentScreen(){
   return 'playing';
 }
 
-/* Enter 快捷键：开始 / 继续 / Play again，都走各自按钮的 click，
+/* Enter 快捷键：开始 / 继续 / 再来一局，都走各自按钮的 click，
    这样恢复逻辑只有一份，不会出现"按 Enter 和点按钮走了两条路"。 */
 function handleEnter(e){
   // 中文输入法正在组词时，Enter 是「上屏」，不是游戏指令
@@ -6248,7 +6248,7 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  * 分享出去的链接绝大多数是在手机上打开的，而屏幕下方那个方向键在窄屏上只有
  * 32px —— 能用，但边跑边点太慢，转向老是慢半拍。滑动才是手机上该有的操作。
  *
- * 只在真正开打时才接管手势。开始页、Pause页、结算页都盖在同一个 .stage 里，
+ * 只在真正开打时才接管手势。开始页、暂停页、结算页都盖在同一个 .stage 里，
  * 不加这道判断的话：点"开始"时手指的一点点位移会被当成转向，更糟的是下面
  * 那个 preventDefault 会把排行榜的滚动一起挡掉 —— 榜单是能上下滑的，玩家会
  * 发现自己划不动。
@@ -6265,7 +6265,7 @@ document.querySelectorAll('[data-dir]').forEach(btn=>{
  *   1. CSS 的 touch-action，见样式表里的 html/body 和 .stage；
  *   2. Safari 私有的 gesture* 事件，双指缩放走的是这条路，必须显式拦掉。
  * 再补一道双击兜底时必须只管正在游玩的棋盘：文档级 touchend 拦截会把
- * 300ms 内第二次按钮点击也一起吃掉（例如快速点两次Mute只生效一次）。
+ * 300ms 内第二次按钮点击也一起吃掉（例如快速点两次静音只生效一次）。
  */
 ['gesturestart','gesturechange','gestureend'].forEach(t=>{
   document.addEventListener(t, e => e.preventDefault(), { passive:false });
@@ -6373,7 +6373,7 @@ stage.addEventListener('touchcancel', ()=>{ swipeFrom = null; }, { passive: true
  * 松手后豆豆继续沿原方向跑。摇杆按住不动时每帧续写一次 requestDir，确保玩家
  * 在离路口较远的地方提前推方向，到了路口仍然会转，而不是被 2.2 格的转向缓存
  * 当成过期输入清掉。滑动手势保持原样，两套输入共用 requestDir，不维护第二套
- * Move逻辑。
+ * 移动逻辑。
  */
 const touchJoystick = document.getElementById('touchJoystick');
 const joyKnob = document.getElementById('joyKnob');
@@ -6482,7 +6482,7 @@ if (touchJoystick){
   }
 }
 document.getElementById('pauseBtn').addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
-/* Mute图标是一个 SVG 里的两组线条，切换的是显隐而不是重画整段 markup ——
+/* 静音图标是一个 SVG 里的两组线条，切换的是显隐而不是重画整段 markup ——
    每次点击都重设 innerHTML 会把 SVG 拆了重建，在低端机上看得见闪一下。 */
 const muteBtn = document.getElementById('muteBtn');
 function paintMute(){
@@ -6490,7 +6490,7 @@ function paintMute(){
   document.getElementById('soundWaves').toggleAttribute('hidden', muted);
   document.getElementById('soundCross').toggleAttribute('hidden', !muted);
   muteBtn.classList.toggle('off', muted);
-  muteBtn.title = muted ? 'Unmute' : 'Mute';
+  muteBtn.title = muted ? '取消静音' : '静音';
 }
 muteBtn.addEventListener('click', ()=>{
   Audio2.unlock();
@@ -6519,7 +6519,7 @@ paintMute();
       item.setAttribute('aria-pressed', item === committedBtn ? 'true' : 'false');
     });
     if (!current){
-      detail.textContent = 'Hover an enemy · See its behavior';
+      detail.textContent = '悬停怪物 · 查看特点';
       detail.removeAttribute('data-enemy');
       detail.classList.remove('is-active');
       return;
@@ -6545,16 +6545,16 @@ paintMute();
     }); // 宽屏触控设备的备用入口
   });
   roster.addEventListener('mouseleave', ()=>{
-    /* 在四只之间Move不清空；真正离开整排后，回落到焦点或已轻触的怪物。 */
+    /* 在四只之间移动不清空；真正离开整排后，回落到焦点或已轻触的怪物。 */
     hoveredBtn = null;
     syncEnemyProfile();
   });
 })();
 
-/* ---------- HOW TO PLAY ----------
+/* ---------- 玩法说明 ----------
  * 读说明的时候幽灵不能还在追 —— 否则玩家一边看字一边掉命，而且是看不见的
  * 死法。所以打开时挂起游戏，关闭时只在「是我挂起的」情况下才恢复：玩家完全
- * 可能是先自己按了Pause、再点开说明的，那种情况下关掉说明该回到Pause画面，
+ * 可能是先自己按了暂停、再点开说明的，那种情况下关掉说明该回到暂停画面，
  * 而不是把他直接丢回赛场。
  */
 const helpOverlay = document.getElementById('helpOverlay');
@@ -6562,10 +6562,10 @@ const aboutOverlay = document.getElementById('aboutOverlay');
 let helpPausedByUs = false;
 
 /**
- * 有没有整屏的文档页盖在游戏上（HOW TO PLAY / 关于这个游戏）。
+ * 有没有整屏的文档页盖在游戏上（玩法说明 / 关于这个游戏）。
  *
  * 单独抽出来是因为有六处行为都取决于这一件事：键盘归谁、Enter 是什么意思、
- * 标题栏要不要动、切走要不要自动Pause、按 P 管不管用、还要不要渲染。
+ * 标题栏要不要动、切走要不要自动暂停、按 P 管不管用、还要不要渲染。
  * 原来六处各写一遍 `!helpOverlay.classList.contains('hidden')`，加第二个
  * 文档页时就得记得改六个地方 —— 漏掉任何一个都不会报错，只会变成一个很难
  * 复现的怪毛病（比如说明开着按 P，幽灵在背后跑起来）。
@@ -6592,26 +6592,26 @@ function closeHelp(){
   if (helpPausedByUs && gameState === 'paused') gameState = 'playing';
   helpPausedByUs = false;
 }
-/* 三个入口都通到同一处说明：标题旁的「?」、开始页的按钮、Pause页的按钮。
-   从Pause页点进来时 gameState 已经是 paused，openHelp 里的 helpPausedByUs
-   会是 false，所以关掉说明不会把游戏偷偷恢复 —— 玩家还停在Pause页上。 */
+/* 三个入口都通到同一处说明：标题旁的「?」、开始页的按钮、暂停页的按钮。
+   从暂停页点进来时 gameState 已经是 paused，openHelp 里的 helpPausedByUs
+   会是 false，所以关掉说明不会把游戏偷偷恢复 —— 玩家还停在暂停页上。 */
 ['helpBtn', 'startHelpBtn', 'pauseHelpBtn'].forEach(id=>{
   const b = document.getElementById(id);
   if (b) b.addEventListener('click', ()=>{ Audio2.unlock(); openHelp(); });
 });
 
 /* ---------- 关于《豆豆迷宫》 ----------
- * 和HOW TO PLAY各占一页，互不嵌套。行为上和说明有一处**故意不同**：
+ * 和玩法说明各占一页，互不嵌套。行为上和说明有一处**故意不同**：
  *
  *   说明关掉后会把游戏恢复（你是查规则，查完接着打）；
- *   关于关掉后**停在Pause页，不自动继续**。
+ *   关于关掉后**停在暂停页，不自动继续**。
  *
  * 因为这两页的性质不一样。查规则是打到一半的一个动作，读作者的话是离开游戏
  * 去读一段文字 —— 读完抬头，手指未必已经回到键盘上，这时候直接把幽灵放出来
  * 就是白掉一条命。让玩家自己按「继续」。
  *
- * 所以打开时如果正在玩，顺手把Pause页也显示出来：关掉这一页，底下露出的就是
- * Pause画面，玩家自然会去点「继续」。
+ * 所以打开时如果正在玩，顺手把暂停页也显示出来：关掉这一页，底下露出的就是
+ * 暂停画面，玩家自然会去点「继续」。
  */
 let aboutOpener = null;    // 从哪个元素点进来的，关掉要把焦点还回去
 
@@ -6629,10 +6629,10 @@ function openAbout(){
     resetJoystick();
     gameState = 'paused';
     const po = document.getElementById('pauseOverlay');
-    if (po) po.classList.remove('hidden');   // 关掉这一页后露出的就是Pause页
+    if (po) po.classList.remove('hidden');   // 关掉这一页后露出的就是暂停页
   }
   aboutOverlay.classList.remove('hidden');
-  /* 焦点移进弹层本身，而不是「Got it」按钮上 —— 按钮拿到焦点后，Enter 就等于
+  /* 焦点移进弹层本身，而不是「知道了」按钮上 —— 按钮拿到焦点后，Enter 就等于
      关闭，而读到一半误按 Enter 把它关掉，比不支持这个键更烦。
      微信那两版的元素是垫片造的假节点，没有 focus，所以要能安全跳过。 */
   if (typeof aboutOverlay.focus === 'function') aboutOverlay.focus();
@@ -6641,7 +6641,7 @@ function openAbout(){
 function closeAbout(){
   if (aboutOverlay.classList.contains('hidden')) return;
   aboutOverlay.classList.add('hidden');
-  // 不恢复 gameState：从哪儿进来的就停在哪儿（开始页 / Pause页 / 结算页）
+  // 不恢复 gameState：从哪儿进来的就停在哪儿（开始页 / 暂停页 / 结算页）
   if (aboutOpener && typeof aboutOpener.focus === 'function') aboutOpener.focus();
   aboutOpener = null;
 }
@@ -6664,9 +6664,9 @@ if (aboutOverlay.addEventListener) aboutOverlay.addEventListener('click', (e)=>{
   if (e.target === aboutOverlay) closeAbout();
 });
 
-/* ---------- Share score ----------
+/* ---------- 分享成绩 ----------
  * 排行榜只存在各人自己的浏览器里，互相看不见 —— 做真正的跨用户榜单要有后端，
- * 那是另一件事。但"把成绩发出去"这件事本身不需要后端：一句带SCORE的话就够了，
+ * 那是另一件事。但"把成绩发出去"这件事本身不需要后端：一句带分数的话就够了，
  * 而且比一个光秃秃的链接有说服力得多。
  *
  * 优先用系统分享面板（手机上一步到位，能直接发微信）；桌面浏览器没有的话
@@ -6676,11 +6676,11 @@ if (aboutOverlay.addEventListener) aboutOverlay.addEventListener('click', (e)=>{
  * 挑战链接：把「谁、多少分」编进 URL。
  *
  * 真正的跨用户排行榜需要一台服务器，那是另一个量级的事（还要考虑作弊、隐私、
- * 运维）。但玩家真正想要的其实不是一张GLOBAL BOARD单，而是**跟认识的人比**——
- * 那个不需要后端：把成绩放进链接，对方打开就看到「XXX challenges you 43 万分」，
+ * 运维）。但玩家真正想要的其实不是一张全球榜单，而是**跟认识的人比**——
+ * 那个不需要后端：把成绩放进链接，对方打开就看到「XXX 向你挑战 43 万分」，
  * 打完直接告诉他有没有超过。一来一回，竞争闭环就成立了。
  *
- * SCORE是明文的，改一改就能伪造 —— 无所谓，这是朋友之间的玩笑，不是天梯。
+ * 分数是明文的，改一改就能伪造 —— 无所谓，这是朋友之间的玩笑，不是天梯。
  * 真要防作弊，那正是需要服务器的时候。
  */
 /* 挑战分走 lastFinalScore 这个数字，不去读结算页上的文本：那串文本带千分位，
@@ -6713,10 +6713,10 @@ function challengeURL(){
 }
 
 function shareText(){
-  const won = document.getElementById('overTitle').textContent.indexOf('CLEARED') >= 0;
+  const won = document.getElementById('overTitle').textContent.indexOf('通关') >= 0;
   const s = fmtNum(lastFinalScore);
-  const head = won ? `Doudou and I cleared all 6 Neon Maze levels with ${s} points! Can you beat us?`
-                   : `I scored ${s} in Neon Maze. Want to try?`;
+  const head = won ? `我和豆豆通关了 Neon Maze 全 6 关，${s} 分！敢不敢来超？`
+                   : `我在 Neon Maze 拿了 ${s} 分，来比比？`;
   return head + '\n' + challengeURL();
 }
 
@@ -6727,7 +6727,7 @@ let challenge = null;
     const q = new URL(location.href).searchParams;
     const sc = Number(q.get('c'));
     if (Number.isFinite(sc) && sc > 0){
-      challenge = { score: sc, name: cleanName(q.get('n') || '') || 'A friend' };
+      challenge = { score: sc, name: cleanName(q.get('n') || '') || '一位朋友' };
     }
   } catch (e) { /* 链接畸形就当没有挑战 */ }
 })();
@@ -6739,24 +6739,24 @@ let challenge = null;
 function setChallenge(score, name){
   const sc = Number(score);
   if (!Number.isFinite(sc) || sc <= 0){ challenge = null; return null; }
-  challenge = { score: sc, name: cleanName(name || '') || 'A friend' };
+  challenge = { score: sc, name: cleanName(name || '') || '一位朋友' };
   renderChallengeBanner();
   return challenge;
 }
 
-/** 开始页那条Daily Challenge。和选关同一个门槛：打到第二关才出现。 */
+/** 开始页那条每日挑战。和选关同一个门槛：打到第二关才出现。 */
 function renderDaily(){
   const box = document.getElementById('dailyBox');
   if (!box) return;
   if (maxLevelReached() < 2){ box.classList.add('hidden'); return; }
   const lv = dailyLevel(), best = dailyBest();
   box.classList.remove('hidden');
-  box.innerHTML = `<span class="daily-k">DAILY CHALLENGE</span>`
-    + `<span class="daily-lv">Level ${lv} · ${levelName(lv)}</span>`
+  box.innerHTML = `<span class="daily-k">今日挑战</span>`
+    + `<span class="daily-lv">第 ${lv} 关 · ${levelName(lv)}</span>`
     /* 没成绩时写"还没打"而不是"0 分"。0 是一个成绩，"还没打"是一个空位——
        今天这一栏要邀请人来填，不是先给他记一笔难看的账。 */
-    + `<span class="daily-best">${best ? 'Today’s best ' + fmtNum(best) : 'Not played today'}</span>`
-    + `<button class="daily-go" id="dailyGo">Start</button>`;
+    + `<span class="daily-best">${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}</span>`
+    + `<button class="daily-go" id="dailyGo">开始</button>`;
   const go = document.getElementById('dailyGo');   // 理由同 renderLevelSelect 里那条
   if (go) go.addEventListener('click', ()=>{
     Audio2.unlock();
@@ -6769,11 +6769,11 @@ function startDaily(){
   const d = todayKey(), lv = dailyLevel();
   startPractice(lv,'daily');
   /* 必须在 startPractice 之后 —— 它里面的 resetLevel(true) 会把这个标记清掉。
-     顺序反了的话Daily Challenge永远不记成绩，而且不会报错。 */
+     顺序反了的话每日挑战永远不记成绩，而且不会报错。 */
   dailyRun = {d,lv};
 }
 
-/* ---------- ENEMY CODEX弹层 ---------- */
+/* ---------- 对手图鉴弹层 ---------- */
 const owlOverlay = document.getElementById('owlOverlay');
 
 function renderOwlList(){
@@ -6783,11 +6783,11 @@ function renderOwlList(){
     if (!o.met){
       return `<div class="owl-row locked"><div class="owl-head">`
         + `<span class="owl-dot"></span><span class="owl-name">???</span></div>`
-        + `<p class="owl-how">Not discovered yet</p></div>`;
+        + `<p class="owl-how">还没见过它</p></div>`;
     }
     /* 只报"抓到你"和"被你吃"两个数。遇见次数不报：它每关都涨，涨得毫无悬念，
        放上去只会把真正有意思的那两个数挤淡。 */
-    const tally = `Caught you ${o.caught} · Countered ${o.ate}`;
+    const tally = `抓到你 ${o.caught} 次　你反杀 ${o.ate} 次`;
     return `<div class="owl-row"><div class="owl-head">`
       + `<span class="owl-dot" style="background:var(${o.color})"></span>`
       + `<span class="owl-name" style="color:var(${o.color})">${o.name}</span>`
@@ -6799,8 +6799,8 @@ function renderOwlList(){
 function openOwl(){
   if (!owlOverlay || !owlOverlay.classList.contains('hidden')) return;
   closeHelp(); closeAbout();     // 三页互斥，理由见 openAbout
-  /* 和「关于」同一套：正在玩就先Pause，并把Pause页也显示出来，这样关掉图鉴之后
-     露出的是Pause画面，玩家自己按「继续」。跟「HOW TO PLAY」的行为是反的，那是
+  /* 和「关于」同一套：正在玩就先暂停，并把暂停页也显示出来，这样关掉图鉴之后
+     露出的是暂停画面，玩家自己按「继续」。跟「玩法说明」的行为是反的，那是
      故意的 —— 查规则是打到一半的一个动作，读图鉴是离开游戏去看一页东西，
      看完抬头手指未必回到屏幕上，直接把对手放出来就是白掉一条命。 */
   if (gameState === 'playing'){
@@ -6824,22 +6824,22 @@ function renderChallengeBanner(){
   const box = document.getElementById('challengeBox');
   if (!box) return;
   box.classList.remove('hidden');
-  box.innerHTML = `<b>${challenge.name}</b> challenges you`
-    + `<span class="ch-score">${fmtNum(challenge.score)}</span> points`;
+  box.innerHTML = `<b>${challenge.name}</b> 向你挑战`
+    + `<span class="ch-score">${fmtNum(challenge.score)}</span>分`;
 }
 
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('shareBtn');
   const text = shareText();
-  const done = (msg)=>{ btn.textContent = msg; setTimeout(()=>btn.textContent='Share score', 1800); };
+  const done = (msg)=>{ btn.textContent = msg; setTimeout(()=>btn.textContent='分享成绩', 1800); };
   try {
     if (navigator.share){ await navigator.share({ text }); return; }
-    if (navigator.clipboard){ await navigator.clipboard.writeText(text); done('Copied'); return; }
+    if (navigator.clipboard){ await navigator.clipboard.writeText(text); done('已复制'); return; }
     throw new Error('no share api');
   } catch (e) {
     // 用户自己取消分享也会走到这里，那种情况什么都不该提示
     if (e && e.name === 'AbortError') return;
-    done('Copy manually');
+    done('请手动复制');
   }
 });
 (function(){
@@ -6858,7 +6858,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if (hp) hp.addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
 })();
 
-/* 「↓ More below」滚到底就收起来。
+/* 「↓ 下面还有」滚到底就收起来。
    用 .hidden 会被那条全局 display:none 直接干掉，没有淡出，所以这里单独
    切一个类只改透明度 —— 它是提示，不该硬闪。 */
 (function(){
@@ -6885,7 +6885,7 @@ function syncChrome(){
   /* 说明盖着的时候，**什么都别动**。
    *
    * 打开说明会把 gameState 变成 paused，于是这里摘掉 in-game、标题展开；
-   * 点「Got it」又变回 playing，标题再收回去。两次都是 280ms 的过渡，
+   * 点「知道了」又变回 playing，标题再收回去。两次都是 280ms 的过渡，
    * 而后一次正好发生在玩家刚点完按钮的那一刻 —— 整页还在动，看起来就像
    * "点了没反应、没有立刻回到原来的界面"。玩家报的就是这个。
    *
@@ -6899,7 +6899,7 @@ function syncChrome(){
   chromeInGame = next;
 }
 
-/* ---------- 切走标签页自动Pause ----------
+/* ---------- 切走标签页自动暂停 ----------
  *
  * 网页版特有的一种"冤死"：玩到一半去回个微信、看一眼别的标签，回来发现
  * 已经没了两条命 —— 而这十几秒里他根本不在场。手机上尤其常见。
@@ -6907,10 +6907,10 @@ function syncChrome(){
  * 注意**光靠浏览器节流是不够的**：页面隐藏时 rAF 会被停掉，看起来游戏也停了；
  * 可各家浏览器的节流策略并不一致（有的降到 1Hz 而不是完全停），一旦还在跑，
  * dt 被 Math.min(0.033) 夹住，游戏就在后台慢动作前进 —— 玩家回来时状态已经
- * 变了。所以必须显式Pause，不能指望环境。
+ * 变了。所以必须显式暂停，不能指望环境。
  *
  * 回来之后**不自动继续**：他的手大概率还没回到键盘上，自动恢复等于刚回来
- * 就送一条命。停在Pause页，由他自己按键或点按钮。
+ * 就送一条命。停在暂停页，由他自己按键或点按钮。
  */
 let pausedByBlur = false;
 
@@ -6918,20 +6918,20 @@ let pausedByBlur = false;
  *  切标签时 visibilitychange 和 blur 往往一起来，不去重会走两遍。 */
 function autoPause(){
   if (gameState !== 'playing') return;                     // 只在真的在玩时
-  if (docPanelOpen()) return;                              // 文档页开着本来就是Pause态
-  if (pausedByBlur) return;                                // 已经自动Pause过了
+  if (docPanelOpen()) return;                              // 文档页开着本来就是暂停态
+  if (pausedByBlur) return;                                // 已经自动暂停过了
   pausedByBlur = true;
   clearSwipe();                                            // 系统中断后不能留下旧触点
   resetJoystick();
   gameState = 'paused';
   document.getElementById('pauseOverlay').classList.remove('hidden');
   const why = document.getElementById('pauseWhy');
-  if (why) why.textContent = 'The game paused while you were away. Press P / Enter or tap Resume';
+  if (why) why.textContent = '你切走了，游戏替你按了暂停　按 P / Enter 或点「继续游戏」';
 }
 
 document.addEventListener('visibilitychange', ()=>{
   if (document.hidden){ autoPause(); return; }
-  /* 回到前台重算Daily Challenge。开始页那一条只在初始化和每局结束时画过，页面挂着
+  /* 回到前台重算每日挑战。开始页那一条只在初始化和每局结束时画过，页面挂着
      过了零点再回来就还显示昨天那一关 —— 而"今天大家打同一关"正是这条功能
      唯一的意义。 */
   renderDaily();
@@ -6957,7 +6957,7 @@ function togglePause(){
     if (pausedByBlur){
       pausedByBlur = false;
       const why = document.getElementById('pauseWhy');
-      if (why) why.textContent = 'Press P, Enter, or tap Resume to continue';
+      if (why) why.textContent = '按 P、Enter 或点「继续游戏」回到游戏';
     }
   }
 }
@@ -6965,7 +6965,7 @@ function togglePause(){
 document.getElementById('startBtn').addEventListener('click', ()=>{
   Audio2.unlock();
   startLevelIntro();   // 第一关也要报名字，六关才是一个完整的序列
-  // 以前这里弹一行"滑动屏幕 或 按方向键Move"。换成画在主角身上的滑动手势，
+  // 以前这里弹一行"滑动屏幕 或 按方向键移动"。换成画在主角身上的滑动手势，
   // 不认字也看得懂，而且玩家一动就消失。见 drawSwipeHint。
   startSwipeHint();
   document.getElementById('startOverlay').classList.add('hidden');
@@ -6977,7 +6977,7 @@ document.getElementById('restartBtn').addEventListener('click', ()=>{
   Audio2.unlock();
   stopFireworks();
   document.getElementById('overOverlay').classList.add('hidden');
-  /* 练习里的「Play again」= 再练这一关。回到第一关的话，这个按钮就正好
+  /* 练习里的「再来一局」= 再练这一关。回到第一关的话，这个按钮就正好
      做了玩家最不想要的那件事 —— 而"不想从头再来"正是练习模式的由来。 */
   if (practiceLevel){ startPractice(practiceLevel); return; }
   fullNewGame();
@@ -6995,7 +6995,7 @@ function update(dt){
   if (player.phase>0){
     const was = player.phase;
     player.phase -= dt;
-    /* 3、2、1 各响一声，一声比一声高。Phasing到期的那一下最容易翻车 ——
+    /* 3、2、1 各响一声，一声比一声高。穿墙到期的那一下最容易翻车 ——
        人正在墙里抄近路，规则突然变回来就卡在墙中间（靠 rescueFromWall 弹出来，
        但那一下很懵）。声音提前三秒开始数，玩家才有机会往走廊里靠。 */
     for (const mark of [3, 2, 1]){
@@ -7051,12 +7051,12 @@ function update(dt){
 
   // motion trail, longer the faster we're going
   const wind = (momentumMult() - 1) / (MOMENTUM_MAX - 1); // 0..1
-  /* Dash是全场最隐形的一条规则：速度确实在涨，但玩家只看到自己身后多了道尾巴，
+  /* 冲刺是全场最隐形的一条规则：速度确实在涨，但玩家只看到自己身后多了道尾巴，
      没人会把它和"直着走别拐弯"联系起来。等他第一次真的冲到满速，再告诉他这是
      怎么来的 —— 那时候屏幕上正好有他自己造出来的证据。 */
-  if (wind >= 0.999) hintOnce('dash', 'Dash: keep moving straight to build speed', 0);
+  if (wind >= 0.999) hintOnce('dash', '冲刺：直线连走不拐弯会越跑越快', 0);
   /* 尾迹按**距离**采样，不按帧。
-     原来是每帧存一个点，最多 7 个 —— 第六关满Dash是 8.37 格/秒，60 帧下相邻两点
+     原来是每帧存一个点，最多 7 个 —— 第六关满冲刺是 8.37 格/秒，60 帧下相邻两点
      只差 0.14 格，七个点总共铺开 0.84 格，正好等于豆豆自己的直径。那不是一条
      尾巴，是七个几乎完全叠在角色身上的半透明圆盘，手机上棋盘再一缩就糊成一团，
      业主的原话是"看起来有点晕"。而且按帧采样意味着 120Hz 手机上间距再减半，
@@ -7109,20 +7109,20 @@ function update(dt){
   if (pelletsLeft<=0){
     // Award before resetLevel(), which clears the per-level counters this reads.
     const perfect = deathsThisLevel === 0;
-    if (perfect){ perfectLevelsThisRun++; awardBonus(`Perfect Level ${level}`, BONUS.PERFECT_LEVEL * level); }
+    if (perfect){ perfectLevelsThisRun++; awardBonus(`第 ${level} 关无伤`, BONUS.PERFECT_LEVEL * level); }
     const earned = levelBonuses.slice();
     /* 星星必须在 resetLevel() 之前结，它读的 deathsThisLevel /
        ghostsEatenThisLevel 都会被那一句清掉。和上面那条奖励是同一个理由。 */
     const newStars = awardStars(level);
-    const starMsg = newStars ? '　★ New stars ×' + newStars : '';
+    const starMsg = newStars ? '　★ 新星星 ×' + newStars : '';
     Analytics.track('level_complete',{mode:currentAnalyticsMode(),level});
 
     /* 练习只打这一关。清掉之后直接进结算，**不推进到下一关**——
        否则从第五关练起、连着清掉五和六，看起来就跟通关一样了，
        而通关必须是六关连打不死才算。 */
-    /* 练习/Daily Challenge这一路不经过下面那条 toast，星星要在这儿自己报。
+    /* 练习/每日挑战这一路不经过下面那条 toast，星星要在这儿自己报。
        报完再进结算页 —— endGame 不发 toast，所以这条能留在屏幕上。 */
-    if (practiceLevel){ if (starMsg) toast('Level ' + level + starMsg.trim()); endGame(false); return; }
+    if (practiceLevel){ if (starMsg) toast('第 ' + level + ' 关' + starMsg.trim()); endGame(false); return; }
     if (level >= MAX_LEVEL){ endGame(true); return; }
     level++;
     noteLevelReached(level);
@@ -7133,7 +7133,7 @@ function update(dt){
     /* 卡片报"是哪一关"，toast 报"拿到了什么"，两者不重复。
        关名已经在卡片上大字写着了，toast 里就不再念一遍。 */
     const extra = earned.length ? '　' + earned.map(b=>b.label+' +'+fmtNum(b.points)).join('　') : '';
-    toast('Life +1' + extra + starMsg);
+    toast('生命 +1' + extra + starMsg);
     Audio2.levelUp();
   }
 }
@@ -7142,8 +7142,8 @@ function update(dt){
 function drawMaze(){
   // 逻辑尺寸，不是 canvas.width —— 加了缩放变换之后那个数是设备像素
   ctx.clearRect(0, 0, COLS*TILE, ROWS*TILE);
-  /* Phasing期间墙自己"虚掉"：变淡、变虚线、颜色偏向Phasing紫。
-     这是这个道具最值钱的一秒 —— 玩家真正要看懂的不是"我获得了Phasing"，而是
+  /* 穿墙期间墙自己"虚掉"：变淡、变虚线、颜色偏向穿墙紫。
+     这是这个道具最值钱的一秒 —— 玩家真正要看懂的不是"我获得了穿墙"，而是
      **"墙不算数了"**。让墙自己变样，比在角色身上加特效直接得多：他一眼看到
      的是整张地图的规则变了，而不是自己身上多了层光。
      最后 2 秒只轻轻提高亮度；红色倒计时条和 3/2/1 音效已经足够说明时间，
@@ -7154,7 +7154,7 @@ function drawMaze(){
     ? 0.48 + 0.10 * (0.5 + 0.5 * Math.sin(elapsed * PHASE_WALL_WARNING_HZ * Math.PI * 2))
     : 0.48;
   if (phasing){
-    // Phasing这几秒墙是虚线并带轻微呼吸，不走缓存，现画
+    // 穿墙这几秒墙是虚线并带轻微呼吸，不走缓存，现画
     const wallColor = cssVar('--phase');
     ctx.save();
     ctx.globalAlpha = ending ? wallPulse : 0.42;
@@ -7172,7 +7172,7 @@ function drawMaze(){
     ctx.stroke();
     ctx.restore();
 
-    // ghost house door（Phasing时门不变样，照画）
+    // ghost house door（穿墙时门不变样，照画）
     ctx.save();
     ctx.strokeStyle = cssVar('--pink');
     ctx.lineWidth = 2;
@@ -7197,22 +7197,22 @@ function drawMaze(){
     }
   }
 
-  /* ---------- Dot ----------
-     所有小Dot的半径和光晕是**同一个值** —— 它们只跟"还剩几颗"和时间有关，
-     跟位置无关。所以整张图的Dot可以攒成一条路径、一次 fill 画完：
+  /* ---------- 豆子 ----------
+     所有小豆子的半径和光晕是**同一个值** —— 它们只跟"还剩几颗"和时间有关，
+     跟位置无关。所以整张图的豆子可以攒成一条路径、一次 fill 画完：
      175 次带阴影的绘制变成 1 次。shadowBlur 是 canvas 2D 里最贵的操作，
      而在手机上这一项就是掉帧的主因。
 
      每段 arc 之前必须先 moveTo：arc 会从当前点连一条线过来，不另起子路径
-     就会在Dot之间连出线段。
+     就会在豆子之间连出线段。
      唯一的差别是光晕重叠处：分开画时两团光会叠加变亮，合成一条路径则不会。
      正常间距（26px）下光晕只有 2px，根本碰不到；只有剩最后几颗、光晕涨到
      7.5px 且刚好相邻时才可能有极轻微的差别，这个代价换 175 倍的绘制量值得。 */
   let glow = PELLET_GLOW;
   if (pelletsLeft <= LAST_PELLET_HINT){
-    /* 剩最后几颗时让Dot自己"喘气"。
-       这是Collect类通病：前 90% 一路吃得很爽，剩最后一两颗突然变成满地图找，
-       节奏一下垮掉。目的不是降低难度 —— Dot在哪儿本来就不是难点，
+    /* 剩最后几颗时让豆子自己"喘气"。
+       这是吃豆类通病：前 90% 一路吃得很爽，剩最后一两颗突然变成满地图找，
+       节奏一下垮掉。目的不是降低难度 —— 豆子在哪儿本来就不是难点，
        **找它的那段时间纯粹是无聊**，把无聊删掉而已。
        两档：10 颗以内轻微呼吸，3 颗以内明显跳动，越少越显眼。
 
@@ -7226,7 +7226,7 @@ function drawMaze(){
   const pulse = POWER_R + Math.sin(elapsed*6) * POWER_R_SWING;
   let anyPower = false;
 
-  /* 大多数时间普通Dot直接贴离屏层；最后十颗才需要每帧改变光晕。 */
+  /* 大多数时间普通豆子直接贴离屏层；最后十颗才需要每帧改变光晕。 */
   if (pelletsLeft > LAST_PELLET_HINT){
     if (dotCacheDirty || !dotCache || dotCache.width !== canvas.width) rebuildDotCache();
     if (dotCache){
@@ -7241,7 +7241,7 @@ function drawMaze(){
     drawRegularDots(ctx, glow);
   }
 
-  /* Power Star：五角形轮廓与参考界面一致，机制仍是原来的能量豆。
+  /* 能量星：五角形轮廓与参考界面一致，机制仍是原来的能量豆。
      数量很少，但仍合并到同一条路径中，只做一次 fill + stroke。 */
   ctx.fillStyle = amber; ctx.shadowColor = amber;
   ctx.shadowBlur = POWER_GLOW;
@@ -7267,13 +7267,13 @@ function drawMaze(){
     ctx.globalAlpha = 1;
   }
 
-  // Portal只有四格，而且每个都要单独旋转，照旧一个一个画；
+  // 传送门只有四格，而且每个都要单独旋转，照旧一个一个画；
   // 但坐标从建关时存好的 portalTiles 取，不再每帧全图扫描。
   for (const ch of ['1','2']){
     for (const p of portalTiles[ch]){
       const cxp = p.x*TILE+TILE/2, cyp = p.y*TILE+TILE/2;
       const col = ch==='1' ? cssVar('--cyan') : cssVar('--pink');
-        /* 冷却中的Portal画暗、且不再旋转。
+        /* 冷却中的传送门画暗、且不再旋转。
            踩上去之后有 1 秒冷却，这期间再踩没反应 —— 之前门看起来一切正常，
            玩家只会以为卡住了或者门坏了。让"暂时不能用"这件事看得见。 */
         // 只有正在冷却的那个颜色变暗；另一种颜色照常发光转动，
@@ -7329,7 +7329,7 @@ function drawFruit(){
   ctx.restore();
 }
 
-/* Collect的动作放在角色前方，不再靠把整只豆豆撑大。
+/* 吃豆的动作放在角色前方，不再靠把整只豆豆撑大。
    两粒小能量点既能在 20px 左右的小角色上看清，也不会遮住前面的路。 */
 function drawPlayerBiteSpark(bite){
   if (bite <= 0.12) return;
@@ -7362,7 +7362,7 @@ function directionFacing(dir, fallback){
 }
 
 /* 方向改变时先把身体压窄，再换到侧脸/背脸。逻辑坐标已经转过弯，
-   这里只用 120ms 补上“看得见的转身”，不改碰撞和Move。 */
+   这里只用 120ms 补上“看得见的转身”，不改碰撞和移动。 */
 function updateDoudouFacing(){
   const target = directionFacing(player.dir, player.visualFacingTarget);
   if (!player.visualFacingTarget){
@@ -7385,8 +7385,8 @@ function updateDoudouFacing(){
   return player.visualFacing;
 }
 
-/* 尾焰永远拖在身后，是四方向最醒目的不对称标记。Power Star期间尾焰也一起
-   变成金色，避免只有身体中央换色、Move时仍被读成普通形态。 */
+/* 尾焰永远拖在身后，是四方向最醒目的不对称标记。能量星期间尾焰也一起
+   变成金色，避免只有身体中央换色、移动时仍被读成普通形态。 */
 function drawDoudouTail(facing,powered){
   const f = DOUDOU_FACING[facing] || DOUDOU_FACING.down;
   const bx=-f.x*8.1, by=-f.y*7.1+1.2;
@@ -7484,7 +7484,7 @@ function drawDoudouTurnSwoosh(turning){
   ctx.restore();
 }
 
-/* 大星星不能只改变Enemy：豆豆自身先出现一圈紧致金光，配合整只角色换成金色。
+/* 大星星不能只改变敌人：豆豆自身先出现一圈紧致金光，配合整只角色换成金色。
    最后 1.8 秒只让这圈光柔和呼吸，不用频闪，也不扩大角色的碰撞视觉。 */
 function drawDoudouPowerAura(powered,powerAura){
   if (!powered) return;
@@ -7525,18 +7525,18 @@ function drawPlayer(){
     ctx.restore();
   }
 
-  /* Collect只做一记短促动作。高速时两颗豆间隔约 104ms，动作比它更长就会被
+  /* 吃豆只做一记短促动作。高速时两颗豆间隔约 104ms，动作比它更长就会被
      不停重置，看起来像一直肿着；所以 100ms 内完整收回。 */
   let joy=0;
   if (player.chompT !== undefined && player.chompT < 1){
     player.chompT = Math.min(1, player.chompT + visualFrameDt/CHOMP_SECONDS);
     joy = Math.sin(player.chompT * Math.PI);
   }
-  /* 无敌和Phasing都靠"闪"来表示，但原来两处都是**硬切**：Phasing 5Hz、无敌 7Hz，
-     在 0.4 和 1 之间跳。WCAG 给的上限是每秒 3 次，而Phasing状态一持续就是 10 秒 ——
+  /* 无敌和穿墙都靠"闪"来表示，但原来两处都是**硬切**：穿墙 5Hz、无敌 7Hz，
+     在 0.4 和 1 之间跳。WCAG 给的上限是每秒 3 次，而穿墙状态一持续就是 10 秒 ——
      十秒钟的 5Hz 频闪盯着看，人是会不舒服的（业主说"看起来有点晕"，当时我
      只归因到尾迹，其实这里更严重）。
-     改成正弦脉动：频率压到 3Hz 以内，下限抬高，信息一点没少 —— Phasing本来就已经
+     改成正弦脉动：频率压到 3Hz 以内，下限抬高，信息一点没少 —— 穿墙本来就已经
      整个换成青色了，闪只是补充；无敌那 2.4 秒仍然明显在呼吸。
      用 sin 而不是方波，是因为方波的边沿本身就是刺激源，同样频率下方波比正弦
      难受得多。 */
@@ -7550,7 +7550,7 @@ function drawPlayer(){
   const leanTarget = player.dir.x*PLAYER_LEAN_RAD;
   if (!Number.isFinite(player.visualLean)) player.visualLean=0;
   player.visualLean += (leanTarget-player.visualLean) * (1-Math.exp(-visualFrameDt*14));
-  /* Power Star的金色优先级最高；若同时拥有相位能力，外层青色状态环仍会保留。 */
+  /* 能量星的金色优先级最高；若同时拥有相位能力，外层青色状态环仍会保留。 */
   const body = powered ? cssVar('--amber') : player.phase>0 ? cssVar('--phase') : cssVar('--lantern');
   const powerEnding = powered && frightTimer < 1.8;
   const powerAura = powerEnding ? pulse(GHOST_WARNING_HZ,.35) : 1;
@@ -7560,7 +7560,7 @@ function drawPlayer(){
   ctx.translate(cxp-player.dir.y*sway,
                 cyp+player.dir.x*sway*.35+hop-joy*.45);
   ctx.rotate(player.visualLean+player.visualTurnSign*turning*.06);
-  /* Collect时微微收窄；转身中段再压窄一点，侧身变化能被眼睛捕捉到。 */
+  /* 吃豆时微微收窄；转身中段再压窄一点，侧身变化能被眼睛捕捉到。 */
   ctx.scale((1-joy*.018)*(1-turning*.14),(1+joy*.025)*(1+turning*.035));
   ctx.globalAlpha = player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62)
                   : invuln > 0       ? pulse(INVULN_PULSE_HZ, 0.45)
@@ -7834,11 +7834,11 @@ function drawFrightBar(){
   ctx.restore();
 }
 
-/* Phasing的倒计时。
-   能量豆有条，Phasing却什么都没有——而Phasing恰恰是最需要计时的一个：它彻底改写了
+/* 穿墙的倒计时。
+   能量豆有条，穿墙却什么都没有——而穿墙恰恰是最需要计时的一个：它彻底改写了
    "墙不能过"这条规则，玩家会一头扎进墙里绕远路，效果一到期人就卡死在墙中间
    （靠 rescueFromWall 救出来，但那一下很懵）。给它一条自己的条，画在恐惧条
-   下面一点，颜色用主角Phasing时的青色，两者同时生效也不会混。 */
+   下面一点，颜色用主角穿墙时的青色，两者同时生效也不会混。 */
 function drawPhaseBar(){
   if (player.phase <= 0) return;
   const left = Math.max(0, Math.min(1, player.phase / FRUIT_PHASE_SECONDS));
@@ -7871,7 +7871,7 @@ function stepFrame(dt){
   const hadDeathFlash = deathFlash > 0;
   if (gameState==='playing'){
     if (joystickHeldDir) requestDir(joystickHeldDir);
-    // LEVEL卡片期间整局冻住：不跑 update，elapsed 就不走，幽灵、恐惧倒计时、
+    // 关卡卡片期间整局冻住：不跑 update，elapsed 就不走，幽灵、恐惧倒计时、
     // 复活计时全部停在原地。玩家有个空拍看清这是哪一关。
     if (introTimer > 0) introTimer -= dt;
     else if (deathPause > 0) deathPause -= dt;   // 死亡定格，幽灵一起停

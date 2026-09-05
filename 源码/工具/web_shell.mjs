@@ -67,6 +67,8 @@ export function wrap(fragment, titleSuffix = ''){
 <!-- Optional cloud and analytics configuration, disabled by default. -->
 <script src="config.js"></script>
 <script src="analytics.js"></script>
+<link rel="stylesheet" href="assets/leaderboard-hall.css">
+<link rel="stylesheet" href="assets/leaderboard-entry.css">
 <style>
 /* 整页锁死不滚动。手机上边玩边让页面上下弹是最影响手感的一件事，
    而 iOS Safari 的橡皮筋回弹默认就会这么干。
@@ -137,6 +139,8 @@ body {
 </head>
 <body>
 ${fragment}
+<script src="assets/leaderboard-hall.js"></script>
+<script src="assets/leaderboard-bridge.js"></script>
 </body>
 </html>
 `;

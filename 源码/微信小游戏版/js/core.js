@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 7be476d2baf9   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 9a9f88a7caf1   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -925,6 +925,7 @@ function resetLevel(fullReset){
   deathPause = 0; deathFlash = 0;
   if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0;
     currentRunId = createPlayerId(); runActiveSeconds = 0; lastCloudEntry = null;
+    if (window.NeonCompetition) window.NeonCompetition.reset();
     /* 每一局默认都**不是**每日挑战。startDaily 在 startPractice 回来之后才把它
        打开——放这儿而不是放 startDaily 里清，是为了让"忘了清"这件事不可能发生：
        任何开局路径都经过这里。 */
@@ -3030,15 +3031,43 @@ const CloudLeaderboard = (()=>{
     }).filter(Boolean);
     return {status:'ok',data:rows};
   }
-  return {enabled,submit,top};
+  async function hall({scope='current',offset=0,limit=25,near=false}={}, playerId=null){
+    const result = await request('/rest/v1/rpc/leaderboard_hall', {
+      method:'POST', body:JSON.stringify({p_player_id:playerId,
+        p_scope:scope === 'history' ? 'history' : 'current',
+        p_offset:saveInteger(offset,0,1000000,0), p_limit:saveInteger(limit,1,50,25), p_near:near === true}),
+    });
+    if (result.status === 'error' && [400,404].includes(result.code)) return {status:'unavailable'};
+    if (result.status !== 'ok') return result;
+    const d=result.data;
+    if (!d || !Array.isArray(d.rows) || !Array.isArray(d.podium)
+        || d.scope !== (scope === 'history' ? 'history' : 'current')
+        || typeof d.rule_version !== 'string' || typeof d.has_more !== 'boolean'
+        || typeof d.revision !== 'string' || !/^[a-f0-9]{32}$/.test(d.revision)
+        || !Number.isSafeInteger(d.offset) || d.offset < 0
+        || !Number.isSafeInteger(d.total) || d.total < 0 || !Number.isFinite(Date.parse(d.updated_at))) return {status:'error'};
+    const valid = r => r && typeof r.name === 'string' && r.name.length <= 128
+      && Number.isSafeInteger(r.score) && r.score > 0 && r.score <= 1e12
+      && Number.isSafeInteger(r.rank) && r.rank > 0 && Number.isSafeInteger(r.position) && r.position > 0
+      && r.rank <= r.position && r.position <= d.total
+      && Number.isInteger(r.level) && r.level >= 1 && r.level <= 6
+      && Number.isInteger(r.combo) && r.combo >= 1 && typeof r.is_me === 'boolean'
+      && typeof r.won === 'boolean' && Number.isFinite(Date.parse(r.played_at));
+    if (!d.rows.every(valid) || !d.podium.every(valid) || (d.mine !== null && !valid(d.mine))
+        || (d.next !== null && !valid(d.next))) return {status:'error'};
+    if (d.podium.length !== Math.min(3,d.total) || !d.podium.every((r,i)=>r.position===i+1)
+        || !d.rows.every((r,i)=>r.position===d.offset+i+1)) return {status:'error'};
+    if ((d.mine && !d.mine.is_me) || (d.next && (!d.mine || d.next.score <= d.mine.score))
+        || (d.next ? d.next_gap !== d.next.score-d.mine.score+1 : d.next_gap !== null)) return {status:'error'};
+    return result;
+  }
+  return {enabled,submit,top,hall};
 })();
 
 function submitCloudScore(entry){
   if (!CloudLeaderboard.enabled()) return;
-  CloudLeaderboard.submit(entry).then(result=>{
-    Analytics.track('cloud_score_result',{cloud_status:result.status});
-    if (result.status === 'ok' && gameState === 'over') toast('成绩已同步到全球榜');
-  });
+  if (window.NeonCompetition){ window.NeonCompetition.offer(entry); return; }
+  // Fail closed if the web confirmation UI did not load: local saves still work.
 }
 
 /**
@@ -3459,6 +3488,7 @@ function endGame(won){
   const ob = document.getElementById('overBoard');
   if (ob) ob.classList.toggle('hidden', practice);   // 练习跟排行榜无关，不摆出来
   if (!practice) renderScoreboard('overBoard', rank > 0 ? id : null);
+  if (window.NeonCompetition) window.NeonCompetition.resultMode(practice);
   if (won) startFireworks();
 }
 
@@ -3477,7 +3507,7 @@ function commitName(){
   renameScore(lastRunId, name);
   if (lastCloudEntry){
     lastCloudEntry.name = name;
-    CloudLeaderboard.submit(lastCloudEntry);
+    if (window.NeonCompetition) window.NeonCompetition.rename(name);
   }
   renderScoreboard('overBoard', lastRunId);
   document.getElementById('nameRow').innerHTML =
@@ -3829,6 +3859,7 @@ function handleEnter(e){
 }
 
 window.addEventListener('keydown', (e)=>{
+  if (window.NeonCompetition && window.NeonCompetition.isOpen()) return;
   Audio2.unlock();
   // Escape 任何时候都能关掉盖在上面的文档页 —— 这是玩家唯一的逃生键。
   // 两个都关：两者不会同时打开，各调一次比先判断谁开着更省事，也不会漏。
@@ -4545,7 +4576,7 @@ window.addEventListener('blur', autoPause);
 function togglePause(){
   // 说明开着的时候 gameState 已经是 paused，此时按 P 会把游戏恢复成 playing
   // 而说明还盖在上面 —— 玩家看着一张静止的说明页，幽灵却已经在后面跑了。
-  if (docPanelOpen()) return;
+  if (docPanelOpen() || (window.NeonCompetition && window.NeonCompetition.isOpen())) return;
   if (gameState==='playing'){
     clearSwipe();
     resetJoystick();
@@ -5494,6 +5525,28 @@ function loop(t){
 }
 
 fullNewGame();
+// Web-only adapter. Native WeChat builds keep their existing local scoreboard.
+window.NeonGame = {
+  cloud: CloudLeaderboard,
+  playerId: getPlayerId,
+  name: loadName,
+  saveName: name => {
+    const cleaned=cleanName(name); saveName(cleaned);
+    if (lastCloudEntry) lastCloudEntry.name = cleaned;
+    if (lastRunId) {renameScore(lastRunId,cleaned);renderScoreboard('overBoard',lastRunId);}
+  },
+  state: () => gameState,
+  practice: () => !!practiceLevel,
+  pause: () => { if (gameState === 'playing') togglePause(); },
+  challenge: () => {
+    if (gameState === 'paused') document.getElementById('resumeBtn').click();
+    else if (gameState === 'ready') document.getElementById('startBtn').click();
+    else if (gameState === 'over') {
+      practiceLevel = 0; dailyRun = false;
+      document.getElementById('restartBtn').click();
+    }
+  },
+};
 // 占位预览只验证版式；真正广告接入必须另行实现并重新做政策/误触检查。
 (function initAdPlaceholder(){
   try {

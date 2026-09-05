@@ -1,0 +1,341 @@
+{
+  "startedAt": "2026-09-05T01:54:00.009Z",
+  "finishedAt": "2026-09-05T01:54:04.919Z",
+  "scope": "Local post-build regression; DOM/network simulation and disposable in-memory PGlite; no production writes",
+  "sha256Before": {
+    "源码/neon_maze_fragment.html": "c9720940acac7a9683664db9776cf3e575587c4432050e8ac80ef9705b0020ae",
+    "assets/leaderboard-bridge.js": "11568136ef7b53aa941e97d42d9325600f1e869604627940e9742e15870bd37f",
+    "assets/leaderboard-hall.js": "f6ac78177851ebe7f483c130b32529d589c6beb326103632026bf35823bdd504",
+    "index.html": "4c63c28eb148c4c6aae8ac814e67d098849c4b8342b6af63c131dc1e2fa51085",
+    "en/index.html": "2f4cfd6d25d5df12085608f5f972768ecd28193805fad44dd6102f26b8a64e4f",
+    "leaderboard/index.html": "3b1dc7d5d7cfae9b48b748c1f4b639d5ebcdf199087a917d062c7de0a8366832",
+    "en/leaderboard/index.html": "66fe0c136cdc4d640fbbdeb532bc33931c2b50bc758cddbfc8231cd089c18c22"
+  },
+  "sha256After": {
+    "源码/neon_maze_fragment.html": "c9720940acac7a9683664db9776cf3e575587c4432050e8ac80ef9705b0020ae",
+    "assets/leaderboard-bridge.js": "11568136ef7b53aa941e97d42d9325600f1e869604627940e9742e15870bd37f",
+    "assets/leaderboard-hall.js": "f6ac78177851ebe7f483c130b32529d589c6beb326103632026bf35823bdd504",
+    "index.html": "4c63c28eb148c4c6aae8ac814e67d098849c4b8342b6af63c131dc1e2fa51085",
+    "en/index.html": "2f4cfd6d25d5df12085608f5f972768ecd28193805fad44dd6102f26b8a64e4f",
+    "leaderboard/index.html": "3b1dc7d5d7cfae9b48b748c1f4b639d5ebcdf199087a917d062c7de0a8366832",
+    "en/leaderboard/index.html": "66fe0c136cdc4d640fbbdeb532bc33931c2b50bc758cddbfc8231cd089c18c22"
+  },
+  "results": [
+    {
+      "file": "源码/工具/test_about.mjs",
+      "exitCode": 0,
+      "durationMs": 36,
+      "output": "关于页 OK：结构 / 原文 / 入口 / Esc / 三种状态进出 / 开着时不推进。"
+    },
+    {
+      "file": "源码/工具/test_ad_placeholders.mjs",
+      "exitCode": 0,
+      "durationMs": 27,
+      "output": "✓ 广告位仅为默认隐藏占位；游戏中/移动端不显示，且仓库没有真实 AdSense 代码"
+    },
+    {
+      "file": "源码/工具/test_analytics.mjs",
+      "exitCode": 0,
+      "durationMs": 27,
+      "output": "✓ 分析默认关闭；启用后只加载有效配置并仅发送事件/参数白名单"
+    },
+    {
+      "file": "源码/工具/test_best.mjs",
+      "exitCode": 0,
+      "durationMs": 48,
+      "output": "\n纪录系统全部正确。"
+    },
+    {
+      "file": "源码/工具/test_build_consistency.mjs",
+      "exitCode": 0,
+      "durationMs": 71,
+      "output": "构建一致：网页、微信小游戏核心与源片段同步，8 个网页美术资源可用。"
+    },
+    {
+      "file": "源码/工具/test_chaos.mjs",
+      "exitCode": 0,
+      "durationMs": 3895,
+      "output": "种子 424242：跑了 120000 帧，重开 49 局，覆盖关卡 1,2,3,4,5,6\n所有不变量都成立。"
+    },
+    {
+      "file": "源码/工具/test_cloud_disclosure.mjs",
+      "exitCode": 0,
+      "durationMs": 65,
+      "output": "✓ 中英文云榜公开说明：开启/关闭、首次无纪录、网络失败、成功提示边界均通过（模拟网络）"
+    },
+    {
+      "file": "源码/工具/test_cloud_reliability.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "✓ 新版 publishable key 只发送 apikey，旧 anon key 保持兼容，拒绝 sb_secret 配置\n✓ 云榜连接/响应体8秒超时、无效响应回退、同局改名按顺序提交；使用模拟网络，未验证真实数据库"
+    },
+    {
+      "file": "源码/工具/test_cloud_security.mjs",
+      "exitCode": 0,
+      "durationMs": 26,
+      "output": "✓ 云端底表无匿名直写；RPC 含幂等、串行限频、版本与成绩合理性校验"
+    },
+    {
+      "file": "源码/工具/test_combo_balance.mjs",
+      "exitCode": 0,
+      "durationMs": 133,
+      "output": "\n连击平衡机制回归通过（源码内存测试，非真机验证）。"
+    },
+    {
+      "file": "源码/工具/test_combo.mjs",
+      "exitCode": 0,
+      "durationMs": 36,
+      "output": "\n连击两档衰减正确。"
+    },
+    {
+      "file": "源码/工具/test_domain_paths.mjs",
+      "exitCode": 0,
+      "durationMs": 26,
+      "output": "✓ canonical、hreflang、分享 URL、英文配置与 404 返回路径均指向正式域名"
+    },
+    {
+      "file": "源码/工具/test_edge_cases.mjs",
+      "exitCode": 0,
+      "durationMs": 40,
+      "output": "\n边界用例全部通过。"
+    },
+    {
+      "file": "源码/工具/test_enemy_profiles.mjs",
+      "exitCode": 0,
+      "durationMs": 25,
+      "output": "怪物特点 OK：悬停即显 / 轻触备用 / 44px 热区 / 键盘聚焦 / 实时播报。"
+    },
+    {
+      "file": "源码/工具/test_english_build.mjs",
+      "exitCode": 0,
+      "durationMs": 57,
+      "output": "英文构建通过：与当前完整版同源，所有模式齐全，脚本有效且无遗漏中文。"
+    },
+    {
+      "file": "源码/工具/test_eyes_home.mjs",
+      "exitCode": 0,
+      "durationMs": 1976,
+      "output": "合计 1205 个格子，回不了家 0 个 (0.0%)\n眼睛都能回家。"
+    },
+    {
+      "file": "源码/工具/test_feel.mjs",
+      "exitCode": 0,
+      "durationMs": 38,
+      "output": "\n三项手感反馈都正确。"
+    },
+    {
+      "file": "源码/工具/test_ghost_bounty.mjs",
+      "exitCode": 0,
+      "durationMs": 45,
+      "output": "\n悬赏只数封顶正确，全灭奖励每颗豆只发一次。"
+    },
+    {
+      "file": "源码/工具/test_grade.mjs",
+      "exitCode": 0,
+      "durationMs": 34,
+      "output": "\n评级与纪录统计都正确。"
+    },
+    {
+      "file": "源码/工具/test_hall_build.mjs",
+      "exitCode": 0,
+      "durationMs": 37,
+      "output": "✓ Hall deep-link/English/base/canonical/assets mirror/JS/confirmation-action/route guards passed (60820 bytes new assets); no deployment tested."
+    },
+    {
+      "file": "源码/工具/test_hall_database.mjs",
+      "exitCode": 0,
+      "durationMs": 881,
+      "output": "  ]\n}"
+    },
+    {
+      "file": "源码/工具/test_hall_integration.mjs",
+      "exitCode": 0,
+      "durationMs": 69,
+      "output": "\nHall integration: 23/23 checks passed. Simulated DOM/network only; no real cloud writes or phone verification."
+    },
+    {
+      "file": "源码/工具/test_hall_view.mjs",
+      "exitCode": 0,
+      "durationMs": 157,
+      "output": "✓ 全球竞技大厅 24 组模拟 DOM/API 检查通过；未访问生产服务，布局需另做真实浏览器尺寸检查。"
+    },
+    {
+      "file": "源码/工具/test_help_accuracy.mjs",
+      "exitCode": 0,
+      "durationMs": 27,
+      "output": "\n中英文网页、小游戏说明与 README的数字都和代码一致；作者文字也只出现在「关于」页。"
+    },
+    {
+      "file": "源码/工具/test_help_close.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "\n开关说明不会引起任何布局变化。"
+    },
+    {
+      "file": "源码/工具/test_hints.mjs",
+      "exitCode": 0,
+      "durationMs": 3260,
+      "output": "\n提示都会触发，且每条只一次。"
+    },
+    {
+      "file": "源码/工具/test_keyboard.mjs",
+      "exitCode": 0,
+      "durationMs": 39,
+      "output": "\n键盘手感四项都正常。"
+    },
+    {
+      "file": "源码/工具/test_language_routing.mjs",
+      "exitCode": 0,
+      "durationMs": 26,
+      "output": "语言偏好通过：首次访问不强制跳转、不查询 IP；浏览器语言只给轻提示。\n手动选择长期优先，中英文页都有顶部切换，挑战参数完整保留。"
+    },
+    {
+      "file": "源码/工具/test_level_intro.mjs",
+      "exitCode": 0,
+      "durationMs": 39,
+      "output": "\n关卡卡片全部正确。"
+    },
+    {
+      "file": "源码/工具/test_logo_crop.mjs",
+      "exitCode": 0,
+      "durationMs": 24,
+      "output": "Logo 使用当前 380×380 WebP；普通、高竖屏和桌面布局均居中并容纳字形安全边界。"
+    },
+    {
+      "file": "源码/工具/test_markup.mjs",
+      "exitCode": 0,
+      "durationMs": 46,
+      "output": "网页版标签配对正确（仓库未包含可选的小程序 WXML，已跳过）。"
+    },
+    {
+      "file": "源码/工具/test_no_stuck_ghost.mjs",
+      "exitCode": 0,
+      "durationMs": 188,
+      "output": "六关各跑 90 秒（含反复吃幽灵），没有幽灵长时间困在原地。"
+    },
+    {
+      "file": "源码/工具/test_pause_death.mjs",
+      "exitCode": 0,
+      "durationMs": 52,
+      "output": "\n暂停冻结与死亡定格都正确。"
+    },
+    {
+      "file": "源码/工具/test_pellet_contrast.mjs",
+      "exitCode": 0,
+      "durationMs": 23,
+      "output": "\n小豆和能量豆在任何时刻都分得出：能量豆永远更大、也永远更亮。"
+    },
+    {
+      "file": "源码/工具/test_phase_control.mjs",
+      "exitCode": 0,
+      "durationMs": 45,
+      "output": "\n穿墙手感三条都正确。"
+    },
+    {
+      "file": "源码/工具/test_phase.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "\n全部通过。"
+    },
+    {
+      "file": "源码/工具/test_player_visual.mjs",
+      "exitCode": 0,
+      "durationMs": 24,
+      "output": "玩家视觉：30px 图框 / 26px 通道，吃豆 0.1s，步态每 0.85 格一轮。\n动作上限：上跳 0.38px，倾斜 0.045rad，转身 0.12s；30px 恶魔，基础凶相 0.38，4.5 格内继续增强。"
+    },
+    {
+      "file": "源码/工具/test_portal.mjs",
+      "exitCode": 0,
+      "durationMs": 40,
+      "output": "\n六关的传送门：冷却按色独立、落地有思考时间、站着不会自我弹射。"
+    },
+    {
+      "file": "源码/工具/test_practice.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "\n练习模式的边界都守住了。"
+    },
+    {
+      "file": "源码/工具/test_progress.mjs",
+      "exitCode": 0,
+      "durationMs": 40,
+      "output": "✓ 真实碰撞路径记录反击/死亡；图鉴关闭不擅自恢复游戏\n✓ 每日挑战稳定选关、不入排行榜、跨午夜不污染次日、开新局正确复位"
+    },
+    {
+      "file": "源码/工具/test_render_cost.mjs",
+      "exitCode": 0,
+      "durationMs": 37,
+      "output": "\n渲染开销在上限内。"
+    },
+    {
+      "file": "源码/工具/test_respawn.mjs",
+      "exitCode": 0,
+      "durationMs": 35,
+      "output": "✓ 进了老巢停留\n✓ 复活后不可吃（本轮已吃过）"
+    },
+    {
+      "file": "源码/工具/test_score_format.mjs",
+      "exitCode": 0,
+      "durationMs": 31,
+      "output": "\n全部通过"
+    },
+    {
+      "file": "源码/工具/test_share_url.mjs",
+      "exitCode": 0,
+      "durationMs": 36,
+      "output": "分享链接 OK：默认用当前地址；宿主指定 DOUDOU_SHARE_URL 时落到正式页面，分数与原有参数都不丢。"
+    },
+    {
+      "file": "源码/工具/test_touch_feel.mjs",
+      "exitCode": 0,
+      "durationMs": 24,
+      "output": "\n触屏手感的三条底线都守住了。"
+    },
+    {
+      "file": "源码/工具/test_touch_targets.mjs",
+      "exitCode": 0,
+      "durationMs": 23,
+      "output": "手机 HUD：44×44 热区保持居中，触屏间距不重叠；\n双击缩放兜底仅限 playing 棋盘，不再吞按钮快速连点。"
+    },
+    {
+      "file": "源码/工具/test_virtual_joystick.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "手机虚拟摇杆：触屏开局自动显示，四向判定与 45° 防抖正确。\n按住会刷新转向缓存；松手继续跑；暂停复位；滑动操作仍保留。"
+    },
+    {
+      "file": "源码/工具/test_warmth.mjs",
+      "exitCode": 0,
+      "durationMs": 32,
+      "output": "开始页 OK：欢迎语分两句 / 榜单默认前三 / 「新」是独立徽章且只标本局 / 最高纪录已中文 / 故事入口就位。"
+    },
+    {
+      "file": "源码/工具/test_web_gesture.mjs",
+      "exitCode": 0,
+      "durationMs": 31,
+      "output": "网页版滑动手势：identifier 归属、多指取消、45° 延迟判定、连续滑动、\ntouchcancel/自动暂停恢复、弹层隔离和短甩兜底均正常。"
+    },
+    {
+      "file": "源码/工具/validate_mazes.mjs",
+      "exitCode": 0,
+      "durationMs": 30,
+      "output": "\nAll mazes valid."
+    },
+    {
+      "file": "源码/微信小游戏版/工具/smoke.mjs",
+      "exitCode": 0,
+      "durationMs": 1656,
+      "output": "\n冒烟测试全部通过。"
+    }
+  ],
+  "phase": "post-build",
+  "passed": 51,
+  "total": 51,
+  "inputsUnchangedDuringRun": true,
+  "limitations": [
+    "Source, game/bridge DOM and HTTP transport checks are controlled local simulations, not real-phone or production end-to-end verification.",
+    "SQL migrations execute in disposable in-memory PostgreSQL WASM (PGlite), not in the production Supabase database.",
+    "Successful test output retains the last two lines; no production scores or real-user records were written, migrated, or deleted.",
+    "No Git commit, push or deployment was performed by this regression task."
+  ]
+}

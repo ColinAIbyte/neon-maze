@@ -62,6 +62,10 @@ writeFileSync(`${OUT_DIR}/index.html`, html);
 mkdirSync(`${OUT_DIR}/assets`, { recursive: true });
 const assets = [
   'language-router.js',
+  'leaderboard-hall.js',
+  'leaderboard-hall.css',
+  'leaderboard-bridge.js',
+  'leaderboard-entry.css',
   'favicon.svg',
   'favicon-32.png',
   'apple-touch-icon.png',
@@ -79,6 +83,19 @@ mkdirSync(`${OUT_DIR}/en`, { recursive: true });
 mkdirSync(`${ROOT_DIR}en`, { recursive: true });
 writeFileSync(`${ROOT_DIR}en/index.html`, englishHtml);
 writeFileSync(`${OUT_DIR}/en/index.html`, englishHtml);
+// Real directories make deep links/refresh work on GitHub Pages without a SPA rewrite.
+for (const [route,source,base] of [['leaderboard',html,'../'],['en/leaderboard',englishHtml,'../../']]){
+  let page=source.replace(/<base href="[^\"]*">\n/,'');
+  page=page.replace('<meta charset="utf-8">','<meta charset="utf-8">\n<base href="'+base+'">');
+  page=page.replace(/(<link rel="canonical" href=")[^"]+/, '$1'+SITE_URL+route+'/');
+  page=page.replace(/(<meta property="og:url" content=")[^"]+/, '$1'+SITE_URL+route+'/');
+  page=page.replace(/(<link rel="alternate" hreflang="(?:zh-Hans|x-default)" href=")[^"]+/g,'$1'+SITE_URL+'leaderboard/');
+  page=page.replace(/(<link rel="alternate" hreflang="en" href=")[^"]+/,'$1'+SITE_URL+'en/leaderboard/');
+  page=page.replace(/<title>[^<]+<\/title>/,'<title>'+ (route.startsWith('en/')?'Global Leaderboard':'全球排行榜') +' · Neon Maze</title>');
+  for (const dir of [ROOT_DIR,OUT_DIR+'/']){
+    mkdirSync(dir+route,{recursive:true});writeFileSync(dir+route+'/index.html',page);
+  }
+}
 copyFileSync(here('../../config.js'), `${OUT_DIR}/config.js`);
 copyFileSync(here('../../analytics.js'), `${OUT_DIR}/analytics.js`);
 

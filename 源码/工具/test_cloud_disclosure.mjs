@@ -17,7 +17,7 @@ for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
   assert(html.indexOf('id="cloudNotice"') < html.indexOf('id="startBtn"'));
   if (language === 'en'){
     assert(!/[\u3400-\u9fff]/.test(notice+details),'English disclosure must be fully translated');
-    for (const phrase of ['automatically submit','randomly generated anonymous player ID',
+    for (const phrase of ['only after nickname confirmation','randomly generated anonymous player ID',
       'score ownership and basic validation','not an account','does not sync progress across devices']){
       assert(details.includes(phrase),phrase);
     }
@@ -37,6 +37,7 @@ for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
   let enabled = false, records = [], result = {status:'offline'};
   const toasts = [];
   const env = {
+    window:{},
     document:{getElementById:element},
     CloudLeaderboard:{enabled:()=>enabled,top:async()=>result,submit:async()=>result},
     Analytics:{track:()=>{}},loadScores:()=>records,fmtNum:String,
@@ -77,7 +78,12 @@ for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
   assert(element('startBoard').innerHTML.includes(language === 'zh' ? '昵称与成绩公开' : 'Public names &amp; scores'));
   api.submitCloudScore({});
   await Promise.resolve();
-  assert.equal(toasts.length,1,'confirmed upload can display success');
+  assert.equal(toasts.length,0,'missing confirmation bridge must fail closed, not auto-submit');
+  let offered=0;
+  env.window.NeonCompetition={offer:()=>offered++};
+  api.submitCloudScore({});
+  assert.equal(offered,1,'normal run is offered for explicit nickname confirmation');
+  assert.equal(toasts.length,0,'offering confirmation is not a successful upload');
 
   enabled = false;
   api.renderScoreboard('startBoard');

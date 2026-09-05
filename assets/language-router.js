@@ -26,6 +26,15 @@
   }
 
   function targetUrl(language) {
+    // Hall deep links have their own static entry; keep the same view on a
+    // manual preference redirect instead of appending en/ to leaderboard/.
+    if (/\/leaderboard\/?$/.test(window.location.pathname)) {
+      var root = new URL('../', script.src);
+      var hall = new URL(language === 'en' ? 'en/leaderboard/' : 'leaderboard/', root);
+      hall.search = window.location.search;
+      hall.hash = window.location.hash;
+      return hall.href;
+    }
     var relative = language === 'en'
       ? (current === 'en' ? './' : 'en/')
       : (current === 'en' ? '../' : './');

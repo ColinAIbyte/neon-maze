@@ -1065,6 +1065,8 @@ try {
   const h = draw(() => ui.drawOverlays(0));
   const seen = rec.__rec.map(r => r.t).join('');
   if (!seen.includes('今日挑战')) throw new Error('每日挑战那一条没画出来');
+  const dailyTitle = el('dailyBox').innerHTML.match(/class="daily-lv" title="([^"]+)"/);
+  if (!dailyTitle || !seen.includes(dailyTitle[1])) throw new Error('每日挑战完整关卡文案丢失');
   if (!h.daily) throw new Error('每日挑战「开始」没有热区——这一行唯一非点不可的就是它');
   const over = (a,b) => a && b && a.x < b.x+b.w && b.x < a.x+a.w && a.y < b.y+b.h && b.y < a.y+a.h;
   /* 热区互相压住是这一块历史上真出过的事：两边都会自己撑到 44 的最小热区，

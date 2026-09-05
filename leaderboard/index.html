@@ -972,8 +972,9 @@ body{
   z-index:70;
   width:min(92%,430px);
   max-height:calc(100% - 20px);
-  /* Long English rows must wrap, never create a second scroll axis. Keep
-     vertical scrolling so every menu action remains reachable on short screens. */
+  /* Compact rows respond to the card's available width, not the whole screen.
+     Keep vertical scrolling so every action remains reachable on short screens. */
+  container: start-menu / inline-size;
   overflow-x:hidden;
   overflow-y:auto;
   overscroll-behavior-x:none;
@@ -1099,28 +1100,30 @@ body{
 /* 关卡选择：六个小方块，没到过的画一把锁。
    刻意做得比「开始」小、比排行榜轻 —— 它是备选路，不该抢主线的位置。 */
 .levelsel{
-  display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;
+  display:grid;grid-template-columns:max-content repeat(6,minmax(24px,1fr)) 38px;
+  gap:4px;align-items:center;width:100%;max-width:340px;
   font-family:var(--font-display);
 }
 /* 图鉴入口挂在选关那一行末尾，不另起一行：它和星星是同一类东西（长期收集），
    而开始页多一行就少一行别的。 */
 .lv-codex .enemy-thumb{box-shadow:none;}
-/* 每日挑战：短文案一行；英文和小屏自然换行，不能撑宽整个开始菜单。 */
+/* 每日挑战始终一行；窄卡片收起关卡副标题，保留关卡号、战绩与开始按钮。 */
 .daily{
-  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+  display:grid; grid-template-columns:auto minmax(3.8ch,1fr) minmax(0,max-content) auto;
+  align-items:center; gap:6px;
   width:100%; max-width:340px;
-  padding:7px 10px; border-radius:9px;
+  padding:6px 8px; border-radius:9px;
   border:1px solid var(--panel-border);
   background:rgba(255,212,71,.07);
   font-size:11px; color:var(--text);
 }
-.daily-k{ font-size:9px; letter-spacing:.16em; color:var(--amber); white-space:nowrap; }
-.daily-lv{ font-weight:700; white-space:nowrap; }
-.daily-best{ margin-left:auto; color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
-.daily > span{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;}
+.daily-k{ font-size:9px; letter-spacing:.06em; color:var(--amber); white-space:nowrap; }
+.daily-lv{ font-weight:700; text-align:left; overflow:hidden; text-overflow:ellipsis; }
+.daily-best{ color:var(--text-dim); font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; text-align:right; }
+.daily > span{min-width:0;max-width:100%;white-space:nowrap;}
 .daily-go{
   flex:none; border:1px solid var(--amber); background:transparent; color:var(--amber);
-  border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; cursor:pointer;
+  border-radius:6px; padding:3px 7px; min-height:28px; font-size:11px; font-weight:700; cursor:pointer;
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 .daily-go:hover,.daily-go:focus-visible{ background:rgba(255,212,71,.16); }
@@ -1134,7 +1137,22 @@ body{
 .owl-row.locked .owl-name,.owl-row.locked .owl-how{ color:var(--panel-border); }
 .owl-row.locked .owl-dot{ background:var(--panel-border) !important; }
 .levelsel-k{
-  font-size:9px;letter-spacing:.18em;color:var(--text-dim);margin-right:3px;
+  font-size:9px;letter-spacing:0;color:var(--text-dim);white-space:nowrap;
+}
+.levelsel .lv{width:100%;min-width:24px;height:38px;padding:0;}
+.levelsel .lv-codex{width:38px;height:38px;}
+.levelsel .lv-codex .enemy-thumb{transform:scale(.84);}
+@container start-menu (max-width:340px){
+  .daily-level-name,.daily-best-prefix{display:none;}
+}
+@container start-menu (max-width:300px){
+  .daily{gap:4px;padding-inline:6px;}
+  .levelsel{gap:2px;grid-template-columns:max-content repeat(6,minmax(24px,1fr)) 34px;}
+  .levelsel .lv-codex{width:34px;}
+}
+@container start-menu (max-width:280px){
+  /* Keep the practice label available to assistive technology. */
+  .levelsel-label{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 }
 /* 星星收集册没有自己的页面 —— 它就长在选关按钮上。
    单开一页要多一个入口、多一次点击、多一屏要设计的东西，而它要展示的信息
@@ -5682,7 +5700,7 @@ function renderLevelSelect(){
      总数放在最左边而不是最右边：孩子的视线是从这一行的开头进来的，
      "我攒了几颗"应该是他看到的第一个数，而不是扫完六个按钮之后的补充说明。 */
   const tot = totalStars(), max = MAX_LEVEL * 3;
-  let html = `<span class="levelsel-k">练习 <b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
+  let html = `<span class="levelsel-k"><span class="levelsel-label">练习 </span><b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
   for (let i = 1; i <= MAX_LEVEL; i++){
     const locked = i > top;
     const st = starsOf(i);
@@ -7035,11 +7053,11 @@ function renderDaily(){
   if (maxLevelReached() < 2){ box.classList.add('hidden'); return; }
   const lv = dailyLevel(), best = dailyBest();
   box.classList.remove('hidden');
-  box.innerHTML = `<span class="daily-k">今日挑战</span>`
-    + `<span class="daily-lv">第 ${lv} 关 · ${levelName(lv)}</span>`
+  box.innerHTML = `<span class="daily-k" title="今日挑战">今日挑战</span>`
+    + `<span class="daily-lv" title="第 ${lv} 关 · ${levelName(lv)}"><span class="daily-level-number">第 ${lv} 关</span><span class="daily-level-name"> · ${levelName(lv)}</span></span>`
     /* 没成绩时写"还没打"而不是"0 分"。0 是一个成绩，"还没打"是一个空位——
        今天这一栏要邀请人来填，不是先给他记一笔难看的账。 */
-    + `<span class="daily-best">${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}</span>`
+    + `<span class="daily-best" title="${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}">${best ? '<span class="daily-best-prefix">今天最好 </span>' + fmtNum(best) : '今天还没打'}</span>`
     + `<button class="daily-go" id="dailyGo">开始</button>`;
   const go = document.getElementById('dailyGo');   // 理由同 renderLevelSelect 里那条
   if (go) go.addEventListener('click', ()=>{

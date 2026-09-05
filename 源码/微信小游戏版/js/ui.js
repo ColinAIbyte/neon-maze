@@ -523,6 +523,10 @@ function createUI(ctx, el, layout, getGame){
     const html = box.innerHTML || '';
     if (dailyCache.html !== html){
       const pick = cls => {
+        // Web rows may split compact labels into nested spans. The title keeps
+        // their full text for this Canvas view; retain the old flat-text fallback.
+        const title = String(html).match(new RegExp('class="' + cls + '"[^>]*\\btitle="([^"]*)"'));
+        if (title) return title[1].trim();
         const m = String(html).match(new RegExp('class="' + cls + '"[^>]*>([^<]*)<'));
         return m ? m[1].trim() : '';
       };

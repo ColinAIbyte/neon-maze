@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: d1d7e6c89f6b   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 23624c5c5ed4   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -3327,7 +3327,7 @@ function renderLevelSelect(){
      总数放在最左边而不是最右边：孩子的视线是从这一行的开头进来的，
      "我攒了几颗"应该是他看到的第一个数，而不是扫完六个按钮之后的补充说明。 */
   const tot = totalStars(), max = MAX_LEVEL * 3;
-  let html = `<span class="levelsel-k">练习 <b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
+  let html = `<span class="levelsel-k"><span class="levelsel-label">练习 </span><b style="color:var(--amber)">★${tot}</b>/${max}</span>`;
   for (let i = 1; i <= MAX_LEVEL; i++){
     const locked = i > top;
     const st = starsOf(i);
@@ -4680,11 +4680,11 @@ function renderDaily(){
   if (maxLevelReached() < 2){ box.classList.add('hidden'); return; }
   const lv = dailyLevel(), best = dailyBest();
   box.classList.remove('hidden');
-  box.innerHTML = `<span class="daily-k">今日挑战</span>`
-    + `<span class="daily-lv">第 ${lv} 关 · ${levelName(lv)}</span>`
+  box.innerHTML = `<span class="daily-k" title="今日挑战">今日挑战</span>`
+    + `<span class="daily-lv" title="第 ${lv} 关 · ${levelName(lv)}"><span class="daily-level-number">第 ${lv} 关</span><span class="daily-level-name"> · ${levelName(lv)}</span></span>`
     /* 没成绩时写"还没打"而不是"0 分"。0 是一个成绩，"还没打"是一个空位——
        今天这一栏要邀请人来填，不是先给他记一笔难看的账。 */
-    + `<span class="daily-best">${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}</span>`
+    + `<span class="daily-best" title="${best ? '今天最好 ' + fmtNum(best) : '今天还没打'}">${best ? '<span class="daily-best-prefix">今天最好 </span>' + fmtNum(best) : '今天还没打'}</span>`
     + `<button class="daily-go" id="dailyGo">开始</button>`;
   const go = document.getElementById('dailyGo');   // 理由同 renderLevelSelect 里那条
   if (go) go.addEventListener('click', ()=>{

@@ -928,6 +928,7 @@ body{
 /* 开始页的最高分。字号刻意压过标题以外的一切 —— 它是这一屏的主角。 */
 .best-line{
   display:flex;align-items:baseline;justify-content:center;gap:9px;
+  flex-wrap:wrap;
   font-family:var(--font-display);
 }
 .best-line.hidden{display:none;}
@@ -971,7 +972,13 @@ body{
   z-index:70;
   width:min(92%,430px);
   max-height:calc(100% - 20px);
-  overflow:auto;
+  /* Long English rows must wrap, never create a second scroll axis. Keep
+     vertical scrolling so every menu action remains reachable on short screens. */
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-x:none;
+  overscroll-behavior-y:contain;
+  touch-action:pan-y;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -996,7 +1003,10 @@ body{
   box-shadow:0 0 16px rgba(49,231,255,.72);
 }
 #startOverlay > .start-card{position:relative;z-index:70;}
-#startOverlay .start-card > *{position:relative;z-index:1;}
+#startOverlay .start-card > *{position:relative;z-index:1;min-width:0;max-width:100%;flex-shrink:0;}
+/* The start buttons are moved above the record preview by the hall bridge;
+   they must not inherit the result screen's bottom offset and footer padding. */
+#startOverlay .start-actions{bottom:auto;padding:0;}
 #startOverlay .start-card h2{font-size:clamp(22px,4vw,31px);}
 @media (max-width:420px){
   .start-card{width:96%;max-height:calc(100% - 8px);border-radius:19px;padding:15px 12px 12px;gap:7px;}
@@ -1095,10 +1105,9 @@ body{
 /* 图鉴入口挂在选关那一行末尾，不另起一行：它和星星是同一类东西（长期收集），
    而开始页多一行就少一行别的。 */
 .lv-codex .enemy-thumb{box-shadow:none;}
-/* 每日挑战。一行装下"打哪关、我今天最好多少、开始"，不占第二行 ——
-   开始页的高度是这个游戏最紧张的资源（历史上按钮被挤出过屏幕）。 */
+/* 每日挑战：短文案一行；英文和小屏自然换行，不能撑宽整个开始菜单。 */
 .daily{
-  display:flex; align-items:center; gap:8px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
   width:100%; max-width:340px;
   padding:7px 10px; border-radius:9px;
   border:1px solid var(--panel-border);
@@ -1108,6 +1117,7 @@ body{
 .daily-k{ font-size:9px; letter-spacing:.16em; color:var(--amber); white-space:nowrap; }
 .daily-lv{ font-weight:700; white-space:nowrap; }
 .daily-best{ margin-left:auto; color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.daily > span{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;}
 .daily-go{
   flex:none; border:1px solid var(--amber); background:transparent; color:var(--amber);
   border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; cursor:pointer;
@@ -1855,7 +1865,7 @@ body::before{
   #startOverlay .start-card{
     width:calc(100% - 12px);max-height:calc(100% - 8px);
     padding:10px 9px 8px;gap:4px;border-radius:14px;
-    overflow:hidden;justify-content:center;
+    overflow-x:hidden;overflow-y:auto;justify-content:flex-start;
   }
   #startOverlay .start-card h2{font-size:19px;line-height:1.15;white-space:nowrap;}
   #startOverlay .welcome{font-size:11px;line-height:1.3;margin:0 !important;}
@@ -1965,7 +1975,7 @@ body::before{
   /* 矮屏先保住完整玩法说明；角色图鉴在更高的屏幕再展开。 */
   .enemy-card{display:none;}
 }
-.start-tools{display:flex;justify-content:center;gap:12px;flex-shrink:0;max-width:100%;}
+.start-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;flex-shrink:0;max-width:100%;}
 .start-tools .help-pill{min-height:44px;padding:6px 12px;letter-spacing:.03em;}
 .start-tools .help-pill::after{display:none;}
 #prefsOverlay{position:fixed;inset:0;z-index:140;border-radius:0;background:#0a0614;

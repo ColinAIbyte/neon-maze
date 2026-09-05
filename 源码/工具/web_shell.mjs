@@ -16,6 +16,14 @@ const SOCIAL_IMAGE = SITE_URL + 'assets/neon-maze-share.jpg';
 
 export { TITLE, DESC, AUTHOR, SITE_URL, SOCIAL_IMAGE };
 
+// Keep source commentary for maintainers, but do not ship HTML-only notes.
+// Raw script/style blocks are returned byte-for-byte, including comment-like
+// strings. No JS minification, execution-order changes, or new build dependencies.
+export function stripBuildComments(fragment){
+  return fragment.replace(/<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>|(?:^[\t ]*)?<!--[\s\S]*?-->(?:[\t ]*(?=\r?$))?|<(?:"[^"]*"|'[^']*'|[^'">])*?>/gim,
+    part=>part.trimStart().startsWith('<!--') ? '' : part);
+}
+
 /**
  * 把游戏片段包成一个完整网页。
  * @param {string} fragment  neon_maze_fragment.html 的内容（可能已注入测试钩子）
@@ -138,7 +146,7 @@ body {
 </style>
 </head>
 <body>
-${fragment}
+${stripBuildComments(fragment)}
 <script src="assets/leaderboard-hall.js"></script>
 <script src="assets/leaderboard-bridge.js"></script>
 </body>

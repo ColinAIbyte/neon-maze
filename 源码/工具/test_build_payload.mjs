@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {gzipSync} from 'node:zlib';
+import {stripBuildComments,wrap} from './web_shell.mjs';
+const raw='<div><!-- dev note --><p>Keep text</p></div><script>const s="<!-- not markup -->";</script><style>.x::after{content:"<!-- also literal -->"}</style>';
+const cleaned=stripBuildComments(raw);
+assert(!cleaned.includes('dev note'));assert(cleaned.includes('Keep text'));
+assert(cleaned.includes('const s="<!-- not markup -->";'));
+assert(cleaned.includes('content:"<!-- also literal -->"'));
+assert.equal(stripBuildComments('<p title="<!-- literal -->">ok</p>'),'<p title="<!-- literal -->">ok</p>');
+assert.equal(stripBuildComments('<div>\n  <!-- whole line -->  \n</div>'),'<div>\n\n</div>');
+const source=readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
+const output=wrap(source),oldShape=output.replace(stripBuildComments(source),source);
+const rawBlocks=s=>[...s.matchAll(/<(script|style)\b[^>]*>([\s\S]*?)<\/\1>/gi)].filter(m=>m[2]).map(m=>m[0]);
+for(const block of rawBlocks(source))assert(output.includes(block),'JS and CSS must remain byte-identical');
+assert(Buffer.byteLength(output)<Buffer.byteLength(oldShape));
+assert(gzipSync(output).length<gzipSync(oldShape).length);
+assert.equal(readFileSync(new URL('../../index.html',import.meta.url),'utf8'),output);
+console.log(JSON.stringify({sameFeatureBeforeBytes:Buffer.byteLength(oldShape),afterBytes:Buffer.byteLength(output),
+  sameFeatureGzipBefore:gzipSync(oldShape).length,gzipAfter:gzipSync(output).length}));
+console.log('Build payload: HTML-only comments removed; raw JS/CSS unchanged. Gzip figures are local estimates, not network timing.');

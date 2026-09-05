@@ -16,7 +16,7 @@ const prefix=`
 const suffix=`
  const __realMilestone=Audio2.comboMilestone;
  Audio2.comboMilestone=m=>{__samples.sounds.push(m);__realMilestone(m);};
- window.milestoneTest={samples:__samples,Audio2,checkComboMilestone,update,sustainCombo,
+ window.milestoneTest={samples:__samples,Audio2,checkComboMilestone,update,sustainCombo,setPresentation,
   fire:m=>{fxRunning=false;startComboFx(m);},
   get particles(){return fxParticles;},
   set combo(v){combo=v;},get combo(){return combo;},
@@ -66,7 +66,7 @@ function run(mutator=s=>s,quiet=false){
    assert.deepEqual(t.samples.sounds,[200]);assert.equal(t.samples.frequency.length,0);
  });
  check('reduced motion skips particles but still reports the achieved milestone',()=>{
-   const a=app(mutator),t=a.t;a.win.matchMedia=()=>({matches:true});
+   const a=app(mutator),t=a.t;t.setPresentation('reduceMotion','reduce');
    t.combo=200;t.checkComboMilestone();assert.deepEqual(t.samples.sounds,[200]);assert.equal(t.particles.length,0);
  });
  check('new milestones use at most 26 particles and no gameplay random calls',()=>{

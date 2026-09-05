@@ -1965,6 +1965,26 @@ body::before{
   /* 矮屏先保住完整HOW TO PLAY；角色图鉴在更高的屏幕再展开。 */
   .enemy-card{display:none;}
 }
+.start-tools{display:flex;justify-content:center;gap:12px;flex-shrink:0;max-width:100%;}
+.start-tools .help-pill{min-height:44px;padding:6px 12px;letter-spacing:.03em;}
+.start-tools .help-pill::after{display:none;}
+#prefsOverlay{position:fixed;inset:0;z-index:140;border-radius:0;background:#0a0614;
+  justify-content:flex-start;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));touch-action:pan-y;}
+#prefsOverlay h2{font-size:clamp(22px,5vw,30px);flex-shrink:0;}
+.prefs-content{width:min(100%,500px);overflow:auto;min-height:0;text-align:left;overscroll-behavior:contain;padding:4px;}
+.prefs-content label{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;font-size:15px;color:#eee9ff;letter-spacing:0;}
+.prefs-content input[type=checkbox]{width:24px;height:24px;accent-color:#6deeff;flex-shrink:0;}
+.prefs-content select{margin-left:auto;min-height:44px;max-width:56%;font-size:15px;color:#fff;background:#19132e;border:1px solid #807697;border-radius:8px;padding:6px;}
+.prefs-volume{border-top:1px solid #403552;margin-top:12px;padding-top:4px;}
+.prefs-volume label{justify-content:space-between;}
+.prefs-volume input{width:100%;min-height:44px;accent-color:#6deeff;}
+.prefs-content .prefs-note{font:13px/1.6 var(--font-body);letter-spacing:0;color:#c6beda;margin:8px 0;}
+.prefs-content :focus-visible,#prefsCloseBtn:focus-visible{outline:3px solid #ffd75b;outline-offset:3px;}
+.prefs-content output{font-variant-numeric:tabular-nums;}
+#prefsCloseBtn{min-height:44px;flex-shrink:0;}
+body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
+body.color-assist .enemy-choice[data-enemy]{position:relative;}
+body.color-assist .enemy-choice[data-enemy]::before{content:attr(data-mark);position:absolute;right:0;bottom:0;z-index:2;color:#fff;background:#09051b;border:1px solid #fff;border-radius:3px;font:700 12px/16px system-ui;min-width:16px;text-align:center;}
 </style>
 
 <nav class="language-switch" aria-label="Language / 语言">
@@ -1979,9 +1999,7 @@ body::before{
       <span class="brand-neon">NEON</span>
       <span class="brand-maze">MAZE</span>
     </h1>
-    <!-- 「?」跟在副标题后面。原来它和另外两个按钮全塞在 HUD 里，那一行还要
-         放SCORE、Combo、LEVEL、LIVES，挤得数值都快贴到一起了。副标题这行本来就
-         空着半行。 -->
+
     <p class="tagline">
       <span class="tag-words">COLLECT<i></i>POWER UP<i></i>OUTSMART</span>
       <button class="help-pill" id="helpBtn" title="HOW TO PLAY" aria-label="HOW TO PLAY">
@@ -1991,8 +2009,7 @@ body::before{
           <circle cx="12" cy="17.6" r="1.15" class="solid"/>
         </svg>How to Play
       </button>
-      <!-- 「关于」跟「玩法」并排，同一种胶囊。图标用心形而不是问号：这一页讲的
-           不是规则，是这游戏怎么来的，图标先把这件事说清楚。 -->
+
       <button class="help-pill" id="aboutBtn" title="ABOUT NEON MAZE" aria-label="ABOUT NEON MAZE">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path class="solid" d="M12 20.3s-7.4-4.7-7.4-9.7a4.2 4.2 0 0 1 7.4-2.7 4.2 4.2 0 0 1 7.4 2.7c0 5-7.4 9.7-7.4 9.7z"/>
@@ -2017,8 +2034,7 @@ body::before{
     </section>
 
     <div class="mascot-stage" aria-label="Doudou character showcase">
-      <!-- 角色展示只会在桌面三栏布局出现。用 picture 的媒体条件拦在资源选择阶段，
-           手机端不会先下载 500KB+ 的隐藏图片；data URI 兜底不产生网络请求。 -->
+
       <picture>
         <source media="(min-width:1120px) and (min-height:720px)" srcset="assets/doudou-hero.webp">
         <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Original hero Doudou" width="512" height="512" decoding="async">
@@ -2050,12 +2066,8 @@ body::before{
       <span class="k">LIVES</span>
       <span class="v lives" id="livesVal"></span>
     </div>
-    <!-- HUD 只留Mute。方向键开关挪到了上方向键旁边，「?」挪到了副标题那行 ——
-         这一行还要放SCORE、Combo、LEVEL、LIVES，再塞三个按钮就满了。
-         图标用内联 SVG 而不是 emoji：🔊 在不同手机上字形差别很大，安卓上偏细
-         偏灰，和旁边的线条图标凑不到一起，尺寸也不受控。 -->
-    <!-- 桌面专用的Pause键。方向键在桌面被隐藏了，而Pause原本就嵌在方向键正中，
-         不在这儿补一个，桌面玩家就只剩 P 键 —— 而没人知道有 P 键。 -->
+
+
     <div class="hud-controls">
       <button class="icon-btn" id="hudPauseBtn" title="Pause" aria-label="Pause">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -2114,79 +2126,77 @@ body::before{
     <div class="overlay" id="startOverlay">
       <div class="start-card">
       <h2>NEON READY</h2>
-      <!-- 开始页只留一句。原来这里是六行说明，加上榜单和署名之后总高超出
-           弹层 61px，"开始"按钮直接被切在屏幕外——第一次玩的人看到的是一屏
-           文字和一个找不到的按钮。完整规则已经在标题下方的「?」里了。 -->
-      <!-- BEST放在最上面、字最大。这游戏的计分系统很深（Combo、悬赏阶梯、
-           四种奖励分），但玩家如果没有一个"要超过的数"，这套东西有一半是白
-           设计的。BEST 就是那个数，它得在按「开始」之前就看见。 -->
-      <!-- 一句迎接的话。第一次来和再回来说的不一样 —— 这游戏本来就是给
-           一个小孩和他的朋友们玩的，他们会一次次回来，那就该认得出他们。
-           文案由 renderWelcome() 按有没有纪录决定，不写死在这儿。 -->
+
+
+
       <p class="welcome" id="welcomeLine"></p>
       <div class="best-line hidden" id="bestLine"></div>
-      <!-- 首屏只留**一句**。原来两行，第二行讲Combo和反杀 —— 那是玩起来自然会
-           撞见的东西，写在这儿只是提高了开始前的阅读量。按设备分文案，用 CSS
-           切换而不是 JS：JS 判断要等脚本跑完，会先闪一下错的那句。 -->
+
       <p class="start-tip">
         <span class="tip-key">Arrow keys / WASD</span><span class="tip-touch">Swipe / Joystick</span>
         　·　Clear every dot to finish
       </p>
       <div class="challenge hidden" id="challengeBox"></div>
-      <!-- LEVEL选择。只列已经打到过的关；没到过的显示锁。
-           摆在「开始」上面而不是下面：正式挑战仍然是主线，练习是备选。 -->
-      <!-- Daily Challenge。摆在选关上面：它是"今天玩什么"的默认答案，
-           而选关是"我想练哪一关"的自选项。 -->
+
+
       <div class="daily hidden" id="dailyBox"></div>
       <div class="levelsel" id="levelSel"></div>
       <div class="board" id="startBoard"></div>
       <button class="hall-preview hidden" id="hallPreview" data-open-hall aria-label="Open Global Leaderboard"></button>
       <p class="cloud-notice hidden" id="cloudNotice"><span>After each run, confirm your nickname to publish your score.</span><span>Stars &amp; unlocks stay in this browser.</span></p>
-      <!-- 「HOW TO PLAY」跟「开始」并排，而不是让玩家去找标题旁边那个「?」。
-           原来这儿写的是"完整玩法　点标题下方的 ?"——那要求玩家先读一行字、
-           再把视线挪回标题去找一个 25px 的图标、还得猜到它是规则。三道弯，
-           实际几乎没人会走完。按钮就摆在他眼睛已经落着的地方（开始键旁边），
-           而且写着字，不是一个光秃秃的问号。
-           并排而不是上下叠：开始页在小屏上本来就快装不下了，横着排不占高度。 -->
-      <!-- 主次要拉得更开：原来两个按钮边框粗细相近、间距也小，看着像
-           一组并列选项。开始是主线，玩法是备选，第一眼不该需要挑。 -->
+
+
       <div class="over-actions start-actions">
         <button class="btn btn-hero" id="startBtn">START GAME</button>
         <button class="btn hall-entry" data-open-hall>🏆 Global Leaderboard</button>
       </div>
-      <button class="help-pill" id="startHelpBtn">HOW TO PLAY</button>
-      <!-- 紧跟在「START GAME」下面 —— 视线离开按钮的第一站。点它直接打开「关于」，
-           不用再去找标题旁的图标。
-           2026-08-21 业主把这句从"♥ A little game made by a dad and his son"改成「怀旧游戏」，
-           心也一并去掉。那段自述没有丢，它完整地留在「关于」里。 -->
+      <div class="start-tools">
+        <button class="help-pill" id="startHelpBtn">HOW TO PLAY</button>
+        <button class="help-pill" id="startPrefsBtn" aria-haspopup="dialog" aria-controls="prefsOverlay">Display & Sound</button>
+      </div>
+
       <button class="story-line" id="storyLine">AN ORIGINAL NEON MAZE</button>
       </div>
     </div>
 
-    <!-- Pause页也要能看玩法。开打之后标题栏会收起来（body.in-game），那个「?」
-         跟着一起没了 —— 也就是说玩到一半想不起规则的人，全程无处可查，而这
-         正是最想查的时刻。Pause是他唯一会主动打开的界面，说明就该放在这儿。 -->
+
     <div class="overlay hidden" id="pauseOverlay">
       <h2 id="pauseTitle">PAUSED</h2>
-      <!-- 切走标签页会自动Pause，回来时这一行会换成说明原因的话 —— 否则玩家
-           只看到一个Pause页，不知道是自己按的还是游戏出了什么事。 -->
+
       <p id="pauseWhy" class="bonus-hint">Press P, Enter, or tap Resume to continue</p>
       <div class="over-actions">
         <button class="btn btn-hero" id="resumeBtn">Resume</button>
         <button class="btn ghost btn-share" id="pauseHelpBtn">HOW TO PLAY</button>
+        <button class="btn ghost btn-share" id="pausePrefsBtn" aria-haspopup="dialog" aria-controls="prefsOverlay">Display & Sound</button>
       </div>
     </div>
 
-    <!-- HOW TO PLAY。原来幽灵图例和操作提示是常驻在棋盘下方的，占掉整整两行，
-         而这些信息只在头几局有用，之后一直杵在那里挤压手机上的可视空间。
-         收进这里，想看再点。 -->
+    <div class="overlay hidden" id="prefsOverlay" role="dialog" aria-modal="true" aria-labelledby="prefsTitle" tabindex="-1">
+      <h2 id="prefsTitle">Display & Sound</h2>
+      <div class="prefs-content">
+        <label><input id="prefColor" type="checkbox">Color-assist markers</label>
+        <p class="prefs-note">Enemies use A / B / C / D; paired portals use 1 / 2. Identify them without relying on color.</p>
+        <p class="prefs-note">A Dash · B Cutter · C Shy · D Rounder</p>
+        <label for="prefMotion">Reduce motion<select id="prefMotion"><option value="system">Follow system</option><option value="reduce">Always reduce</option></select></label>
+        <label><input id="prefShake" type="checkbox">Gentle screen shake</label>
+        <p class="prefs-note">Reduced motion disables screen shake, fireworks and decorative pulses while keeping essential status cues.</p>
+        <div class="prefs-volume">
+          <label for="prefEffects">Regular effects<output id="prefEffectsValue" for="prefEffects">100%</output></label>
+          <input id="prefEffects" type="range" min="0" max="100" step="5" value="100">
+          <label for="prefAlerts">Important cues<output id="prefAlertsValue" for="prefAlerts">100%</output></label>
+          <input id="prefAlerts" type="range" min="0" max="100" step="5" value="100">
+          <p class="prefs-note">Regular: pellets and portals. Important: power, counters, combos, countdowns and results. Master mute still silences both.</p>
+        </div>
+        <p class="prefs-note" id="prefsStatus" aria-live="polite">Settings are saved only in this browser.</p>
+      </div>
+      <button class="btn" id="prefsCloseBtn">Done</button>
+    </div>
+
+
     <div class="overlay hidden" id="helpOverlay">
       <h2>HOW TO PLAY</h2>
-      <!-- 内容与 微信小游戏版/js/ui.js 里那份 HELP 保持一致。两处是分开写的
-           （一边 HTML、一边 canvas 逐行画），改一处务必改另一处 —— 说明对不上
-           比没有说明更糟，玩家会照着做然后发现不是那么回事。 -->
-      <!-- 一份从头读到尾的文档，不折叠。顺序本身就是分层：「THE BASICS」在最前面，
-           看完前三行就能开打，剩下的往下滚就是。滚动是零成本的，点开不是。 -->
+
+
       <div class="help-doc">
         <div class="help-sec">
           <h3>THE BASICS</h3>
@@ -2203,13 +2213,7 @@ body::before{
           </dl>
         </div>
 
-        <!-- 全部摊开，不折叠。
-             这里原来是分层的：只留「THE BASICS」，其余收进两个折叠条。想法是不让
-             第一次玩的人被 1050px 的规则劝退 —— 但实际用下来是反的：折叠条
-             把"往下读"变成了"先做个决定"，而多数人不会为了一份说明去做决定，
-             于是连想看的人也没看到。滚动是零成本的，点开不是。
-             所以恢复成一份从头读到尾的文档，只保留顺序上的分层：
-             「THE BASICS」在最前面，看完前三行就能开打，剩下的往下滚就是。 -->
+
           <div class="help-sec">
             <h3>Combo</h3>
             <p>Dots, Power Stars, countered enemies and crystals all extend the <b>same combo</b>, adding one level with <b>no cap</b>.<br>
@@ -2261,25 +2265,15 @@ body::before{
             </dl>
           </div>
 
-        <!-- 「关于这个游戏」和「反馈」不在这里 —— 它们搬去了 #aboutOverlay。
-             HOW TO PLAY只讲玩法：来查规则的人要的是"Portal怎么用"，作者的话和
-             联系邮箱夹在参数表后面，对他既没用又是干扰。而那段话本身值得一个
-             自己的页面，不该当成规则的第八节。 -->
+
       </div>
-      <!-- 渐隐影子对成年人够用，但小朋友需要一句明说的。滚到底自动消失。 -->
+
       <div class="help-more" id="helpMore">↓ More below</div>
       <button class="btn" id="helpCloseBtn">Got it</button>
     </div>
 
-    <!-- 关于这个游戏。自己一个页面，从开始页那行署名点进来。
-         内容与 微信小游戏版/js/ui.js 的 ABOUT、微信小程序版 game.wxml 的
-         about 弹层保持一致 —— 三处是分开写的，test_help_accuracy 会一起核。
-         作者的原话，不要替他改写或压缩。 -->
-    <!-- ENEMY CODEX。
-         做这一栏的理由和HOW TO PLAY完全不同：说明是"开打前先看"，图鉴是
-         "被抓了十次之后回来看"。它把反复失败攒成一份收藏 —— 同一件事，
-         从"我又输了"变成"我认识它们了"。
-         没见过的不写内容、只留一个灰条：留白本身就是要去填的格子。 -->
+
+
     <div class="overlay hidden" id="owlOverlay" role="dialog" aria-modal="true"
          aria-labelledby="owlTitle" tabindex="-1">
       <h2 id="owlTitle">ENEMY CODEX</h2>
@@ -2289,26 +2283,16 @@ body::before{
 
     <div class="overlay hidden" id="aboutOverlay" role="dialog" aria-modal="true"
          aria-labelledby="aboutTitle" tabindex="-1">
-      <!-- about-card 是"弹层内部"，点它不关闭；点它外面（也就是 #aboutOverlay
-           自己那片底）才关闭。少了这一层，点正文选个字都会把弹层关掉。
-           标题也放进来：这样标题、正文、署名、反馈共用同一个盒子，也就共用
-           同一条左边缘（标题自己居中，但它居中的范围和正文一样宽）。 -->
-      <!-- 一张卡片装下全部内容，连「Got it」也在里面。
-           点卡片不关闭、点卡片外面（也就是 #aboutOverlay 那片底）才关闭 ——
-           少了这一层包裹，点正文选个字都会把弹层关掉。
-           九样东西按阅读顺序排在正常文档流里，没有一处绝对定位。 -->
+
+
       <div class="about-card" id="aboutPanel">
         <h2 id="aboutTitle">ABOUT NEON MAZE</h2>
-        <!-- 业主 2026-08-21 定的：**一整段，不分段**，也不写任何 <br> ——
-             中文该在哪儿断行由宽度决定，手写的换行只在某一个屏幕宽度上好看，
-             换台设备就断在奇怪的地方。原文照抄，不要替他改写或压缩。 -->
+
         <p class="about about-story">One summer my son wanted a simple, exciting game, so we built one together. He playtested and gave notes; I made the changes. Later his friends joined the testing, and that is how <span class="nb">Neon Maze</span>, its original hero Doudou, and these six levels came to be.</p>
-        <!-- 落款：在正文这一栏里靠右，不是推到卡片外沿。 -->
+
         <p class="about-by">Super Dad</p>
         <hr class="about-rule">
-        <!-- 只留邮箱。微信号是能直接找到本人的实名社交账号，而这个游戏是公开
-             链接、还打算给小朋友传 —— 联系方式留一个够用的就行，邮箱可以随时
-             不看，微信不能。 -->
+
         <h3 class="about-fb-title">Feedback</h3>
         <p class="about about-fb">If you have suggestions or run into a problem, I would love to hear from you.</p>
         <p class="about about-mail">Email: <a class="mail-link" href="mailto:2685897@qq.com">2685897@qq.com</a></p>
@@ -2325,8 +2309,7 @@ body::before{
     <div class="overlay hidden" id="overOverlay">
       <h2 id="overTitle">GAME OVER</h2>
       <div class="big-score" id="finalScore">0</div>
-      <!-- 成绩会先自动存档，输入框只是把「Anonymous Doudou」换成玩家的名字。
-           必须放在总分后、长战绩前，确保通关一打开就能看见。 -->
+
       <div class="record-box hidden" id="recordBox">
         <div class="record-state">✓ SCORE SAVED AUTOMATICALLY <span class="record-rank" id="recordRank"></span></div>
         <div class="name-row hidden" id="nameRow">
@@ -2336,26 +2319,21 @@ body::before{
         </div>
       </div>
       <section class="result-cloud hidden" id="resultCloud" aria-live="polite"></section>
-      <!-- 内容由 endGame 填充；这里留空，免得占位文本被误当成线上文案 -->
+
       <p id="overSub"></p>
       <div class="board" id="overBoard"></div>
       <button class="btn ghost btn-share" id="shareBtn">Share score</button>
       <div class="over-actions">
         <button class="btn" id="restartBtn">Play again</button>
         <button class="btn hall-entry" id="resultHallBtn" data-open-hall data-hall-mine>🏆 View global ranking</button>
-        <!-- 小玩家的原话是"能不能从失败的那关开始"。那这个入口就该出现在她
-             失败的那一刻、那一屏上，而不是让她回开始页自己找。 -->
+
         <button class="btn ghost btn-share hidden" id="practiceBtn">Practice this level</button>
       </div>
       <div class="credits">A little game made by a dad and his son</div>
     </div>
   </div>
 
-  <!-- 方向键有自己的栅格，不和棋盘共用。
-       曾经为了做横屏布局把它们并进 .cabinet 的栅格，横屏后来撤掉了，这个耦合
-       却留着 —— 结果整个界面的宽度被方向键的列宽卡住：375 的屏幕上棋盘只有
-       277 宽，白白浪费四分之一。各管各的，棋盘才能铺满。
-       Pause键占十字正中那格（本来就空着，也是拇指最顺手的位置）。 -->
+
   <div class="pad-area">
     <div class="pad-grid">
       <button class="pad up"    data-dir="up"    aria-label="Up">▲</button>
@@ -2379,8 +2357,7 @@ body::before{
   </div>
 </div>
 
-<!-- 广告结构占位：默认隐藏，没有 AdSense publisher/slot ID，也不加载广告脚本。
-     超宽桌面可在 config.js 打开占位预览；手机和游戏进行中始终不显示。 -->
+
 <aside class="ad-slot-rail hidden" id="adSlotRail" data-ad-placement="desktop-side"
        data-ad-status="placeholder" aria-hidden="true">
   <span>Ad placement preview</span><small>160 × 600 · No ads are connected</small>
@@ -3079,6 +3056,33 @@ function getPlayerId(){
 getPlayerId();
 saveLocalState();
 
+// 展示偏好独立存储：不改变身份、进度和旧版Mute存档协议。
+const PRESENTATION_KEY = 'doudou.presentation.v1';
+const PRESENTATION_DEFAULTS = {colorAssist:false,reduceMotion:'system',screenShake:true,effectVolume:1,alertVolume:1};
+function normalizePresentation(raw){
+  const clean = {...PRESENTATION_DEFAULTS};
+  if (!saveObject(raw)) return clean;
+  for (const key of ['colorAssist','screenShake']) if (typeof raw[key] === 'boolean') clean[key]=raw[key];
+  if (raw.reduceMotion === 'reduce') clean.reduceMotion='reduce';
+  for (const key of ['effectVolume','alertVolume']){
+    if (typeof raw[key] === 'number' && Number.isFinite(raw[key])) clean[key]=Math.max(0,Math.min(1,raw[key]));
+  }
+  return clean;
+}
+function readPresentation(fallback=PRESENTATION_DEFAULTS){
+  const raw=readStoredJSON(PRESENTATION_KEY);
+  return saveObject(raw) ? normalizePresentation(raw) : {...fallback};
+}
+let presentation = readPresentation();
+let presentationSaved = true;
+function setPresentation(key,value){
+  if (!Object.prototype.hasOwnProperty.call(PRESENTATION_DEFAULTS,key)) return;
+  presentation=normalizePresentation({...readPresentation(presentation),[key]:value});
+  try {localStorage.setItem(PRESENTATION_KEY,JSON.stringify(presentation));presentationSaved=true;}
+  catch(e){presentationSaved=false;}
+  applyPresentation();
+}
+
 /* 调色板全程不变，所以查一次就存下来。
  *
  * 之所以值得单独说：原来这行每次调用都是一次 getComputedStyle，而它被写在了
@@ -3106,6 +3110,7 @@ const Audio2 = (()=>{
      存储在无痕模式或配额满时会直接抛，所以照例包一层。 */
   const MUTE_KEY = 'doudou.muted.v1';
   let actx = null, pelletToggle = 0;
+  let audioChannel = 'effectVolume';
   let muted = localSave.settings.muted;
   // Each entry is a [lo, hi] bite-tone pair, stepping up a pentatonic-ish scale
   // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
@@ -3129,6 +3134,8 @@ const Audio2 = (()=>{
   function unlock(){ ctx(); }
   function tone(freq, t0, dur, {type='square', gain=0.16, slideTo=null, slideDur=null}={}){
     const ac = ctx(); if (!ac || muted) return;
+    gain *= presentation[audioChannel];
+    if (!(gain > 0) || !Number.isFinite(freq) || freq <= 0) return;
     const osc = ac.createOscillator();
     const g = ac.createGain();
     osc.type = type;
@@ -3138,10 +3145,11 @@ const Audio2 = (()=>{
     g.gain.exponentialRampToValueAtTime(gain, t0+0.008);
     g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
     osc.connect(g).connect(ac.destination);
+    osc.onended=()=>{try {osc.disconnect();g.disconnect();} catch(e) {}};
     osc.start(t0); osc.stop(t0+dur+0.03);
   }
   function now(){ const ac=ctx(); return ac ? ac.currentTime : 0; }
-  return {
+  const sounds = {
     unlock,
     setMuted(v){
       muted = !!v;
@@ -3237,6 +3245,14 @@ const Audio2 = (()=>{
       tone(f/2, t+i*0.11, 0.26, {type:'sine', gain:0.08});
     }); },
   };
+  for (const name of ['power','eatGhost','sweep','fruit','comboMilestone','phaseTick','phaseEnd','death','levelUp','gameOver','victory','newBest']){
+    const play=sounds[name];
+    sounds[name]=function(...args){
+      const previous=audioChannel;audioChannel='alertVolume';
+      try {return play.apply(this,args);} finally {audioChannel=previous;}
+    };
+  }
+  return sounds;
 })();
 
 function inBounds(x,y){ return y>=0 && y<ROWS && x>=0 && x<COLS; }
@@ -3248,6 +3264,7 @@ function tileAt(x,y){
 }
 
 function resetLevel(fullReset){
+  clearFeedback();
   if (fullReset){ score=0; level=1; lives=3; }
   grid = emptyGrid();
   pelletsLeft = 0;
@@ -3651,6 +3668,7 @@ function checkPortal(ent){
     orientAfterWarp(ent);
     if (ent===player){
       Audio2.warp();
+      emitFeedback('warp',cx,cy);emitFeedback('warp',ent.x,ent.y);
       // 第一次用到才讲。写在说明里没人看，而这一刻他刚被传走，正想知道
       // 发生了什么 —— 同一句话在这个时候的效果，比放在文档里高得多。
       hintOnce('portal', 'Portals are paired at the four corners — matching colors connect', 500);
@@ -4611,6 +4629,7 @@ function eatPelletAt(x,y){
        以为Combo越高恐惧越久 —— 不是。toast 只报告真正发生的事。 */
     toast('Power Star! You can fight back now');
     Audio2.power();
+    emitFeedback('power',x,y);
   }
 }
 
@@ -4781,6 +4800,7 @@ function handleGhostCollisions(){
       hintOnce('bounty', 'Within one Power Star: the 2nd enemy is 33.8k, the 3rd is 50.7k — each one is worth more', 1400);
       updateHud();
       Audio2.eatGhost(ghostEatChain);
+      emitFeedback('counter',g.x,g.y);
 
       /* 一颗能量豆之内把场上幽灵全吃了？看的是**这一轮吃掉的只数**，不是
          "现在是不是每只都还躺着"。
@@ -4821,10 +4841,10 @@ function drawDeathFlash(){
   ctx.save();
   /* 只在四周描一圈内发光，不铺满整屏 —— 铺满会盖住幽灵和主角，
      而这一刻玩家最需要看清的恰恰是"我是被谁碰到的"。 */
-  ctx.globalAlpha = 0.55 * k;
+  ctx.globalAlpha = prefersReducedMotion() ? 0.25 : 0.55 * k;
   ctx.strokeStyle = cssVar('--danger');
   ctx.shadowColor = cssVar('--danger');
-  ctx.shadowBlur = 34;
+  ctx.shadowBlur = prefersReducedMotion() ? 0 : 34;
   ctx.lineWidth = 10;
   ctx.strokeRect(5, 5, W-10, H-10);
   ctx.restore();
@@ -4945,8 +4965,8 @@ function fxGetSprites(){
   return fxSprites;
 }
 let fxSpriteR = FX_REF + FX_PAD;
-const prefersReducedMotion = () =>
-  window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const systemMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+const prefersReducedMotion = () => presentation.reduceMotion === 'reduce' || !!systemMotionQuery?.matches;
 
 /* 内存吃紧时把能放的都放掉。
 
@@ -5109,6 +5129,48 @@ function visualRandom(){
   visualRandomState ^= visualRandomState >>> 17;
   visualRandomState ^= visualRandomState << 5;
   return (visualRandomState >>> 0) / 4294967296;
+}
+
+// 轻量事件火花复用主画布；独立视觉时钟，不改变模拟时间/碰撞/角色坐标。
+const FEEDBACK_LIMIT = 48;
+const FEEDBACK_STYLES = {
+  counter:{count:10,color:'#fff0a0',shake:1.5},warp:{count:6,color:'#7aeaff',shake:.6},
+  phase:{count:8,color:'#d5a5ff',shake:.8},power:{count:8,color:'#ffe078',shake:.8},
+  level:{count:10,color:'#ffe078',shake:1},
+};
+let feedbackParticles = [], shakeUntil = 0, shakeStrength = 0, lastShakeTransform = '';
+function setShakeTransform(value){
+  if (!CAN_OWN_CANVAS || value === lastShakeTransform) return;
+  canvas.style.transform=value;lastShakeTransform=value;
+}
+function clearFeedback(){feedbackParticles=[];shakeUntil=0;shakeStrength=0;setShakeTransform('');}
+function emitFeedback(kind,x,y){
+  const style=FEEDBACK_STYLES[kind];
+  if (!style || prefersReducedMotion() || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  const born=performance.now();
+  for (let i=0;i<style.count && feedbackParticles.length<FEEDBACK_LIMIT;i++){
+    const angle=visualRandom()*Math.PI*2,speed=14+visualRandom()*22;
+    feedbackParticles.push({x:x*TILE+TILE/2,y:y*TILE+TILE/2,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,born,color:style.color});
+  }
+  if (presentation.screenShake){shakeUntil=born+140;shakeStrength=Math.max(shakeStrength,style.shake);}
+}
+function drawFeedback(){
+  if (!feedbackParticles.length && !shakeUntil) return;
+  const time=performance.now();
+  if (prefersReducedMotion()){if(feedbackParticles.length || shakeUntil)clearFeedback();return;}
+  let kept=0;
+  ctx.save();ctx.shadowBlur=0;
+  for (const p of feedbackParticles){
+    const age=(time-p.born)/1000;if(age>=.28)continue;
+    feedbackParticles[kept++]=p;
+    ctx.globalAlpha=.65*(1-age/.28);ctx.fillStyle=p.color;
+    ctx.fillRect(p.x+p.vx*age-1,p.y+p.vy*age-1,2,2);
+  }
+  feedbackParticles.length=kept;ctx.restore();
+  if (presentation.screenShake && time<shakeUntil){
+    const k=(shakeUntil-time)/140,amount=shakeStrength*k;
+    setShakeTransform('translate('+ (Math.sin(time*.08)*amount).toFixed(2)+'px,'+(Math.cos(time*.11)*amount*.6).toFixed(2)+'px)');
+  } else {shakeUntil=0;shakeStrength=0;setShakeTransform('');}
 }
 
 function startComboFx(milestone=50){
@@ -6254,6 +6316,7 @@ function updateFruit(dt){
     player.phase = FRUIT_PHASE_SECONDS;
     toast('Phase Crystal! Walk through walls for ' + FRUIT_PHASE_SECONDS + 's');
     Audio2.fruit();
+    emitFeedback('phase',player.x,player.y);
   }
 }
 function maybeSpawnFruit(){
@@ -6303,6 +6366,7 @@ function gameHasKeyboard(){
 
 /** 当前是哪一屏。Enter 的含义完全由它决定，不同位置各写一个监听必然打架。 */
 function currentScreen(){
+  if (prefsOverlay && !prefsOverlay.classList.contains('hidden')) return 'preferences';
   if (!helpOverlay.classList.contains('hidden')) return 'help';
   if (!aboutOverlay.classList.contains('hidden')) return 'about';
   if (owlOverlay && !owlOverlay.classList.contains('hidden')) return 'codex';
@@ -6345,7 +6409,7 @@ window.addEventListener('keydown', (e)=>{
   Audio2.unlock();
   // Escape 任何时候都能关掉盖在上面的文档页 —— 这是玩家唯一的逃生键。
   // 两个都关：两者不会同时打开，各调一次比先判断谁开着更省事，也不会漏。
-  if (e.key==='Escape'){ closeHelp(); closeAbout(); closeOwl(); return; }
+  if (e.key==='Escape'){ closeHelp(); closeAbout(); closeOwl(); closePreferences(); return; }
   if (e.key==='Enter'){ if (handleEnter(e)) e.preventDefault(); return; }
   if ((e.key===' ' || e.key==='Spacebar') && isNativeControl(e.target)) return;
   if (!gameHasKeyboard()) return;      // 说明在读、名字在输，都不归游戏管
@@ -6689,6 +6753,9 @@ paintMute();
  */
 const helpOverlay = document.getElementById('helpOverlay');
 const aboutOverlay = document.getElementById('aboutOverlay');
+const prefsOverlay = document.getElementById('prefsOverlay');
+if (prefsOverlay) prefsOverlay.classList.add('hidden'); // 原生垫片没有 HTML 初始 class
+let prefsOpener = null;
 let helpPausedByUs = false;
 
 /**
@@ -6703,13 +6770,90 @@ let helpPausedByUs = false;
 function docPanelOpen(){
   return !helpOverlay.classList.contains('hidden')
       || !aboutOverlay.classList.contains('hidden')
-      || !!(owlOverlay && !owlOverlay.classList.contains('hidden'));
+      || !!(owlOverlay && !owlOverlay.classList.contains('hidden'))
+      || !!(prefsOverlay && !prefsOverlay.classList.contains('hidden'));
+}
+
+function syncPreferenceControls(){
+  const set=(id,prop,value)=>{const el=document.getElementById(id);if(el)el[prop]=value;};
+  set('prefColor','checked',presentation.colorAssist);
+  set('prefMotion','value',presentation.reduceMotion);
+  set('prefShake','checked',presentation.screenShake);
+  for (const [id,key] of [['prefEffects','effectVolume'],['prefAlerts','alertVolume']]){
+    const value=Math.round(presentation[key]*100);
+    set(id,'value',String(value));set(id+'Value','textContent',value+'%');
+  }
+  set('prefsStatus','textContent',presentationSaved ? 'Settings are saved only in this browser.' : 'Storage is unavailable; settings apply only to this session.');
+}
+function applyPresentation(){
+  const reduce=prefersReducedMotion();
+  document.body.classList.toggle('reduce-motion',reduce);
+  document.body.classList.toggle('color-assist',presentation.colorAssist);
+  if (reduce){stopFireworks();clearFeedback();}
+  else if (!presentation.screenShake){shakeUntil=0;shakeStrength=0;setShakeTransform('');}
+  staticFrameDirty=true;
+  syncPreferenceControls();
+  document.querySelectorAll('[data-enemy]').forEach(el=>el.setAttribute('data-mark',enemyMark(el.dataset.enemy)));
+}
+function openPreferences(){
+  if (!prefsOverlay || !prefsOverlay.classList.contains('hidden')) return;
+  closeHelp();closeAbout();closeOwl();
+  prefsOpener=document.activeElement;
+  if (gameState==='playing'){
+    resetJoystick();gameState='paused';document.getElementById('pauseOverlay').classList.remove('hidden');
+  }
+  presentation=readPresentation(presentation);applyPresentation();
+  prefsOverlay.classList.remove('hidden');
+  if (typeof prefsOverlay.focus==='function') prefsOverlay.focus({preventScroll:true});
+}
+function closePreferences(){
+  if (!prefsOverlay || prefsOverlay.classList.contains('hidden')) return;
+  prefsOverlay.classList.add('hidden');
+  if (prefsOpener?.isConnected !== false && typeof prefsOpener?.focus==='function') prefsOpener.focus({preventScroll:true});
+  prefsOpener=null; // 不自动继续，玩家自己恢复
+}
+['startPrefsBtn','pausePrefsBtn'].forEach(id=>document.getElementById(id)?.addEventListener('click',openPreferences));
+document.getElementById('prefsCloseBtn')?.addEventListener('click',closePreferences);
+for (const [id,key] of [['prefColor','colorAssist'],['prefShake','screenShake']]){
+  const el=document.getElementById(id);el?.addEventListener('change',()=>setPresentation(key,el.checked));
+}
+const motionSelect=document.getElementById('prefMotion');
+motionSelect?.addEventListener('change',()=>setPresentation('reduceMotion',motionSelect.value));
+for (const [id,key] of [['prefEffects','effectVolume'],['prefAlerts','alertVolume']]){
+  const el=document.getElementById(id);
+  const value=()=>Math.max(0,Math.min(1,Number(el.value)/100));
+  el?.addEventListener('input',()=>{presentation[key]=value();document.getElementById(id+'Value').textContent=Math.round(value()*100)+'%';});
+  el?.addEventListener('change',()=>setPresentation(key,value()));
+}
+if (prefsOverlay) prefsOverlay.addEventListener('keydown',e=>{
+  if(e.key!=='Tab')return;
+  const first=document.getElementById('prefColor'),last=document.getElementById('prefsCloseBtn'),a=document.activeElement;
+  if(e.shiftKey && (a===first || a===prefsOverlay)){e.preventDefault();last.focus();}
+  else if(!e.shiftKey && (a===last || a===prefsOverlay)){e.preventDefault();first.focus();}
+});
+if(systemMotionQuery){
+  if(typeof systemMotionQuery.addEventListener==='function')systemMotionQuery.addEventListener('change',applyPresentation);
+  else if(typeof systemMotionQuery.addListener==='function')systemMotionQuery.addListener(applyPresentation);
+}
+window.addEventListener('storage',e=>{
+  if(e.key!==PRESENTATION_KEY && e.key!==null)return;
+  presentation=readPresentation();applyPresentation();
+});
+const ENEMY_MARKS={chaser:'A',ambush:'B',shy:'C',patrol:'D'};
+function enemyMark(id){return ENEMY_MARKS[id] || '?';}
+function drawContrastMark(mark,x,y){
+  ctx.save();ctx.shadowBlur=0;ctx.globalAlpha=1;
+  ctx.fillStyle='#080519';ctx.fillRect(x-5.5,y-6,11,12);
+  ctx.strokeStyle='#fff';ctx.lineWidth=.8;ctx.strokeRect(x-5.5,y-6,11,12);
+  ctx.fillStyle='#fff';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(mark,x,y+.5);
+  ctx.restore();
 }
 
 let helpSync = null;   // 由下面那段初始化；打开说明时重算滚动提示
 
 function openHelp(){
   if (!helpOverlay.classList.contains('hidden')) return;
+  closePreferences();
   closeAbout(); closeOwl();   // 文档页互斥
   helpPausedByUs = (gameState === 'playing');
   if (helpPausedByUs){ resetJoystick(); gameState = 'paused'; }
@@ -6747,6 +6891,7 @@ let aboutOpener = null;    // 从哪个元素点进来的，关掉要把焦点�
 
 function openAbout(){
   if (!aboutOverlay.classList.contains('hidden')) return;
+  closePreferences();
   /* 两页互斥。docPanelOpen() 和小游戏那边的绘制顺序都假设"最多只开一页"，
      两页同时打开会叠在一起，而且关掉一页之后另一页还盖着。
      与其到处判断，不如让这个前提在开的时候就成立。 */
@@ -6929,6 +7074,7 @@ function renderOwlList(){
 
 function openOwl(){
   if (!owlOverlay || !owlOverlay.classList.contains('hidden')) return;
+  closePreferences();
   closeHelp(); closeAbout();     // 三页互斥，理由见 openAbout
   owlOpener = document.activeElement;
   /* 和「关于」同一套：正在玩就先Pause，并把Pause页也显示出来，这样关掉图鉴之后
@@ -7282,11 +7428,13 @@ function update(dt){
     const extra = earned.length ? '　' + earned.map(b=>b.label+' +'+fmtNum(b.points)).join('　') : '';
     toast('Life +1' + extra + starMsg);
     Audio2.levelUp();
+    emitFeedback('level',player.x,player.y);
   }
 }
 
 /* ---------- rendering ---------- */
 function drawMaze(){
+  const reduce = prefersReducedMotion();
   // 逻辑尺寸，不是 canvas.width —— 加了缩放变换之后那个数是设备像素
   ctx.clearRect(0, 0, COLS*TILE, ROWS*TILE);
   /* Phasing期间墙自己"虚掉"：变淡、变虚线、颜色偏向Phasing紫。
@@ -7366,11 +7514,11 @@ function drawMaze(){
        只让**光晕**跳，不动半径：半径一变就会撞上能量豆的尺寸区间，
        而那正是之前那个 bug —— 详见文件上方 PELLET_R 那段。 */
     const urgency = pelletsLeft <= LAST_PELLET_LOUD ? 1 : 0.45;
-    const beat = (Math.sin(elapsed * (5 + urgency*3)) + 1) / 2;   // 0..1
+    const beat = reduce ? 1 : (Math.sin(elapsed * (5 + urgency*3)) + 1) / 2;   // 0..1
     glow = PELLET_GLOW + beat * (PELLET_GLOW_SWING * urgency + PELLET_GLOW_BASE_SWING);
   }
   const amber = cssVar('--amber');
-  const pulse = POWER_R + Math.sin(elapsed*6) * POWER_R_SWING;
+  const pulse = POWER_R + (reduce ? 0 : Math.sin(elapsed*6) * POWER_R_SWING);
   let anyPower = false;
 
   /* 大多数时间普通Dot直接贴离屏层；最后十颗才需要每帧改变光晕。 */
@@ -7408,7 +7556,7 @@ function drawMaze(){
     ctx.fillStyle = amber;
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
-    ctx.globalAlpha = .68 + .2*Math.sin(elapsed*6);
+    ctx.globalAlpha = reduce ? .88 : .68 + .2*Math.sin(elapsed*6);
     ctx.lineWidth = 1.2;
     ctx.stroke();
     ctx.globalAlpha = 1;
@@ -7442,13 +7590,15 @@ function drawMaze(){
           ctx.stroke();
           ctx.globalAlpha = 0.32;
         }
-        ctx.rotate(cooling ? 0 : -elapsed*2.4);
+        const portalAngle = cooling || reduce ? 0 : -elapsed*2.4;
+        ctx.rotate(portalAngle);
         ctx.setLineDash([3.5,3.5]);
         ctx.lineWidth=1.4;
         ctx.beginPath(); ctx.arc(0,0,5.2,0,Math.PI*2); ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(0,0,1.8,0,Math.PI*2); ctx.fill();
+        if (presentation.colorAssist){ctx.rotate(-portalAngle);drawContrastMark(ch,0,0);}
         ctx.restore();
     }
   }
@@ -7457,7 +7607,7 @@ function drawMaze(){
 
 function drawFruit(){
   if (!fruit.active) return;
-  const cxp = fruit.x*TILE+TILE/2, cyp = fruit.y*TILE+TILE/2 + Math.sin(elapsed*8)*2;
+  const cxp = fruit.x*TILE+TILE/2, cyp = fruit.y*TILE+TILE/2 + (prefersReducedMotion() ? 0 : Math.sin(elapsed*8)*2);
   ctx.save();
   ctx.translate(cxp,cyp);
   ctx.fillStyle = cssVar('--cyan');
@@ -7650,6 +7800,7 @@ function drawDoudouPowerAura(powered,powerAura){
 }
 
 function drawPlayer(){
+  const reduce = prefersReducedMotion();
   const cxp = player.x*TILE+TILE/2, cyp = player.y*TILE+TILE/2;
   const moving = player.dir.x||player.dir.y;
   const powered = frightTimer > 0;
@@ -7658,7 +7809,7 @@ function drawPlayer(){
   // controls being inconsistent. The trail lengthens and the glow tightens as
   // the player winds up, so "I'm charging" is visible before it's felt.
   const wind = (momentumMult() - 1) / (MOMENTUM_MAX - 1); // 0..1
-  if (wind > 0.15 && player.trail && player.trail.length){
+  if (wind > 0.15 && player.trail && player.trail.length && !reduce){
     ctx.save();
     const col = player.phase>0 ? cssVar('--phase') : powered ? '#fff1a0' : cssVar('--amber');
     player.trail.forEach((p, i)=>{
@@ -7677,7 +7828,7 @@ function drawPlayer(){
   let joy=0;
   if (player.chompT !== undefined && player.chompT < 1){
     player.chompT = Math.min(1, player.chompT + visualFrameDt/CHOMP_SECONDS);
-    joy = Math.sin(player.chompT * Math.PI);
+    joy = reduce ? 0 : Math.sin(player.chompT * Math.PI);
   }
   /* 无敌和Phasing都靠"闪"来表示，但原来两处都是**硬切**：Phasing 5Hz、无敌 7Hz，
      在 0.4 和 1 之间跳。WCAG 给的上限是每秒 3 次，而Phasing状态一持续就是 10 秒 ——
@@ -7687,11 +7838,11 @@ function drawPlayer(){
      整个换成青色了，闪只是补充；无敌那 2.4 秒仍然明显在呼吸。
      用 sin 而不是方波，是因为方波的边沿本身就是刺激源，同样频率下方波比正弦
      难受得多。 */
-  const pulse = (hz, lo) => lo + (1 - lo) * (0.5 + 0.5 * Math.sin(elapsed * hz * 2 * Math.PI));
+  const pulse = (hz, lo) => reduce ? 1 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(elapsed * hz * 2 * Math.PI));
   /* 步态跟走过的距离绑定，而不是跟屏幕刷新率或绝对时间绑定。
      同一段路在 30/60/120Hz 上都是同样两三步，高关跑快时动作才自然加快。 */
   const gaitPhase = player.distTravelled * Math.PI * 2 / PLAYER_GAIT_TILES;
-  const stride = moving ? Math.sin(gaitPhase) : 0;
+  const stride = moving && !reduce ? Math.sin(gaitPhase) : 0;
   const hop = moving ? -Math.abs(stride)*PLAYER_HOP_PX : 0;
   const sway = moving ? stride*PLAYER_SWAY_PX : 0;
   const leanTarget = player.dir.x*PLAYER_LEAN_RAD;
@@ -7702,11 +7853,11 @@ function drawPlayer(){
   const powerEnding = powered && frightTimer < 1.8;
   const powerAura = powerEnding ? pulse(GHOST_WARNING_HZ,.35) : 1;
   const facing = updateDoudouFacing();
-  const turning = player.visualTurnT < 1 ? Math.sin(player.visualTurnT*Math.PI) : 0;
+  const turning = !reduce && player.visualTurnT < 1 ? Math.sin(player.visualTurnT*Math.PI) : 0;
   ctx.save();
   ctx.translate(cxp-player.dir.y*sway,
                 cyp+player.dir.x*sway*.35+hop-joy*.45);
-  ctx.rotate(player.visualLean+player.visualTurnSign*turning*.06);
+  ctx.rotate(reduce ? 0 : player.visualLean+player.visualTurnSign*turning*.06);
   /* Collect时微微收窄；转身中段再压窄一点，侧身变化能被眼睛捕捉到。 */
   ctx.scale((1-joy*.018)*(1-turning*.14),(1+joy*.025)*(1+turning*.035));
   ctx.globalAlpha = player.phase > 0 ? pulse(PHASE_PULSE_HZ, 0.62)
@@ -7800,6 +7951,7 @@ function drawEnemyThreatFace(g,threat,scale){
 }
 
 function drawGhost(g){
+  const reduce = prefersReducedMotion();
   const cxp = g.x*TILE+TILE/2, cyp = g.y*TILE+TILE/2;
   /* 颜色在 spawn 时就从 GHOST_DEFS 铺到了 g.color 上，cssVar 自己也有缓存 ——
      不再需要每帧 GHOST_DEFS.find 一次。 */
@@ -7814,7 +7966,7 @@ function drawGhost(g){
        的幽灵明明已经可以吃了，却画成原来的颜色 —— 玩家看到一只红幽灵冲出来
        会本能躲开，白白错过。画面必须和判定同源。
        受惊的小夜枭是打瞌睡的奶白色（--doze），最后 1.8 秒以 2Hz 柔和提示。 */
-    const ending = frightTimer < 1.8 && Math.sin(elapsed * GHOST_WARNING_HZ * Math.PI * 2) > 0;
+    const ending = frightTimer < 1.8 && (reduce || Math.sin(elapsed * GHOST_WARNING_HZ * Math.PI * 2) > 0);
     color = ending ? '#ffffff' : cssVar('--doze');
     dozing = !ending;
   }
@@ -7822,7 +7974,7 @@ function drawGhost(g){
   const threat = eyesOnly || edibleVisual ? 0 : enemyThreatLevel(g);
   ctx.save();
   ctx.translate(cxp,cyp);
-  if (threat>0){
+  if (threat>0 && !reduce){
     const lunge=threat*(.28+.22*(.5+.5*Math.sin(elapsed*9)));
     ctx.translate(g.dir.x*lunge,g.dir.y*lunge);
   }
@@ -7846,6 +7998,7 @@ function drawGhost(g){
       drawCharacterTrackingEyes(g,ENEMY_SPRITE_SIZE,threat);
     }
     drawEnemyThreatFace(g,threat,scale);
+    if (presentation.colorAssist) drawContrastMark(enemyMark(g.id),10,11);
     ctx.restore();
     return;
   }
@@ -7892,7 +8045,7 @@ function drawGhost(g){
   ctx.shadowBlur=0;
   if (eyesOnly){
     /* 被吃掉后只剩能量核返回老巢，状态读取清楚且不再是幽灵眼睛。 */
-    ctx.save();ctx.rotate(elapsed*2.4);
+    ctx.save();ctx.rotate(reduce ? 0 : elapsed*2.4);
     ctx.fillStyle='#ffffff';ctx.shadowColor=cssVar('--cyan');ctx.shadowBlur=10;
     ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(5,0);ctx.lineTo(0,6);ctx.lineTo(-5,0);ctx.closePath();ctx.fill();
     ctx.strokeStyle=cssVar('--cyan');ctx.lineWidth=1/scale;ctx.stroke();ctx.restore();
@@ -7936,6 +8089,7 @@ function drawGhost(g){
     }
     drawEnemyThreatFace(g,threat,scale);
   }
+  if (presentation.colorAssist && !eyesOnly) drawContrastMark(enemyMark(g.id),10,11);
   ctx.restore();
 }
 
@@ -7951,6 +8105,7 @@ function render(){
   drawPlayer();
   drawFrightBar();
   drawPhaseBar();
+  drawFeedback();
   drawSwipeHint();
   drawDeathFlash();
   drawLevelIntro();
@@ -8010,6 +8165,9 @@ let visualFrameDt = 1/60;
  * 同样的坑连着踩了三次（syncChrome、键盘作用域、死亡定格），根子都是
  * "测试验的不是真实路径"。共用一个函数，这类假绿就不可能再发生。 */
 function stepFrame(dt){
+  if (gameState!=='playing' && (feedbackParticles.length || shakeUntil)){
+    clearFeedback();staticFrameDirty=true;
+  }
   visualFrameDt = Math.max(0,Math.min(0.05,dt));
   // Pause can arrive between frames. Keep the DOM controls in sync even when
   // the static canvas does not need repainting.
@@ -8079,6 +8237,7 @@ renderBest(); renderWelcome();
 renderLevelSelect();
 renderDaily();
 renderChallengeBanner();
+applyPresentation();
 requestAnimationFrame(loop);
 
 

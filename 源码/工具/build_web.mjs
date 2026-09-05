@@ -102,8 +102,8 @@ copyFileSync(here('../../analytics.js'), `${OUT_DIR}/analytics.js`);
 // 静态托管上没有这个文件时，访问不存在的路径会是平台自带的英文报错页。
 writeFileSync(`${OUT_DIR}/404.html`, notFound);
 
-const kb = (html.length/1024).toFixed(0);
-console.log(`已生成根目录 index.html（${kb} KB，游戏本体零外部网络依赖）`);
+const kib = (Buffer.byteLength(html,'utf8')/1024).toFixed(1);
+console.log(`已生成根目录 index.html（${kib} KiB UTF-8，游戏本体零外部网络依赖）`);
 console.log('     根目录 404.html');
 console.log('已镜像 发布到网站/index.html');
 console.log('     发布到网站/404.html');

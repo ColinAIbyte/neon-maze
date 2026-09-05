@@ -52,10 +52,10 @@ else console.log('敌人放行: '+initial.map(x=>x.releaseAt.toFixed(2)).join(' 
 g.gameState='playing';
 for(let i=0;i<120;i++) g.addPelletScore(15);
 console.log('连到 x'+g.combo+'　里程碑触发:', hits.join(' / '));
-if(hits.join()!=='10,20,50') fail.push('里程碑档位不对: '+hits.join());
+if(hits.join()!=='10,20,50,100') fail.push('里程碑档位不对: '+hits.join());
 console.log('HUD 连击颜色:', el('comboLabel').style.color);
 
-// 断连后重来，里程碑要能再触发
+// 开新一局，里程碑要能再触发（本局断连不重报）
 const before=hits.length;
 g.fullNewGame(); g.gameState='playing';
 for(let i=0;i<12;i++) g.addPelletScore(15);

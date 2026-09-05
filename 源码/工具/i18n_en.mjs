@@ -3,6 +3,21 @@
 // every future feature remain identical in / and /en/.
 
 const PAIRS = [
+  ['画面与声音','Display & Sound'],
+  ['色弱辅助标记','Color-assist markers'],
+  ['对手使用 A / B / C / D，配对传送门使用 1 / 2；不只靠颜色辨认。','Enemies use A / B / C / D; paired portals use 1 / 2. Identify them without relying on color.'],
+  ['A 闪闪 · B 狐狐 · C 软软 · D 慢慢','A Dash · B Cutter · C Shy · D Rounder'],
+  ['减少动态时停用震屏、礼花和装饰闪动，保留必要状态提示。','Reduced motion disables screen shake, fireworks and decorative pulses while keeping essential status cues.'],
+  ['减少动态','Reduce motion'],
+  ['跟随系统','Follow system'],
+  ['始终减少','Always reduce'],
+  ['轻微震屏','Gentle screen shake'],
+  ['常规音效','Regular effects'],
+  ['重要提示','Important cues'],
+  ['常规：吃豆、传送；重要：能量、反击、连击、倒计时与结算。总静音开关仍对两类生效。','Regular: pellets and portals. Important: power, counters, combos, countdowns and results. Master mute still silences both.'],
+  ['设置只保存在当前浏览器。','Settings are saved only in this browser.'],
+  ['浏览器未允许保存；设置仅本次生效。','Storage is unavailable; settings apply only to this session.'],
+  ['>完成</button>','>Done</button>'],
   ['全球排行榜', 'Global Leaderboard'],
   ['打开全球排行榜', 'Open Global Leaderboard'],
   ['查看全球排名', 'View global ranking'],

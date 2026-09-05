@@ -3,10 +3,13 @@ import {readFileSync} from 'node:fs';
 
 const first = readFileSync(new URL('../../supabase/migrations/001_leaderboard.sql', import.meta.url),'utf8');
 const second = readFileSync(new URL('../../supabase/migrations/002_basic_anti_cheat.sql', import.meta.url),'utf8');
+const third = readFileSync(new URL('../../supabase/migrations/003_public_view_readonly.sql', import.meta.url),'utf8');
 
 assert.match(first,/enable row level security/i);
 assert.match(first,/revoke all on table public\.leaderboard_scores from anon, authenticated/i);
 assert.match(first,/security definer/i);
+assert.match(third,/revoke all on table public\.leaderboard_public from public, anon, authenticated/i);
+assert.match(third,/grant select on table public\.leaderboard_public to anon, authenticated/i);
 assert.doesNotMatch(first,/service_role|secret/i);
 assert.match(second,/pg_advisory_xact_lock/i);
 assert.match(second,/recent_submissions\s*>=\s*30/i);

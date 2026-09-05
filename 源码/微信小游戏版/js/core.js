@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 34ce86037370   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 7be476d2baf9   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -3250,10 +3250,15 @@ async function renderCloudScoreboard(elId, highlightId){
     + '<button class="board-switch board-local">本机纪录</button></div>'
     + (rows.length ? '<div class="board-list">'+html+'</div>'
                    : '<div class="board-status">还没有云端成绩</div>')
-    + '<div class="board-note">匿名成绩 · 每位玩家只显示最高分</div>';
+    + '<div class="board-note board-cloud-note">昵称与成绩公开 · 每个玩家 ID 只显示最高分</div>';
 }
 
 function renderScoreboard(elId, highlightId){
+  // Keep the pre-game notice visible even when the board is empty or offline.
+  for (const id of ['cloudNotice','cloudAbout']){
+    const notice = document.getElementById(id);
+    if (notice) notice.classList.toggle('hidden', !CloudLeaderboard.enabled());
+  }
   const el = document.getElementById(elId);
   if (!el) return;
   if (boardMode[elId] === 'cloud' && CloudLeaderboard.enabled()){
@@ -3314,7 +3319,9 @@ function renderScoreboard(elId, highlightId){
     /* 「纪录只保存在当前浏览器」只在摊开时说。
        收起时上面就写着「本机纪录」，已经说明了同一件事；而开始页的每一行都在
        跟那句故事抢高度 —— 同一个意思占两行，让位的该是重复的那一行。 */
-    (boardExpanded || !more ? '<div class="board-note">纪录只保存在当前浏览器</div>' : '');
+    (boardExpanded || !more ? '<div class="board-note">'
+      + (CloudLeaderboard.enabled() ? '此处为本机纪录；全球榜需联网查看' : '纪录只保存在当前浏览器')
+      + '</div>' : '');
 
   /* 展开/收起。用事件委托挂在容器上，因为这段 innerHTML 每次都整体重建，
      直接给按钮挂监听会在下一次渲染时连按钮一起丢掉。

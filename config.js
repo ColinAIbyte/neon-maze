@@ -2,8 +2,8 @@
 // sb_secret_* / service_role 绕过数据权限，绝不能写入此文件或提交到 Git。
 window.NEON_MAZE_CONFIG = {
   supabase: {
-    url: '',
-    publishableKey: '',
+    url: 'https://nphdwmcyriinggjwwnfw.supabase.co',
+    publishableKey: 'sb_publishable_XCbyWVZ3kt6zSqI1htherQ_mwFY9iVS',
     // 仅为已有项目保留的兼容项，新项目填写上面的 publishableKey 即可。
     anonKey: '',
   },

@@ -1435,6 +1435,14 @@ body{
   margin-top:3px;
   text-align:center;
 }
+#startOverlay .cloud-notice{
+  flex-shrink:0;
+  width:100%;
+  font-size:10px;
+  line-height:1.5;
+  letter-spacing:0;
+}
+#startOverlay .cloud-notice span{display:block;}
 .board-title{
   color:var(--text-dim);
   letter-spacing:.14em;
@@ -1449,6 +1457,20 @@ body{
 }
 .board-switch:hover,.board-switch:focus-visible{color:var(--amber);}
 .board-status{padding:8px;color:var(--text-dim);text-align:center;font-size:10px;}
+@media (max-width:1119px) and (max-height:700px){
+  /* The separate pre-game disclosure stays visible; do not repeat it inside
+     the compressed cloud board where it would overlap the following text. */
+  #startBoard .board-cloud-note{display:none;}
+  #startBoard .board-status{padding:4px;min-height:0;overflow-y:auto;}
+}
+@media (max-width:420px) and (max-height:700px){
+  #startOverlay .start-card{gap:5px;}
+  #startOverlay .welcome{margin:0 !important;font-size:11px;line-height:1.3;}
+  #startOverlay .start-tip{font-size:10px;line-height:1.3;letter-spacing:0;}
+  #startOverlay .start-actions{gap:8px;flex-wrap:nowrap;}
+  #startOverlay .btn-hero{min-height:44px;padding:10px 20px;font-size:13px;}
+  #startOverlay .btn-quiet{min-height:44px;padding:9px 12px;font-size:11px;}
+}
 .board-empty{color:var(--text-dim);font-size:11px;}
 .ad-slot-rail{
   display:none;position:fixed;right:12px;top:50%;transform:translateY(-50%);
@@ -2114,6 +2136,7 @@ body::before{
       <div class="daily hidden" id="dailyBox"></div>
       <div class="levelsel" id="levelSel"></div>
       <div class="board" id="startBoard"></div>
+      <p class="cloud-notice hidden" id="cloudNotice"><span>Normal runs auto-publish nickname &amp; score globally.</span><span>Stars &amp; unlocks stay in this browser.</span></p>
       <!-- 「HOW TO PLAY」跟「开始」并排，而不是让玩家去找标题旁边那个「?」。
            原来这儿写的是"完整玩法　点标题下方的 ?"——那要求玩家先读一行字、
            再把视线挪回标题去找一个 25px 的图标、还得猜到它是规则。三道弯，
@@ -2283,6 +2306,12 @@ body::before{
         <h3 class="about-fb-title">Feedback</h3>
         <p class="about about-fb">If you have suggestions or run into a problem, I would love to hear from you.</p>
         <p class="about about-mail">Email: <a class="mail-link" href="mailto:2685897@qq.com">2685897@qq.com</a></p>
+        <section class="hidden" id="cloudAbout">
+          <hr class="about-rule">
+          <h3 class="about-fb-title">Global board &amp; saved progress</h3>
+          <p class="about">Normal runs automatically submit your nickname, score and run data. The global board publicly shows your nickname, score, level, best combo and clear status. Practice and Daily Challenge runs are not uploaded. Stars and unlocks stay in this browser.</p>
+          <p class="about">A randomly generated anonymous player ID is also submitted for score ownership and basic validation. It is not an account and does not sync progress across devices. Do not use your real name or contact details as your nickname.</p>
+        </section>
         <button class="btn about-close" id="aboutCloseBtn">Got it</button>
       </div>
     </div>
@@ -5582,10 +5611,15 @@ async function renderCloudScoreboard(elId, highlightId){
     + '<button class="board-switch board-local">LOCAL RECORDS</button></div>'
     + (rows.length ? '<div class="board-list">'+html+'</div>'
                    : '<div class="board-status">No cloud scores yet</div>')
-    + '<div class="board-note">Anonymous scores · One best score per player</div>';
+    + '<div class="board-note board-cloud-note">Public names &amp; scores · One best per player ID</div>';
 }
 
 function renderScoreboard(elId, highlightId){
+  // Keep the pre-game notice visible even when the board is empty or offline.
+  for (const id of ['cloudNotice','cloudAbout']){
+    const notice = document.getElementById(id);
+    if (notice) notice.classList.toggle('hidden', !CloudLeaderboard.enabled());
+  }
   const el = document.getElementById(elId);
   if (!el) return;
   if (boardMode[elId] === 'cloud' && CloudLeaderboard.enabled()){
@@ -5646,7 +5680,9 @@ function renderScoreboard(elId, highlightId){
     /* 「Records are stored only in this browser」只在摊开时说。
        收起时上面就写着「LOCAL RECORDS」，已经说明了同一件事；而开始页的每一行都在
        跟那句故事抢高度 —— 同一个意思占两行，让位的该是重复的那一行。 */
-    (boardExpanded || !more ? '<div class="board-note">Records are stored only in this browser</div>' : '');
+    (boardExpanded || !more ? '<div class="board-note">'
+      + (CloudLeaderboard.enabled() ? 'Local records shown here; connect to view the global board' : 'Records are stored only in this browser')
+      + '</div>' : '');
 
   /* 展开/收起。用事件委托挂在容器上，因为这段 innerHTML 每次都整体重建，
      直接给按钮挂监听会在下一次渲染时连按钮一起丢掉。

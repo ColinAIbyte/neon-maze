@@ -1,12 +1,12 @@
 # Supabase 匿名排行榜
 
-当前代码已经接好排行榜，但默认关闭。未配置或云服务暂时不可用时，游戏仍可离线
-运行，并继续保存本机纪录。
+正式网页版已配置排行榜。自建部署请从 `config.example.js` 的关闭配置开始。
+未配置或云服务暂时不可用时，游戏本体仍可运行，并继续保存本机纪录。
 
 ## 开启步骤
 
 1. 登录 Supabase 并创建 Neon Maze 专用空项目，优先选择 Free 套餐。
-2. 确认目标项目后，在同一事务内依次执行 `supabase/migrations/` 下的 `001` 与 `002` SQL。
+2. 确认目标项目后，在同一事务内依次执行 `supabase/migrations/` 下的 `001`、`002`、`003` SQL。`003` 会收回项目默认授予匿名角色的视图写权限，再仅授予 SELECT；已执行前两条的项目也需要补上。
 3. 运行 `supabase/checks/preflight.sql` 做只读权限检查，并在隔离测试数据上验证 RPC 的正常提交、重复改名及拒绝非法分数。
 4. 在项目 Connect 窗口或 Settings → API Keys 获取 Project URL 和 `sb_publishable_*` 公开密钥。
 5. 将 URL 填入 `config.js` 的 `supabase.url`，公开密钥填入 `supabase.publishableKey`。

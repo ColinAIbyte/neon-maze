@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 9a9f88a7caf1   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 61a8cb038219   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -591,16 +591,24 @@ const saveInteger = (v, lo, hi, fallback) => {
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.floor(n))) : fallback;
 };
-function readStoredJSON(key){
+function backupCorruptJSON(key, raw){
+  try { localStorage.setItem(key + '.corrupt.' + Date.now(), String(raw).slice(0, 20000)); } catch (e) {}
+}
+function readStoredJSON(key, diagnostic){
   try {
     const raw = localStorage.getItem(key);
+    if (diagnostic) diagnostic.raw = raw;
     if (!raw) return null;
     try { return JSON.parse(raw); }
     catch (e) {
-      try { localStorage.setItem(key + '.corrupt.' + Date.now(), String(raw).slice(0, 20000)); } catch (e2) {}
+      if (diagnostic) diagnostic.status = 'corrupt';
+      backupCorruptJSON(key, raw);
       return null;
     }
-  } catch (e) { return null; }
+  } catch (e) {
+    if (diagnostic) diagnostic.status = 'unavailable';
+    return null;
+  }
 }
 function normalizeLocalStars(value){
   const stars = {};
@@ -2881,6 +2889,84 @@ function saveScores(list){
   catch { return false; }
 }
 
+/* Recent runs are an independent local journal, never a cloud upload queue.
+   Reuse save parsing/backup and score validation, then validate the extra fields
+   strictly: coercing "false" or inventing a timestamp would misdescribe a run. */
+const RECENT_SCORE_KEY = 'doudou.recent.v1';
+const RECENT_SCORE_LIMIT = 30;
+let recentWriteFailed = false;
+let lastRecentRunId = null;
+let recentBadRaw = null;
+let recentBadRows = [];
+function sanitizeRecentScore(r){
+  if (!saveObject(r) || typeof r.runId !== 'string' || !r.runId || r.runId.length > 64
+      || !Number.isSafeInteger(r.score) || r.score < 0 || r.score > 1e12
+      || !Number.isInteger(r.level) || r.level < 1 || r.level > MAX_LEVEL
+      || !Number.isSafeInteger(r.maxCombo) || r.maxCombo < 1 || r.maxCombo > 1e6
+      || typeof r.won !== 'boolean'
+      || !Number.isSafeInteger(r.playedAt) || r.playedAt <= 0
+      || !Number.isFinite(new Date(r.playedAt).getTime())) return null;
+  const clean = sanitizeScore({score:r.score, level:r.level, combo:r.maxCombo, won:r.won, id:r.runId});
+  if (!clean) return null;
+  return {runId:r.runId, score:clean.score, level:clean.level,
+    maxCombo:clean.combo, won:clean.won, playedAt:r.playedAt};
+}
+function loadRecentScores(){
+  const diagnostic = {status:'ok', raw:null};
+  // Avoid multiplying identical corruption backups during cloud/UI refreshes.
+  let value;
+  try {
+    const raw = localStorage.getItem(RECENT_SCORE_KEY);
+    if (raw !== null && raw === recentBadRaw) return {rows:recentBadRows.slice(), status:'corrupt'};
+  } catch (e) { return {rows:[], status:'unavailable'}; }
+  value = readStoredJSON(RECENT_SCORE_KEY, diagnostic);
+  if (diagnostic.status !== 'ok') {
+    if (diagnostic.status === 'corrupt') { recentBadRaw = diagnostic.raw; recentBadRows = []; }
+    return {rows:[], status:diagnostic.status};
+  }
+  if (diagnostic.raw === null) return {rows:[], status:'ok'};
+  if (!Array.isArray(value)) {
+    recentBadRaw = diagnostic.raw;
+    recentBadRows = [];
+    backupCorruptJSON(RECENT_SCORE_KEY, diagnostic.raw);
+    return {rows:[], status:'corrupt'};
+  }
+  const seen = new Set();
+  const rows = value.map(sanitizeRecentScore).filter(row=>{
+    if (!row || seen.has(row.runId)) return false;
+    seen.add(row.runId); return true;
+  });
+  const damaged = rows.length !== value.length || rows.length > RECENT_SCORE_LIMIT;
+  // Keep valid siblings. A bounded extra backup protects malformed row fields.
+  if (damaged && diagnostic.raw !== recentBadRaw) {
+    backupCorruptJSON(RECENT_SCORE_KEY, diagnostic.raw);
+    recentBadRaw = diagnostic.raw;
+    recentBadRows = rows.slice(0, RECENT_SCORE_LIMIT);
+  }
+  return {rows:rows.slice(0, RECENT_SCORE_LIMIT), status:damaged ? 'corrupt' : 'ok'};
+}
+function recordRecentScore(entry){
+  if (practiceLevel || dailyRun) return false;
+  const row = sanitizeRecentScore(entry);
+  if (!row) return false;
+  const saved = loadRecentScores(); // read the latest journal, including other tabs
+  if (saved.status === 'unavailable') { recentWriteFailed = true; return false; }
+  if (lastRecentRunId === row.runId || saved.rows.some(item=>item.runId === row.runId)) return true;
+  const next = [row].concat(saved.rows).slice(0, RECENT_SCORE_LIMIT);
+  try {
+    localStorage.setItem(RECENT_SCORE_KEY, JSON.stringify(next));
+    lastRecentRunId = row.runId;
+    recentWriteFailed = false;
+    recentBadRaw = null;
+    return true;
+  } catch (e) { recentWriteFailed = true; return false; }
+}
+function recentScoreState(){
+  const saved = loadRecentScores();
+  const highScore = Math.max(bestScore(), normalizeLocalSave(readStoredJSON(LOCAL_SAVE_KEY)).highScore);
+  return {rows:saved.rows, status:saved.status, saveFailed:recentWriteFailed, highScore};
+}
+
 function loadName(){
   try { return localStorage.getItem(NAME_KEY) || ''; } catch { return ''; }
 }
@@ -3161,10 +3247,14 @@ function renderLevelSelect(){
      的元素桩上没有 querySelector，只有 document 上有。这行是开始页初始化链的
      一环 —— 在垫片下抛异常的话，它后面的键盘、暂停、手势全都不会接线，
      而且一声不吭。 */
-  html += '<button class="lv lv-codex" id="owlBtn" title="对手图鉴" aria-label="对手图鉴">🦉</button>';
+  html += '<button class="lv lv-codex enemy-choice chaser" id="owlBtn" type="button" title="对手图鉴" aria-label="对手图鉴" aria-haspopup="dialog" aria-controls="owlOverlay" aria-expanded="false"><span class="enemy-thumb" aria-hidden="true"></span></button>';
   el.innerHTML = html;
   const ob = document.getElementById('owlBtn');
-  if (ob) ob.addEventListener('click', ()=>{ Audio2.unlock(); openOwl(); });
+  if (ob){
+    ob.addEventListener('click', ()=>{ Audio2.unlock(); openOwl(); });
+    // Enter/空格保留给原生按钮，不能同时触发开始游戏快捷键。
+    ob.addEventListener('keydown', e=>{ if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+  }
   el.querySelectorAll('.lv[data-lv]').forEach(b=>{
     b.addEventListener('click', ()=>{
       Audio2.unlock();
@@ -3414,6 +3504,8 @@ function endGame(won){
   const remembered = loadName();
   const { rank, id } = practice ? { rank: 0, id: null }
     : recordScore({ score, level, combo: maxComboSeen, won, name: remembered });
+  if (!practice && !dailyRun) recordRecentScore({runId:currentRunId,
+    score, level, maxCombo:maxComboSeen, won:!!won, playedAt:Date.now()});
   lastRunId = id;
   justAddedId = id;      // 给它挂一个「新」徽章，开下一局就取消
   if (!practice){
@@ -3832,6 +3924,7 @@ function gameHasKeyboard(){
 function currentScreen(){
   if (!helpOverlay.classList.contains('hidden')) return 'help';
   if (!aboutOverlay.classList.contains('hidden')) return 'about';
+  if (owlOverlay && !owlOverlay.classList.contains('hidden')) return 'codex';
   if (!document.getElementById('overOverlay').classList.contains('hidden')) return 'over';
   if (!document.getElementById('pauseOverlay').classList.contains('hidden')) return 'paused';
   if (!document.getElementById('startOverlay').classList.contains('hidden')) return 'start';
@@ -4407,6 +4500,7 @@ function startDaily(){
 
 /* ---------- 对手图鉴弹层 ---------- */
 const owlOverlay = document.getElementById('owlOverlay');
+let owlOpener = null;
 
 function renderOwlList(){
   const el = document.getElementById('owlList');
@@ -4431,6 +4525,7 @@ function renderOwlList(){
 function openOwl(){
   if (!owlOverlay || !owlOverlay.classList.contains('hidden')) return;
   closeHelp(); closeAbout();     // 三页互斥，理由见 openAbout
+  owlOpener = document.activeElement;
   /* 和「关于」同一套：正在玩就先暂停，并把暂停页也显示出来，这样关掉图鉴之后
      露出的是暂停画面，玩家自己按「继续」。跟「玩法说明」的行为是反的，那是
      故意的 —— 查规则是打到一半的一个动作，读图鉴是离开游戏去看一页东西，
@@ -4443,12 +4538,27 @@ function openOwl(){
   }
   renderOwlList();
   owlOverlay.classList.remove('hidden');
+  document.getElementById('owlBtn')?.setAttribute('aria-expanded','true');
+  document.getElementById('owlList').scrollTop = 0;
+  if (typeof owlOverlay.focus === 'function') owlOverlay.focus({preventScroll:true});
 }
-function closeOwl(){ if (owlOverlay) owlOverlay.classList.add('hidden'); }
+function closeOwl(){
+  if (!owlOverlay || owlOverlay.classList.contains('hidden')) return;
+  owlOverlay.classList.add('hidden');
+  document.getElementById('owlBtn')?.setAttribute('aria-expanded','false');
+  if (owlOpener?.isConnected !== false && typeof owlOpener?.focus === 'function') owlOpener.focus({preventScroll:true});
+  owlOpener = null;
+}
 (function(){
   const b = document.getElementById('owlCloseBtn');
   if (b) b.addEventListener('click', ()=>{ Audio2.unlock(); closeOwl(); });
   if (owlOverlay) owlOverlay.addEventListener('click', (e)=>{ if (e.target === owlOverlay) closeOwl(); });
+  if (owlOverlay) owlOverlay.addEventListener('keydown', e=>{
+    if (e.key !== 'Tab') return;
+    const list = document.getElementById('owlList'), active = document.activeElement;
+    if (e.shiftKey && (active === list || active === owlOverlay)){ e.preventDefault(); b.focus(); }
+    else if (!e.shiftKey && active === b){ e.preventDefault(); list.focus(); }
+  });
 })();
 
 function renderChallengeBanner(){
@@ -5528,6 +5638,7 @@ fullNewGame();
 // Web-only adapter. Native WeChat builds keep their existing local scoreboard.
 window.NeonGame = {
   cloud: CloudLeaderboard,
+  recentScores: recentScoreState,
   playerId: getPlayerId,
   name: loadName,
   saveName: name => {

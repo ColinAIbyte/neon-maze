@@ -42,6 +42,7 @@
   }
   hall.mount({
     request: options => game.cloud.hall(options,game.playerId()),
+    recent: () => game.recentScores(),
     language, canResume:()=>game.state()==='paused',
     onClose:()=>leave(), onChallenge:()=>leave(true),
     onLanguage:lang=>{
@@ -51,6 +52,8 @@
       hall.setLanguage(language);
     },
   });
+  // Local records can change in another tab without any cloud request.
+  window.addEventListener('storage',()=>{ if (opened) hall.refreshLocal(); });
   window.addEventListener('popstate',()=>{
     if (onHallPath()) open({push:false});
     else if (opened) closeView();
@@ -122,6 +125,13 @@
       if (practice){pending=null;++submission;}
     },
   };
+  function previewRow(row,champion=false){
+    const line=node('span',null,'preview-row'+(champion?' preview-champion':''));
+    const name=node('span',row.name,'preview-name');name.title=row.name;
+    line.append(node('span',row.rank?`#${row.rank}`:'','preview-rank'),name,
+      node('span',row.score.toLocaleString('en-US'),'preview-score'));
+    return line;
+  }
   async function refreshPreview(){
     const preview=document.getElementById('hallPreview'); if (!preview) return;
     preview.classList.remove('hidden');preview.replaceChildren(node('strong',text('🏆 世界纪录','🏆 World record')),node('span',text('正在读取…','Loading…')));
@@ -130,13 +140,13 @@
     if (result.status==='ok'){
       const top=result.data.podium;
       if (!top.length) preview.append(node('span',text('第一位挑战者，可能就是你','You could be the first challenger')));
-      for (const row of top) preview.append(node('span',`#${row.rank} ${row.name}   ${row.score.toLocaleString('en-US')}`,row.position===1?'preview-champion':''));
+      for (const row of top) preview.append(previewRow(row,row.position===1));
     } else if (result.status==='unavailable'){
       // Old production API still offers verified public scores, but no identity/ranks.
       // A top score can be shown honestly without pretending the new API is deployed.
       const legacy=await game.cloud.top(3);
       if (legacy.status==='ok' && legacy.data.length){
-        const r=legacy.data[0];preview.append(node('span',`${r.name}   ${r.score.toLocaleString('en-US')}`,'preview-champion'));
+        preview.append(previewRow(legacy.data[0],true));
         preview.append(node('small',text('现有公开纪录 · 详细排名服务待升级','Existing public record · Full ranking service pending')));
       } else preview.append(node('span',text('详细排名服务待启用','Full rankings are not enabled yet')));
     } else preview.append(node('span',text('暂时无法读取 · 点击重试','Unable to load · Open to retry')));

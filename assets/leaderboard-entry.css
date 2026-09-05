@@ -11,7 +11,11 @@
 .hall-ready #startHelpBtn{flex-shrink:0}
 .hall-preview{width:100%;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #7163a7;border-radius:12px;background:#13122ac7;color:#dce6ff;cursor:pointer;font:12px/1.4 var(--font-body);text-align:left}
 .hall-preview strong{font-size:11px;color:#9beeff}
-.hall-preview .preview-champion{color:#ffe085;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.hall-preview .preview-row{display:grid;grid-template-columns:24px minmax(0,1fr) max-content;align-items:baseline;gap:8px;font-size:15px;font-weight:500;line-height:1.5}
+.hall-preview .preview-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hall-preview .preview-rank,.hall-preview .preview-score{font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:0}
+.hall-preview .preview-score{text-align:right}
+.hall-preview .preview-champion{color:#ffe085;font-weight:700}
 .hall-preview small{font-size:10px}
 .result-cloud{width:100%;max-width:440px;flex-shrink:0;border:1px solid #3b7f92;background:#0c2539e8;border-radius:12px;padding:12px;font:12px/1.5 var(--font-body);text-align:left}
 .result-cloud strong{color:#72eeff}.result-cloud p{margin:6px 0;color:#e0e6fa;font-size:12px;line-height:1.5;letter-spacing:0}
@@ -25,5 +29,5 @@
 .hall-ready #overOverlay>.over-actions #restartBtn{font-size:13px;padding:11px 16px}
 .hall-ready #overBoard .board-cloud{display:none}
 @media(min-width:1120px) and (min-height:720px){.hall-rail{position:static;width:100%;max-width:none;flex-shrink:0;order:-1;font-size:13px;margin-bottom:8px}}
-@media(max-width:420px){.hall-ready .start-card{padding:14px 12px;gap:6px}.hall-ready .start-card h2{font-size:25px}.hall-ready .start-actions .btn{font-size:12px}.hall-preview .preview-champion{font-size:16px}.hall-preview{padding:8px 10px}}
-@media(max-height:650px){.hall-preview span:not(.preview-champion){display:none}.hall-ready .start-card .welcome{display:none}.hall-ready #startOverlay .start-card{padding-top:12px;gap:5px}}
+@media(max-width:420px){.hall-ready .start-card{padding:14px 12px;gap:6px}.hall-ready .start-card h2{font-size:25px}.hall-ready .start-actions .btn{font-size:12px}.hall-preview{padding:8px 10px}}
+@media(max-height:650px){.hall-preview > span:not(.preview-champion){display:none}.hall-ready .start-card .welcome{display:none}.hall-ready #startOverlay .start-card{padding-top:12px;gap:5px}}

@@ -12,63 +12,8 @@ assert.match(css, /\.neon-hall\[hidden\]\{display:none!important\}/);
 assert.match(css, /font-variant-numeric:tabular-nums/);
 new vm.Script(source);
 
-function setup({response, language = 'zh', resume = false} = {}) {
-  const calls = [], elements = [];
-  let document;
-  class Element {
-    constructor(tag) {
-      this.tagName = tag.toUpperCase(); this.children = []; this.attrs = {}; this.events = {};
-      this.style = {}; this.dataset = {}; this.className = ''; this._text = ''; this.hidden = false;
-      this.disabled = false; this.scrollTop = 0; this.isConnected = true;
-      this.classList = {add: x => {this.className += ' ' + x;}};
-      elements.push(this);
-    }
-    get textContent() { return this._text + this.children.map(x => x.textContent).join(''); }
-    set textContent(value) {this._text = String(value); this.children = [];}
-    setAttribute(k, v) {this.attrs[k] = v;}
-    appendChild(child) {this.children.push(child); child.parent = this; return child;}
-    replaceChildren(...children) {this._text = ''; this.children = []; children.forEach(x => this.appendChild(x));}
-    addEventListener(type, fn) {(this.events[type] ||= []).push(fn);}
-    click() {for (const fn of this.events.click || []) fn({target: this});}
-    focus() {document.activeElement = this;}
-    scrollIntoView() {this.scrolled = true;}
-    getClientRects() {return this.hidden ? [] : [{}];}
-    contains(el) {return this === el || this.children.some(x => x.contains(el));}
-    matches(selector) {
-      if (selector.startsWith('.')) return this.className.split(/\s+/).includes(selector.slice(1));
-      if (selector === '[tabindex="0"]') return this.tabIndex === 0;
-      if (selector === 'button:not([disabled])') return this.tagName === 'BUTTON' && !this.disabled;
-      return this.tagName.toLowerCase() === selector;
-    }
-    querySelectorAll(selector) {
-      const selectors = selector.split(',');
-      return this.children.flatMap(child => [...(selectors.some(s => child.matches(s)) ? [child] : []), ...child.querySelectorAll(selector)]);
-    }
-    querySelector(selector) {return this.querySelectorAll(selector)[0] || null;}
-  }
-  document = {createElement: tag => new Element(tag), body: new Element('body')};
-  const trigger = new Element('button');document.body.appendChild(trigger); document.activeElement = trigger;
-  const env = {window:{}, document, Intl, Number, Date, Set, Array};
-  vm.runInNewContext(source, env);
-  const api = env.window.NeonHall;
-  const callbacks = {close:0, challenge:0, languages:[]};
-  api.mount({language, request: async options => {calls.push({...options}); return typeof response === 'function' ? response(options) : response;},
-    canResume:()=>resume, onClose:()=>callbacks.close++, onChallenge:()=>callbacks.challenge++, onLanguage:x=>callbacks.languages.push(x)});
-  const root = document.body.querySelector('.neon-hall');
-  return {api, root, document, trigger, calls, callbacks, byText(value) {
-    return root.querySelectorAll('button').find(x => x.textContent === value);
-  }};
-}
-const tick = async () => {for(let i=0;i<8;i++) await Promise.resolve();};
-const makeRow = (position, extra = {}) => ({rank:position, position, name:`Player-${position}`, score:1000000 - position * 100,
-  level:6,combo:159,won:true,played_at:'2026-09-05T02:10:00Z',is_me:false,...extra});
-function payload(all, request = {}, mine = null) {
-  const offset = request.near && mine ? Math.max(0,mine.position-3) : request.offset || 0;
-  return {status:'ok',data:{scope:request.scope || 'current',rule_version:'current-v1',revision:'fixture-r1',total:all.length,
-    updated_at:'2026-09-05T03:00:00Z',rows:all.slice(offset,offset+25),podium:all.slice(0,3),mine,
-    next:mine?.rank > 1 ? all[mine.position-2] : null,next_gap:mine?.rank > 1 ? 101 : null,
-    offset,has_more:offset+25 < all.length}};
-}
+import {setup,tick,makeRow,payload} from './hall_view_harness.mjs';
+
 let checks = 0;
 for (const language of ['zh','en']) {
   for (const count of [0,1,2,3,100]) {
@@ -109,10 +54,6 @@ for (const language of ['zh','en']) {
   h.byText('EN').click();
   assert.deepEqual(h.callbacks.languages,['en']);
   assert(h.root.textContent.includes('Rank #63'));assert.equal(h.calls.length,2,'language never refetches different standings');
-  h.byText('Historical records').click();await tick();
-  assert.equal(h.calls.at(-1).scope,'history');assert(h.root.textContent.includes('not comparable across rule versions'));
-  assert(h.root.textContent.includes('My historical record'));
-  assert(!h.root.textContent.includes('Your next target'));assert(!h.root.textContent.includes('more points to beat'));
   checks++;
 }
 {
@@ -125,8 +66,6 @@ for (const language of ['zh','en']) {
 {
   const leader=makeRow(1,{is_me:true});const h=setup({response:request=>payload([leader],request,leader)});
   h.api.open();await tick();assert(h.root.textContent.includes('刷新自己的世界纪录'));assert(!h.root.textContent.includes('还需'));
-  h.byText('历史规则存档').click();await tick();
-  assert(h.root.textContent.includes('我的历史记录'));assert(!h.root.textContent.includes('刷新自己的世界纪录'));
   checks++;
 }
 {
@@ -149,10 +88,10 @@ for(const status of ['offline','error','unavailable','disabled']){
 }
 {
   const pending=[];const h=setup({response:request=>new Promise(resolve=>pending.push({request,resolve}))});
-  h.api.open();await tick();h.byText('历史规则存档').click();await tick();
-  pending[1].resolve(payload([makeRow(1,{name:'history winner'})],pending[1].request));await tick();
+  h.api.open();await tick();h.api.refresh();await tick();
+  pending[1].resolve(payload([makeRow(1,{name:'refreshed winner'})],pending[1].request));await tick();
   pending[0].resolve(payload([makeRow(1,{name:'stale current winner'})],pending[0].request));await tick();
-  assert(h.root.textContent.includes('history winner'));assert(!h.root.textContent.includes('stale current winner'));
+  assert(h.root.textContent.includes('refreshed winner'));assert(!h.root.textContent.includes('stale current winner'));
   h.api.refresh();await tick();h.api.close();pending[2].resolve(payload([makeRow(1,{name:'after closing'})],pending[2].request));await tick();
   assert(h.root.hidden);assert(!h.root.textContent.includes('after closing'));checks++;
 }

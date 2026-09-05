@@ -7,12 +7,18 @@
     zh: {
       title: '全球排行榜', back: '返回游戏', resume: '继续游戏', challenge: '开始挑战', again: '再次挑战',
       eyebrow: 'NEON MAZE · GLOBAL ARENA', intro: '每一局，都有新的目标。',
-      description: '一局完整挑战的最终总分 · 每位玩家保留最佳一局', current: '当前规则榜', history: '历史规则存档',
-      currentNote: '当前计分规则 · 不设结束时间', historyNote: '旧规则或版本未确认的记录 · 仅存档，不跨规则比较',
+      description: '一局完整挑战的最终总分 · 每位玩家保留最佳一局', current: '总排行榜',
+      currentNote: '当前计分规则 · 不设结束时间',
       players: n => `${n} 位挑战者`, updated: t => `更新于 ${t}`, pending: '正在读取真实榜单…',
       champion: '世界纪录', runner: '全球第 2 名', third: '全球第 3 名', rank: n => `第 ${n} 名`,
-      score: '最佳单局总分', me: '你', myTitle: '我的全球成绩', myHistoryTitle: '我的历史记录', unranked: '完成第一局，建立你的全球排名',
-      unrankedNote: '只有服务器确认的正式挑战成绩才会进入全球榜。', mineHistoryEmpty: '这个浏览器暂无历史规则成绩',
+      score: '最佳单局总分', me: '你', myTitle: '我的全球成绩', unranked: '完成第一局，建立你的全球排名',
+      unrankedNote: '只有服务器确认的正式挑战成绩才会进入全球榜。',
+      recentTitle: '我的最近战绩', recentRange: '最近 30 局 · 正式挑战', recentBest: '近 30 局最佳',
+      localBest: '本机历史最高分', recentSummary: (n, score) => `已记录 ${n} 局，最好 ${score}`,
+      recentPrivacy: '仅保存在当前浏览器，清除网站数据后会丢失',
+      recentEmpty: '还没有记录。打完一局正式挑战，成绩会出现在这里。',
+      recentUnavailable: '当前浏览器无法保存战绩', recentFailed: '本局战绩未能保存，已保存的记录仍可查看。',
+      recentCorrupt: '部分战绩数据损坏，已尝试保留备份；有效记录仍可查看。',
       next: '下一个目标', beat: (name, gap) => `超过 ${name}，还需 ${gap} 分`, leader: '刷新自己的世界纪录',
       tiedLead: '再多得 1 分，向独占榜首发起挑战。', leaderNote: '下一次，挑战更好的自己。', locate: '查看我的位置',
       top: '榜首', nearby: '我附近', ranking: '全球名次', loadMore: '加载更多', loadingMore: '正在加载…', refresh: '刷新榜单',
@@ -33,12 +39,18 @@
     en: {
       title: 'Global leaderboard', back: 'Back to game', resume: 'Resume game', challenge: 'Start a challenge', again: 'Challenge again',
       eyebrow: 'NEON MAZE · GLOBAL ARENA', intro: 'One more run. A new personal best.',
-      description: 'Final score from one full run · One best run per player', current: 'Current rules', history: 'Historical records',
-      currentNote: 'Current scoring rules · All-time', historyNote: 'Older or unverified rules · Archive only, not comparable across rule versions',
+      description: 'Final score from one full run · One best run per player', current: 'All-time leaderboard',
+      currentNote: 'Current scoring rules · All-time',
       players: n => `${n} challengers`, updated: t => `Updated ${t}`, pending: 'Loading live standings…',
       champion: 'World record', runner: 'World #2', third: 'World #3', rank: n => `Rank #${n}`,
-      score: 'Best single-run score', me: 'YOU', myTitle: 'My global best', myHistoryTitle: 'My historical record', unranked: 'Finish your first run to earn a global rank',
-      unrankedNote: 'Only server-confirmed standard runs enter the global leaderboard.', mineHistoryEmpty: 'No historical score for this browser',
+      score: 'Best single-run score', me: 'YOU', myTitle: 'My global best', unranked: 'Finish your first run to earn a global rank',
+      unrankedNote: 'Only server-confirmed standard runs enter the global leaderboard.',
+      recentTitle: 'My recent runs', recentRange: 'Last 30 runs · Standard challenges', recentBest: 'Best of last 30 runs',
+      localBest: 'All-time best in this browser', recentSummary: (n, score) => `${n} runs recorded, best ${score}`,
+      recentPrivacy: 'Saved only in this browser. Clearing site data deletes these records.',
+      recentEmpty: 'No records yet. Finish a standard challenge to see your score here.',
+      recentUnavailable: 'This browser cannot save run history', recentFailed: 'This run could not be saved. Previously saved records are still available.',
+      recentCorrupt: 'Some run data is damaged. A backup was attempted; valid records are still available.',
       next: 'Your next target', beat: (name, gap) => `${gap} more points to beat ${name}`, leader: 'Set a new world record',
       tiedLead: 'One more point puts you ahead of the tied leaders.', leaderNote: 'Your next rival is your own best run.', locate: 'Find my position',
       top: 'Top scores', nearby: 'Around me', ranking: 'Global standings', loadMore: 'Load more', loadingMore: 'Loading…', refresh: 'Refresh standings',
@@ -59,7 +71,8 @@
   };
   let options = {}, root = null, content = null, live = null, lastFocus = null;
   let language = 'zh', isOpen = false, generation = 0, loading = false;
-  let scope = 'current', near = false, data = null, rows = [], resultStatus = 'loading', moreError = false, changeNotice = false;
+  const scope = 'current';
+  let near = false, data = null, rows = [], resultStatus = 'loading', moreError = false, changeNotice = false;
   let cachedBodyOverflow = '';
   const t = () => copy[language];
   const number = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
@@ -128,7 +141,7 @@
     title.tabIndex = -1;
     add(introNode, title, text('p', 'nh-tagline', t().intro), text('p', 'nh-description', t().description));
     const meta = text('div', 'nh-meta');
-    add(meta, text('span', 'nh-period', scope === 'current' ? t().currentNote : t().historyNote));
+    add(meta, text('span', 'nh-period', t().currentNote));
     if (resultStatus === 'ok' && data) {
       add(meta, text('span', 'nh-count', t().players(fmt(data.total))), text('span', 'nh-updated', t().updated(date(data.updated_at, true))));
     }
@@ -138,7 +151,7 @@
     const card = text('article', `nh-honor nh-medal-${Math.min(3, Number(row.rank) || 3)} nh-slot-${index} nh-count-${count}${fmt(row.score).length > 13 ? ' nh-score-wide' : ''}`);
     card.setAttribute('aria-label', `${t().rank(fmt(row.rank))} ${name(row)}`);
     const rank = Number(row.rank);
-    add(card, text('div', 'nh-honor-label', rank === 1 ? `♛ ${scope === 'current' ? t().champion : t().rank('1')}` : t().rank(fmt(row.rank))), avatar(row, true));
+    add(card, text('div', 'nh-honor-label', rank === 1 ? `♛ ${t().champion}` : t().rank(fmt(row.rank))), avatar(row, true));
     const player = text('div', 'nh-honor-name', name(row));
     player.title = name(row);
     if (row.is_me) add(player, text('span', 'nh-you', t().me));
@@ -175,23 +188,21 @@
   function myCard() {
     const card = text('section', 'nh-personal');
     const information = text('div', 'nh-personal-info');
-    add(information, text('p', 'nh-eyebrow', scope === 'history' ? t().myHistoryTitle : t().myTitle));
+    add(information, text('p', 'nh-eyebrow', t().myTitle));
     if (data?.mine) {
       const mine = data.mine;
       const best = text('div', 'nh-personal-best');
       add(best, text('strong', 'nh-personal-rank', t().rank(fmt(mine.rank))), text('strong', 'nh-personal-score nh-digits', fmt(mine.score)));
       add(information, best);
       const next = data.next;
-      if (scope === 'history') {
-        add(information, text('p', 'nh-fine', t().historyNote));
-      } else if (next && number(data.next_gap) !== null && data.next_gap > 0) {
+      if (next && number(data.next_gap) !== null && data.next_gap > 0) {
         add(information, text('p', 'nh-next-label', t().next), text('p', 'nh-target', t().beat(name(next), fmt(data.next_gap))));
       } else if (mine.rank === 1) {
         const tied = data.podium.filter(row => row.rank === 1).length > 1;
         add(information, text('p', 'nh-target', t().leader), text('p', 'nh-fine', tied ? t().tiedLead : t().leaderNote));
       }
     } else {
-      add(information, text('h2', 'nh-unranked', scope === 'history' ? t().mineHistoryEmpty : t().unranked), text('p', 'nh-fine', t().unrankedNote));
+      add(information, text('h2', 'nh-unranked', t().unranked), text('p', 'nh-fine', t().unrankedNote));
     }
     const actions = text('div', 'nh-personal-actions');
     add(actions, challengeButton());
@@ -223,19 +234,56 @@
       text('span', 'nh-row-info', `${progress(row)} · ${t().combo(fmt(row.combo))}`), text('time', 'nh-row-date', date(row.played_at)), text('span', 'nh-row-expand', '⌄'));
     return add(details, summary, dataDetails(row));
   }
-  function setScope(nextScope) {
-    if (scope === nextScope && resultStatus === 'ok') return;
-    scope = nextScope;
-    near = false;
-    load();
-  }
   function switches() {
     const controls = text('div', 'nh-controls');
-    const scopes = text('div', 'nh-switch-group');
-    scopes.setAttribute('aria-label', language === 'en' ? 'Scoring rules' : '计分规则');
-    add(scopes, choice(t().current, '', () => setScope('current'), scope === 'current'), choice(t().history, '', () => setScope('history'), scope === 'history'));
-    add(controls, scopes, button(`↻ ${t().refresh}`, 'nh-refresh', () => load()));
+    add(controls, text('span', 'nh-current-label', t().current), button(`↻ ${t().refresh}`, 'nh-refresh', () => load()));
     return controls;
+  }
+  function recentPanel() {
+    const panel = text('section', 'nh-recent');
+    const heading = text('h2', '', t().recentTitle);
+    heading.id = 'neon-recent-title';
+    panel.setAttribute('aria-labelledby', heading.id);
+    add(panel, heading, text('p', 'nh-fine', t().recentRange));
+    let saved;
+    try { saved = options.recent?.() || {rows:[], status:'ok'}; }
+    catch { saved = {rows:[], status:'unavailable'}; }
+    const entries = Array.isArray(saved.rows) ? saved.rows : [];
+    const best = entries.reduce((value, row) => Math.max(value, row.score), 0);
+    const history = text('div', 'nh-local-best');
+    add(history, text('span', '', t().localBest), text('strong', 'nh-digits', fmt(saved.highScore || 0)));
+    add(panel, history, text('p', 'nh-recent-summary', t().recentSummary(fmt(entries.length), fmt(best))));
+    if (saved.status === 'unavailable' || saved.saveFailed) {
+      const warning = text('p', 'nh-recent-warning', t().recentUnavailable);
+      warning.setAttribute('role', 'status');
+      add(panel, warning);
+      if (saved.saveFailed) add(panel, text('p', 'nh-fine', t().recentFailed));
+    } else if (saved.status === 'corrupt') {
+      add(panel, text('p', 'nh-recent-warning', t().recentCorrupt));
+    }
+    if (!entries.length) add(panel, text('p', 'nh-recent-empty', t().recentEmpty));
+    else {
+      const list = text('ol', 'nh-recent-list');
+      list.tabIndex = 0;
+      list.setAttribute('aria-label', t().recentTitle);
+      for (const row of entries) {
+        const winner = row.score === best;
+        const item = text('li', `nh-recent-row${winner ? ' nh-recent-best' : ''}${fmt(row.score).length > 13 ? ' nh-recent-wide' : ''}`);
+        const score = text('div', 'nh-recent-score');
+        add(score, text('strong', 'nh-digits', fmt(row.score)));
+        if (winner) add(score, text('span', 'nh-recent-badge', `★ ${t().recentBest}`));
+        const stamp = new Date(row.playedAt);
+        const two = n => String(n).padStart(2, '0');
+        const localTime = `${two(stamp.getMonth()+1)}-${two(stamp.getDate())} ${two(stamp.getHours())}:${two(stamp.getMinutes())}`;
+        const time = text('time', 'nh-recent-time', localTime);
+        time.setAttribute('datetime', stamp.toISOString());
+        time.title = stamp.toLocaleString(language === 'en' ? 'en-US' : 'zh-CN');
+        add(item, score, text('span', 'nh-recent-info', `${progress(row)} · ${t().combo(fmt(row.maxCombo))}`), time);
+        add(list, item);
+      }
+      add(panel, list);
+    }
+    return add(panel, text('p', 'nh-fine nh-recent-privacy', t().recentPrivacy));
   }
   function rankings() {
     const section = text('section', 'nh-ranking');
@@ -300,6 +348,7 @@
   function render() {
     if (!root) return;
     const scroll = root.scrollTop;
+    const recentScroll = root.querySelector('.nh-recent-list')?.scrollTop || 0;
     const focused = document.activeElement;
     const focusedButton = root.contains(focused) && focused.tagName === 'BUTTON' ? focused.textContent : null;
     content.replaceChildren();
@@ -317,12 +366,14 @@
       add(main, podium(), myCard(), rankings());
     }
     else add(main, errorPanel());
-    add(main, policy());
+    add(main, recentPanel(), policy());
     const footer = text('footer', 'nh-footer');
     add(footer, text('p', '', t().vacant), challengeButton());
     add(main, footer);
     add(content, main);
     root.scrollTop = scroll;
+    const recentList = root.querySelector('.nh-recent-list');
+    if (recentList) recentList.scrollTop = recentScroll;
     if (focusedButton) {
       const replacement = Array.from(root.querySelectorAll('button:not([disabled])')).find(el => el.textContent === focusedButton);
       (replacement || root.querySelector('h1'))?.focus({ preventScroll: true });
@@ -433,7 +484,6 @@
     root.hidden = false;
     root.scrollTop = 0;
     near = Boolean(config.mine);
-    scope = 'current';
     load(false, near);
     root.querySelector('h1')?.focus({ preventScroll: true });
   }
@@ -450,5 +500,6 @@
     language = value === 'en' ? 'en' : 'zh';
     if (isOpen) render();
   }
-  global.NeonHall = Object.freeze({ mount, open, close, setLanguage, refresh: () => load() });
+  global.NeonHall = Object.freeze({ mount, open, close, setLanguage, refresh: () => load(),
+    refreshLocal: () => { if (isOpen) render(); } });
 })(window);

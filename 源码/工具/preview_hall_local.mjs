@@ -10,6 +10,7 @@ const root=fileURLToPath(new URL('../../发布到网站/',import.meta.url));
 const {PGlite}=await import(pathToFileURL(process.env.NEON_PGLITE_MODULE).href);
 const uuid=n=>`abcd0000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const databases=new Map();
+const port=Number(process.env.NEON_PREVIEW_PORT || 8870);
 async function database(count){
   if (databases.has(count)) return databases.get(count);
   const promise=(async()=>{
@@ -31,7 +32,7 @@ async function database(count){
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.jpg':'image/jpeg'};
 http.createServer(async(req,res)=>{
   try{
-    const url=new URL(req.url,'http://127.0.0.1:8870');
+    const url=new URL(req.url,'http://127.0.0.1:'+port);
     if(url.pathname==='/_hall_rpc'){
       let body=''; for await (const c of req) {body+=c;if(body.length>10000)throw Error('body too large');}
       const q=JSON.parse(body),count=[0,1,2,3,100].includes(q.count)?q.count:3;
@@ -55,6 +56,23 @@ http.createServer(async(req,res)=>{
     if(file.endsWith('.html')){
       const prelude=`<script>
         const realFetch=window.fetch.bind(window),qa=new URLSearchParams(location.search);
+        // Disposable browser storage, even when previewing result submission.
+        // Fixtures never overwrite the user's browser saves or reach Supabase.
+        const localFixtures=new Map(),recentKey='doudou.recent.v1';
+        const recentCount=Math.max(0,Math.min(30,Number(qa.get('recent')||0)));
+        if(recentCount){
+          const records=Array.from({length:recentCount},(_,i)=>({runId:'preview-'+i,
+            score:i===2?14419525:620415-i*10000,level:i===2?6:4,maxCombo:i===2?160:41,
+            won:i===2,playedAt:Date.UTC(2026,8,5,6,22)-i*3600000}));
+          localFixtures.set(recentKey,JSON.stringify(records));
+          localFixtures.set('doudou.scores.v3',JSON.stringify([{id:'preview-best',name:'测试记录',score:20000000,level:6,combo:200,won:true,date:'2026-09-01'}]));
+        }
+        if(qa.get('storage')==='corrupt')localFixtures.set(recentKey,'[{"score":');
+        Object.defineProperty(window,'localStorage',{configurable:true,value:{
+          getItem:key=>{if(qa.get('storage')==='blocked')throw Error('Preview blocked storage');return localFixtures.get(key)??null;},
+          setItem:(key,value)=>{if(qa.get('storage')==='blocked'||(qa.get('storage')==='quota'&&key===recentKey))throw Error('Preview full storage');localFixtures.set(key,String(value));},
+          removeItem:key=>localFixtures.delete(key),clear:()=>localFixtures.clear(),
+        }});
         window.fetch=(url,options={})=>String(url).includes('.supabase.co/')
           ? realFetch('/_hall_rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
             path:new URL(url).pathname,params:options.body?JSON.parse(options.body):{},
@@ -77,4 +95,4 @@ http.createServer(async(req,res)=>{
     }
     res.writeHead(200,{'content-type':mime[path.extname(file)],'cache-control':'no-store'});res.end(data);
   }catch(e){res.writeHead(500,{'content-type':'text/plain'});res.end(String(e.message));}
-}).listen(8870,'127.0.0.1',()=>console.log('Local fixture preview http://127.0.0.1:8870/?count=3 — isolated SQL, no production writes.'));
+}).listen(port,'127.0.0.1',()=>console.log('Local fixture preview http://127.0.0.1:'+port+'/?count=3 — isolated SQL/storage, no production writes.'));

@@ -90,7 +90,8 @@ if(g.level !== 4) fail.push(`练没解锁的第 6 关应夹回第 4 关，实际
 console.log(`点了没解锁的第 6 关：夹回第 ${g.level} 关（已解锁上限），正确`);
 
 // —— 6) 练习清关不算通关 ——
-LS.setItem('doudou.reached','6');
+g.fullNewGame();
+g.noteLevelReached(5); g.noteLevelReached(6);
 g.startPractice(6);
 if(g.level !== 6) fail.push('解锁到 6 之后仍进不去第 6 关');
 g.endGame(true);                 // 就算传 true 也不能显示成通关

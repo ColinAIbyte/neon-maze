@@ -1,8 +1,9 @@
-/* Neon Maze language routing.
+/* Neon Maze language preference.
  *
- * GitHub Pages is static, so it cannot choose a language on the server from
- * the visitor's IP. On the first visit we ask country.is for the two-letter
- * country code only. A manual choice always wins and is remembered locally.
+ * The root page is Chinese and /en/ is English. We never send a visitor's IP
+ * to a third party and never force a first-time redirect. A previous manual
+ * choice still wins; otherwise the browser language may offer a small,
+ * dismissible suggestion. Both full language buttons always remain visible.
  */
 (function () {
   'use strict';
@@ -10,8 +11,7 @@
   var script = document.currentScript;
   var current = script && script.getAttribute('data-current-language') === 'en' ? 'en' : 'zh';
   var MANUAL_KEY = 'neon-maze-language-manual-v1';
-  var AUTO_KEY = 'neon-maze-language-auto-v1';
-  var CHINESE_REGIONS = { CN:true, HK:true, MO:true, TW:true };
+  var DISMISS_KEY = 'neon-maze-language-suggestion-dismissed-v1';
 
   function read(storage, key) {
     try { return storage.getItem(key) || ''; } catch (e) { return ''; }
@@ -45,61 +45,80 @@
   }
 
   // Event delegation works even though this script runs in <head> before the
-  // two language buttons have been parsed.
+  // permanent language buttons and optional suggestion have been parsed.
   document.addEventListener('click', function (event) {
     var node = event.target && event.target.closest
       ? event.target.closest('[data-language-choice]') : null;
-    if (!node) return;
-    var choice = node.getAttribute('data-language-choice');
-    if (!validLanguage(choice)) return;
+    if (node) {
+      var choice = node.getAttribute('data-language-choice');
+      if (!validLanguage(choice)) return;
+      event.preventDefault();
+      write(window.localStorage, MANUAL_KEY, choice);
+      go(choice, false);
+      return;
+    }
+
+    var close = event.target && event.target.closest
+      ? event.target.closest('[data-language-dismiss]') : null;
+    if (!close) return;
     event.preventDefault();
-    write(window.localStorage, MANUAL_KEY, choice);
-    write(window.sessionStorage, AUTO_KEY, choice);
-    go(choice, false);
+    write(window.sessionStorage, DISMISS_KEY, '1');
+    var notice = close.closest ? close.closest('.language-suggestion') : null;
+    if (notice && notice.parentNode) notice.parentNode.removeChild(notice);
   });
 
-  // Once the player has chosen, IP detection must never override that choice.
+  // A language deliberately chosen by the player may redirect on later visits.
+  // This is preference, not geolocation, and therefore remains the strongest signal.
   var manual = read(window.localStorage, MANUAL_KEY);
   if (validLanguage(manual)) {
     go(manual, true);
     return;
   }
 
-  // Cache automatic detection for this tab. It avoids a second lookup after
-  // redirecting and prevents a redirect loop if the provider ever fluctuates.
-  var cached = read(window.sessionStorage, AUTO_KEY);
-  if (validLanguage(cached)) {
-    go(cached, true);
-    return;
+  function preferredLanguage() {
+    var list = window.navigator && window.navigator.languages;
+    var first = list && list.length ? list[0]
+      : (window.navigator && window.navigator.language);
+    if (typeof first !== 'string' || !first) return '';
+    return /^zh(?:-|$)/i.test(first) ? 'zh' : 'en';
   }
 
-  if (typeof window.fetch !== 'function') return;
-  var controller = typeof AbortController === 'function' ? new AbortController() : null;
-  var timer = setTimeout(function () {
-    if (controller) controller.abort();
-  }, 2500);
+  function showSuggestion(language) {
+    if (!validLanguage(language) || language === current) return;
+    if (read(window.sessionStorage, DISMISS_KEY) === '1') return;
+    if (!document.body || typeof document.createElement !== 'function') return;
 
-  window.fetch('https://api.country.is/', {
-    method: 'GET',
-    mode: 'cors',
-    cache: 'no-store',
-    credentials: 'omit',
-    referrerPolicy: 'no-referrer',
-    signal: controller ? controller.signal : undefined
-  }).then(function (response) {
-    if (!response.ok) throw new Error('country lookup failed');
-    return response.json();
-  }).then(function (data) {
-    var country = data && typeof data.country === 'string'
-      ? data.country.toUpperCase() : '';
-    if (!/^[A-Z]{2}$/.test(country)) return;
-    var language = CHINESE_REGIONS[country] ? 'zh' : 'en';
-    write(window.sessionStorage, AUTO_KEY, language);
-    go(language, true);
-  }).catch(function () {
-    // Detection is an enhancement, not a loading requirement. If the network,
-    // privacy software, or provider blocks it, keep the page the visitor opened.
-  }).then(function () {
-    clearTimeout(timer);
-  });
+    var notice = document.createElement('aside');
+    notice.className = 'language-suggestion';
+    notice.setAttribute('aria-label', language === 'zh' ? '语言建议' : 'Language suggestion');
+
+    var text = document.createElement('span');
+    text.textContent = language === 'zh' ? '想用中文浏览？' : 'Prefer English?';
+
+    var switchLink = document.createElement('a');
+    switchLink.href = targetUrl(language);
+    switchLink.setAttribute('data-language-choice', language);
+    switchLink.textContent = language === 'zh' ? '切换中文' : 'Switch to English';
+
+    var dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.setAttribute('data-language-dismiss', '');
+    dismiss.setAttribute('aria-label', language === 'zh' ? '关闭语言提示' : 'Dismiss language suggestion');
+    dismiss.textContent = '×';
+
+    notice.appendChild(text);
+    notice.appendChild(switchLink);
+    notice.appendChild(dismiss);
+    document.body.appendChild(notice);
+  }
+
+  function offerPreferredLanguage() {
+    showSuggestion(preferredLanguage());
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', offerPreferredLanguage, { once:true });
+  } else {
+    offerPreferredLanguage();
+  }
 })();

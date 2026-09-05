@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: ed9b5cb48da0   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: 34ce86037370   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -439,6 +439,7 @@ function walkableFor(ch, kind){
 
 /* ---------- game state ---------- */
 let grid, pelletsLeft, pelletsTotal, score, level, lives, combo, comboTimer, gameState, startTime, elapsed, frightTimer = 0;
+let currentRunId = '', runActiveSeconds = 0, lastCloudEntry = null;
 let ghosts, player, fruit, toastTimer, invuln, warpCooldownEntities;
 
 /* ---------- bonus scoring ----------
@@ -567,6 +568,140 @@ function ghostReleaseGap(){
   return GHOST_RELEASE_GAP_BY_LEVEL[level-1] || GHOST_RELEASE_GAP_BY_LEVEL[MAX_LEVEL-1];
 }
 
+/* ---------- durable local save ----------
+ *
+ * 旧版本把关键进度拆在多个 localStorage 键里。它们继续保留，避免升级时丢掉
+ * 排行榜、图鉴和每日挑战；同时把玩家最在意的四项合成一个带版本号的稳定存档：
+ * 最高分、已解锁关卡、星级和设置。读取时逐字段校验并从旧键合并，任意一个旧键
+ * 损坏都不会拖垮其他数据。以后扩展结构只需迁移这一个入口。
+ */
+const LOCAL_SAVE_KEY = 'doudou.save.v1';
+const LOCAL_SAVE_VERSION = 2;
+const EMPTY_LOCAL_SAVE = () => ({
+  version: LOCAL_SAVE_VERSION,
+  playerId: '',
+  highScore: 0,
+  maxLevel: 1,
+  stars: {},
+  settings: { muted:false },
+  updatedAt: '',
+});
+const saveObject = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const saveInteger = (v, lo, hi, fallback) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.floor(n))) : fallback;
+};
+function readStoredJSON(key){
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try { return JSON.parse(raw); }
+    catch (e) {
+      try { localStorage.setItem(key + '.corrupt.' + Date.now(), String(raw).slice(0, 20000)); } catch (e2) {}
+      return null;
+    }
+  } catch (e) { return null; }
+}
+function normalizeLocalStars(value){
+  const stars = {};
+  if (!saveObject(value)) return stars;
+  for (let lv=1; lv<=MAX_LEVEL; lv++){
+    const bits = value[lv];
+    if (Number.isInteger(bits) && bits >= 0 && bits <= 7) stars[lv] = bits;
+  }
+  return stars;
+}
+function normalizeLocalSave(value){
+  const clean = EMPTY_LOCAL_SAVE();
+  if (!saveObject(value)) return clean;
+  if (validPlayerId(value.playerId)) clean.playerId = value.playerId.toLowerCase();
+  clean.highScore = saveInteger(value.highScore, 0, 1e12, 0);
+  clean.maxLevel = saveInteger(value.maxLevel, 1, MAX_LEVEL, 1);
+  clean.stars = normalizeLocalStars(value.stars);
+  if (saveObject(value.settings)) clean.settings.muted = value.settings.muted === true;
+  if (typeof value.updatedAt === 'string') clean.updatedAt = value.updatedAt.slice(0, 32);
+  return clean;
+}
+function validPlayerId(value){
+  return typeof value === 'string'
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+function createPlayerId(){
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'){
+      const id = crypto.randomUUID();
+      if (validPlayerId(id)) return id.toLowerCase();
+    }
+  } catch (e) {}
+
+  // 旧 WebView / 小游戏没有 randomUUID。这里只需要匿名稳定标识，不采集设备指纹。
+  const bytes = new Uint8Array(16);
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') crypto.getRandomValues(bytes);
+    else throw new Error('secure random unavailable');
+  } catch (e) {
+    for (let i=0; i<bytes.length; i++) bytes[i] = Math.floor(Math.random()*256);
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, b=>b.toString(16).padStart(2,'0')).join('');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
+function loadLocalSave(mutedFallback=false){
+  const raw = readStoredJSON(LOCAL_SAVE_KEY);
+  const saved = normalizeLocalSave(raw);
+  const hasMuted = saveObject(raw) && saveObject(raw.settings)
+    && typeof raw.settings.muted === 'boolean';
+  if (!hasMuted) saved.settings.muted = mutedFallback;
+
+  // 进度可以取并集；设置不能取 OR，否则玩家明确取消静音也会被旧键恢复。
+  try {
+    saved.maxLevel = Math.max(saved.maxLevel,
+      saveInteger(localStorage.getItem('doudou.reached'), 1, MAX_LEVEL, 1));
+    if (!hasMuted){
+      const legacyMuted = localStorage.getItem('doudou.muted.v1');
+      if (legacyMuted === '0' || legacyMuted === '1') saved.settings.muted = legacyMuted === '1';
+    }
+  } catch (e) {}
+  const oldProgress = readStoredJSON('doudou.progress.v1');
+  if (saveObject(oldProgress)){
+    const oldStars = normalizeLocalStars(oldProgress.stars);
+    for (let lv=1; lv<=MAX_LEVEL; lv++){
+      if (oldStars[lv]) saved.stars[lv] = (saved.stars[lv] || 0) | oldStars[lv];
+    }
+  }
+  return saved;
+}
+let localSave = loadLocalSave();
+function saveLocalState(mutedOverride){
+  // 中文/英文或两个游戏标签页共享存储。每次写前合并最新进度，防止陈旧页
+  // 记录一次碰撞就把另一页新拿到的星星、解锁和最高分覆盖回去。
+  const latest = loadLocalSave(localSave.settings.muted);
+  if (validPlayerId(latest.playerId)) localSave.playerId = latest.playerId;
+  localSave.highScore = Math.max(localSave.highScore, latest.highScore);
+  localSave.maxLevel = Math.max(localSave.maxLevel, latest.maxLevel);
+  for (let lv=1; lv<=MAX_LEVEL; lv++){
+    const bits = (localSave.stars[lv] || 0) | (latest.stars[lv] || 0);
+    if (bits) localSave.stars[lv] = bits;
+  }
+  // 只有用户点静音按钮时才覆盖设置；普通进度保存沿用最新明确选择。
+  localSave.settings.muted = typeof mutedOverride === 'boolean'
+    ? mutedOverride : latest.settings.muted;
+  localSave.version = LOCAL_SAVE_VERSION;
+  localSave.updatedAt = new Date().toISOString();
+  try { localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(localSave)); return true; }
+  catch (e) { return false; }
+}
+function getPlayerId(){
+  const saved = readStoredJSON(LOCAL_SAVE_KEY);
+  if (saveObject(saved) && validPlayerId(saved.playerId)) localSave.playerId = saved.playerId.toLowerCase();
+  if (!validPlayerId(localSave.playerId)) localSave.playerId = createPlayerId();
+  return localSave.playerId;
+}
+// 首次打开新版即落一份统一存档；存储不可用时仍保持内存态，不影响游戏。
+getPlayerId();
+saveLocalState();
+
 /* 调色板全程不变，所以查一次就存下来。
  *
  * 之所以值得单独说：原来这行每次调用都是一次 getComputedStyle，而它被写在了
@@ -594,9 +729,7 @@ const Audio2 = (()=>{
      存储在无痕模式或配额满时会直接抛，所以照例包一层。 */
   const MUTE_KEY = 'doudou.muted.v1';
   let actx = null, pelletToggle = 0;
-  let muted = (() => {
-    try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
-  })();
+  let muted = localSave.settings.muted;
   // Each entry is a [lo, hi] bite-tone pair, stepping up a pentatonic-ish scale
   // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
   // than arbitrary frequencies, so later steps read as melody, not siren.
@@ -635,6 +768,9 @@ const Audio2 = (()=>{
     unlock,
     setMuted(v){
       muted = !!v;
+      localSave.settings.muted = muted;
+      saveLocalState(muted);
+      // 继续写旧键，让尚未更新的构建（例如旧微信包）仍能读到玩家选择。
       try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* 存不下就只在本次生效 */ }
     },
     isMuted(){ return muted; },
@@ -788,6 +924,7 @@ function resetLevel(fullReset){
   introTimer = 0;   // 复位关卡时清掉卡片，免得它挂在上一关的画面上
   deathPause = 0; deathFlash = 0;
   if (fullReset){ deathsThisRun = 0; sweepsThisRun = 0; ghostsEatenThisRun = 0; perfectLevelsThisRun = 0; runBonuses = []; maxComboSeen = 1; comboMilestoneHit = 0;
+    currentRunId = createPlayerId(); runActiveSeconds = 0; lastCloudEntry = null;
     /* 每一局默认都**不是**每日挑战。startDaily 在 startPractice 回来之后才把它
        打开——放这儿而不是放 startDaily 里清，是为了让"忘了清"这件事不可能发生：
        任何开局路径都经过这里。 */
@@ -823,18 +960,32 @@ let practiceLevel = null;          // null = 正式挑战
 let practiceOfferLevel = 1;        // 结算页那个「练习第 N 关」按钮指向哪一关
 
 function maxLevelReached(){
-  try { return Math.max(1, Math.min(MAX_LEVEL, Number(localStorage.getItem(REACHED_KEY)) || 1)); }
-  catch (e) { return 1; }
+  // 选关/每日挑战打开时再读最新解锁：另一标签页或兼容旧构建可能刚通关。
+  // 这里只会在菜单和开局路径调用，避免每帧读存储；旧值也不能重新锁回关卡。
+  const saved = readStoredJSON(LOCAL_SAVE_KEY);
+  if (saveObject(saved)) localSave.maxLevel = Math.max(localSave.maxLevel,
+    saveInteger(saved.maxLevel, 1, MAX_LEVEL, 1));
+  try {
+    localSave.maxLevel = Math.max(localSave.maxLevel,
+      saveInteger(localStorage.getItem(REACHED_KEY), 1, MAX_LEVEL, 1));
+  } catch (e) {}
+  return localSave.maxLevel;
 }
 function noteLevelReached(lv){
   // 只有正式挑战里到达的关卡才算解锁 —— 练习不能拿来给自己解锁下一关
   if (practiceLevel) return;
+  const reached = saveInteger(lv, 1, MAX_LEVEL, 1);
+  if (reached <= localSave.maxLevel) return;
+  localSave.maxLevel = reached;
+  saveLocalState();
+  // 双写旧键，兼容还在使用旧存档格式的其他构建。
   try {
-    if (lv > maxLevelReached()) localStorage.setItem(REACHED_KEY, String(lv));
+    localStorage.setItem(REACHED_KEY, String(localSave.maxLevel));
   } catch (e) { /* 无痕模式就每次从第一关解锁起，不影响玩 */ }
 }
 
 function fullNewGame(){
+  resetJoystick();
   /* 开新一局就取消上一局的「新」徽章，并把榜单收回前三 ——
      不然玩家回到开始页，看到的还是上一局残留的状态。 */
   justAddedId = null;
@@ -846,7 +997,8 @@ function fullNewGame(){
 }
 
 /** 开一局练习：只打这一关，打完就结束，全程不计分。 */
-function startPractice(lv){
+function startPractice(lv, analyticsModeName='practice'){
+  resetJoystick();
   justAddedId = null;
   boardExpanded = false;
   const target = Math.max(1, Math.min(maxLevelReached(), lv));
@@ -858,6 +1010,7 @@ function startPractice(lv){
   syncChrome();
   startLevelIntro();
   gameState = 'playing';
+  Analytics.track('game_start',{mode:analyticsModeName,level:target});
 }
 
 /* ---------- movement helpers ---------- */
@@ -1739,8 +1892,7 @@ function loadProgress(){
   progress = EMPTY_PROGRESS();
   try {
     const raw = localStorage.getItem(PROGRESS_KEY);
-    if (!raw) return;
-    const p = JSON.parse(raw);
+    const p = raw ? JSON.parse(raw) : null;
     /* 逐字段挑，不整个 assign。存档是用户能改的（开发者工具里两秒的事），
        而下面所有代码都假设 stars/owls/daily 是对象 —— 让 stars 变成 null
        就够让开始页整个渲染不出来了。 */
@@ -1763,8 +1915,22 @@ function loadProgress(){
       }
     }
   } catch (e) { progress = EMPTY_PROGRESS(); }
+  // 星级以统一存档和旧进度的并集为准，只增不减。
+  for (let lv=1; lv<=MAX_LEVEL; lv++){
+    const merged = (progress.stars[lv] || 0) | (localSave.stars[lv] || 0);
+    if (merged) progress.stars[lv] = localSave.stars[lv] = merged;
+  }
 }
 function saveProgress(){
+  const stars = normalizeLocalStars(progress.stars);
+  for (let lv=1; lv<=MAX_LEVEL; lv++){
+    const bits = (localSave.stars[lv] || 0) | (stars[lv] || 0);
+    if (bits) localSave.stars[lv] = bits;
+  }
+  saveLocalState();
+  // 双写旧键也必须用合并后的星星，不能留下第二份已经回退的存档。
+  progress.stars = {...localSave.stars};
+  // 图鉴和每日挑战仍写旧进度键；后续版本可独立迁移，不扩大本次风险。
   try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
 }
 loadProgress();
@@ -2702,8 +2868,13 @@ function loadScores(){
 function saveScores(list){
   try {
     localStorage.setItem(SCORE_KEY, JSON.stringify(list));
-    bestScoreCache = list.length ? Math.max.apply(null,list.map(r=>r.score||0)) : 0;
+    const boardBest = list.length ? Math.max.apply(null,list.map(r=>r.score||0)) : 0;
     bestComboCache = list.reduce((m,r)=>Math.max(m,r.combo||0),0);
+    if (boardBest > localSave.highScore){
+      localSave.highScore = boardBest;
+      saveLocalState();
+    }
+    bestScoreCache = Math.max(localSave.highScore, boardBest);
     return true;
   }
   catch { return false; }
@@ -2719,6 +2890,155 @@ function saveName(name){
 /** Trims to a sane display width and strips anything that could break the row. */
 function cleanName(raw){
   return String(raw || '').replace(/[<>&"']/g, '').trim().slice(0, NAME_MAX);
+}
+
+/* ---------- optional Supabase leaderboard ----------
+ *
+ * 静态站不能安全保存 service_role 私钥。这里只读取可以公开的 anon key，并且只
+ * 调用数据库里明确授权的 RPC / 只读视图。没配 config.js、网络失败或 Supabase
+ * 暂停时全部安静降级成本机榜，游戏本身不依赖云服务。
+ */
+const CLIENT_VERSION = 'web-2026.09.04';
+const Analytics = {
+  track(event, params={}){
+    try {
+      if (window.NeonAnalytics && typeof window.NeonAnalytics.track === 'function')
+        window.NeonAnalytics.track(event, params);
+    } catch (e) {}
+  },
+};
+function notifyAdOpportunity(kind){
+  // 仅预留自然停顿挂点；仓库当前没有 NeonAdHooks 实现，也不会调用任何广告服务。
+  if (kind !== 'post_game') return false;
+  try {
+    if (window.NeonAdHooks && typeof window.NeonAdHooks.onOpportunity === 'function'){
+      window.NeonAdHooks.onOpportunity(kind);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function currentAnalyticsMode(){ return dailyRun ? 'daily' : practiceLevel ? 'practice' : 'normal'; }
+function analyticsScoreBand(value){
+  return value < 50000 ? 'under_50k'
+    : value < 100000 ? '50k_100k'
+    : value < 500000 ? '100k_500k'
+    : value < 1000000 ? '500k_1m' : 'over_1m';
+}
+function analyticsDurationBand(seconds){
+  return seconds < 60 ? 'under_1m' : seconds < 180 ? '1m_3m'
+    : seconds < 600 ? '3m_10m' : 'over_10m';
+}
+const CloudLeaderboard = (()=>{
+  const REQUEST_TIMEOUT_MS = 8000;
+  const submissions = new Map();
+  function config(){
+    try {
+      const root = window.NEON_MAZE_CONFIG;
+      const value = root && root.supabase;
+      if (!value || typeof value.url !== 'string') return null;
+      const url = value.url.trim().replace(/\/+$/,'');
+      const publishableKey = typeof value.publishableKey === 'string' ? value.publishableKey.trim() : '';
+      const legacyKey = typeof value.anonKey === 'string' ? value.anonKey.trim() : '';
+      const apiKey = publishableKey || legacyKey;
+      const isPublishable = /^sb_publishable_[A-Za-z0-9_-]+$/.test(apiKey);
+      if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)
+          || apiKey.startsWith('sb_secret_')
+          || (publishableKey && !isPublishable)
+          || (isPublishable ? apiKey.length < 30 : apiKey.length < 40)) return null;
+      return {url,apiKey,isPublishable};
+    } catch (e) { return null; }
+  }
+  function enabled(){ return !!config() && typeof fetch === 'function'; }
+  async function request(path, options={}){
+    const cfg = config();
+    if (!cfg || typeof fetch !== 'function') return {status:'disabled'};
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    let timer;
+    try {
+      const responseTask = (async()=>{
+      const response = await fetch(cfg.url + path, {
+        ...options,
+        ...(controller ? {signal:controller.signal} : {}),
+        headers: {
+          apikey: cfg.apiKey,
+          // Publishable keys identify the app; they are not user JWTs.
+          ...(cfg.isPublishable ? {} : {Authorization:'Bearer ' + cfg.apiKey}),
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      if (!response.ok) return {status:'error',code:response.status};
+      if (response.status === 204) return {status:'ok',data:null};
+      return {status:'ok',data:await response.json()};
+      })();
+      // Bound both connection and body reads, including older WebViews that
+      // ignore abort. Network errors must not leave the board loading forever.
+      const timeout = new Promise(resolve=>{
+        timer = setTimeout(()=>{
+          if (controller) controller.abort();
+          resolve({status:'offline'});
+        }, REQUEST_TIMEOUT_MS);
+      });
+      return await Promise.race([responseTask, timeout]);
+    } catch (e) { return {status:'offline'}; }
+    finally { clearTimeout(timer); }
+  }
+  async function submit(entry){
+    if (!enabled()) return {status:'disabled'};
+    const options = {
+      method:'POST',
+      body:JSON.stringify({
+        p_player_id: entry.playerId,
+        p_run_id: entry.runId,
+        p_player_name: cleanName(entry.name) || DEFAULT_NAME,
+        p_score: saveInteger(entry.score,0,1e12,0),
+        p_level: saveInteger(entry.level,1,MAX_LEVEL,1),
+        p_max_combo: saveInteger(entry.maxCombo,1,1e6,1),
+        p_won: entry.won === true,
+        p_duration_ms: saveInteger(entry.durationMs,1000,86400000,1000),
+        p_deaths: saveInteger(entry.deaths,0,100000,0),
+        p_ghosts_eaten: saveInteger(entry.ghostsEaten,0,1000000,0),
+        p_sweeps: saveInteger(entry.sweeps,0,100000,0),
+        p_client_version: CLIENT_VERSION,
+      }),
+    };
+    // A rename for a run must follow its initial score submission. Capture the
+    // payload now, before the caller changes the in-memory name again.
+    const previous = submissions.get(entry.runId) || Promise.resolve();
+    const pending = previous.catch(()=>{}).then(()=>request('/rest/v1/rpc/submit_score', options));
+    submissions.set(entry.runId, pending);
+    try { return await pending; }
+    finally { if (submissions.get(entry.runId) === pending) submissions.delete(entry.runId); }
+  }
+  async function top(limit=20){
+    const n = saveInteger(limit,1,50,20);
+    const result = await request('/rest/v1/leaderboard_public?select=player_name,score,level,max_combo,won,played_at&order=score.desc,played_at.asc&limit='+n);
+    if (result.status !== 'ok') return result;
+    if (!Array.isArray(result.data)) return {status:'error'};
+    const rows = result.data.map(row=>{
+      if (!saveObject(row)) return null;
+      const score = saveInteger(row.score,0,1e12,-1);
+      if (score < 0) return null;
+      return {
+        name:cleanName(row.player_name) || DEFAULT_NAME,
+        score,
+        level:saveInteger(row.level,1,MAX_LEVEL,1),
+        combo:saveInteger(row.max_combo,1,1e6,1),
+        won:row.won === true,
+      };
+    }).filter(Boolean);
+    return {status:'ok',data:rows};
+  }
+  return {enabled,submit,top};
+})();
+
+function submitCloudScore(entry){
+  if (!CloudLeaderboard.enabled()) return;
+  CloudLeaderboard.submit(entry).then(result=>{
+    Analytics.track('cloud_score_result',{cloud_status:result.status});
+    if (result.status === 'ok' && gameState === 'over') toast('成绩已同步到全球榜');
+  });
 }
 
 /**
@@ -2753,19 +3073,22 @@ function renameScore(id, name){
 }
 
 /**
- * 个人最高分。**从榜单第一名派生，不另存一份。**
+ * 个人最高分。新版统一存档保存历史峰值，旧排行榜继续作为迁移来源。
  *
- * 单独存一个 bestScore 看着更省事，但那就有了两个真相：玩家清掉榜单、
- * 或者以后改了迁移/裁剪逻辑，两个数就会对不上——而"最高分"这种数字一旦
- * 和榜单打架，玩家立刻会觉得这游戏在乱记分。榜单本来就是排好序的，
- * 第一名就是最高分。
+ * 旧版一直从榜单第一名派生；首次读取时会把榜单峰值写进统一存档。之后即使
+ * 排行榜旧键损坏或迁移，已经确认过的历史最高分也不会随之消失。
  *
  * 返回 0 表示还没有任何记录（第一次玩），调用方据此决定要不要显示。
  */
 function bestScore(){
-  if (bestScoreCache !== null) return bestScoreCache;
+  if (bestScoreCache !== null) return Math.max(bestScoreCache, localSave.highScore);
   const list = loadScores();
-  bestScoreCache = list.length ? (list[0].score || 0) : 0;
+  const boardBest = list.length ? (list[0].score || 0) : 0;
+  bestScoreCache = Math.max(localSave.highScore, boardBest);
+  if (bestScoreCache > localSave.highScore){
+    localSave.highScore = bestScoreCache;
+    saveLocalState();
+  }
   return bestScoreCache;
 }
 
@@ -2871,16 +3194,87 @@ let justAddedId = null;
 /* 哪些榜单容器已经挂过展开监听。记在这里而不是元素上：微信垫片的假元素
    没有 dataset，往它上面记会直接抛。 */
 const boardWired = {};
+const boardMode = {};
+
+function wireBoard(elId, highlightId){
+  const el = document.getElementById(elId);
+  if (!el || typeof el.addEventListener !== 'function' || boardWired[elId]) return;
+  boardWired[elId] = true;
+  el.addEventListener('click', (e)=>{
+    const t = e.target;
+    if (!t || typeof t.closest !== 'function') return;
+    if (t.closest('.board-cloud')){
+      boardMode[elId] = 'cloud';
+      renderCloudScoreboard(elId, highlightId);
+      return;
+    }
+    if (t.closest('.board-local')){
+      boardMode[elId] = 'local';
+      renderScoreboard(elId, highlightId);
+      return;
+    }
+    if (t.closest('.board-more')){
+      boardExpanded = !boardExpanded;
+      renderScoreboard(elId, highlightId);
+    }
+  });
+}
+
+async function renderCloudScoreboard(elId, highlightId){
+  const el = document.getElementById(elId);
+  if (!el || !CloudLeaderboard.enabled()) return renderScoreboard(elId, highlightId);
+  boardMode[elId] = 'cloud';
+  Analytics.track('leaderboard_view',{mode:'cloud'});
+  el.classList.remove('hidden');
+  el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+    + '<button class="board-switch board-local">本机纪录</button></div>'
+    + '<div class="board-status">正在读取…</div>';
+  wireBoard(elId, highlightId);
+  const result = await CloudLeaderboard.top(20);
+  if (boardMode[elId] !== 'cloud') return;
+  if (result.status !== 'ok'){
+    el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+      + '<button class="board-switch board-local">本机纪录</button></div>'
+      + '<div class="board-status">暂时无法连接，成绩仍已保存在本机</div>';
+    return;
+  }
+  const rows = result.data || [];
+  const html = rows.map((r,i)=>
+    `<div class="board-row${i===0?' board-top':''}">`
+      + `<span class="board-rank">${i+1}</span>`
+      + `<span class="board-name">${r.name}</span>`
+      + `<span class="board-score">${fmtNum(r.score)}</span>`
+      + `<span class="board-meta">${r.won ? '通关' : '第'+r.level+'关'} · x${r.combo}</span>`
+      + '</div>').join('');
+  el.innerHTML = '<div class="board-head"><div class="board-title">全球榜</div>'
+    + '<button class="board-switch board-local">本机纪录</button></div>'
+    + (rows.length ? '<div class="board-list">'+html+'</div>'
+                   : '<div class="board-status">还没有云端成绩</div>')
+    + '<div class="board-note">匿名成绩 · 每位玩家只显示最高分</div>';
+}
 
 function renderScoreboard(elId, highlightId){
   const el = document.getElementById(elId);
   if (!el) return;
+  if (boardMode[elId] === 'cloud' && CloudLeaderboard.enabled()){
+    renderCloudScoreboard(elId, highlightId);
+    return;
+  }
+  boardMode[elId] = 'local';
   const list = loadScores();
   /* 一条纪录都没有时**整块藏起来**，不留占位。
      原来显示一句"还没有记录，来跑一局"——它既没帮玩家开始，又在首屏多堆了
      一层弱信息。第一次打开的人屏幕上该只有：投币 / 一句操作 / 开始游戏 /
      玩法说明 / 署名。 */
-  if (!list.length){ el.innerHTML = ''; el.classList.add('hidden'); return; }
+  if (!list.length){
+    if (!CloudLeaderboard.enabled()){ el.innerHTML = ''; el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.innerHTML = '<div class="board-head"><div class="board-title">本机纪录</div>'
+      + '<button class="board-switch board-cloud">全球榜</button></div>'
+      + '<div class="board-status">完成一局后会保存在这里</div>';
+    wireBoard(elId, highlightId);
+    return;
+  }
   el.classList.remove('hidden');
   /* 默认只露前三名。
      六行纪录摆在开始页上，这一屏就变成了一块排行榜 —— 而这游戏最该被先看到的
@@ -2907,7 +3301,9 @@ function renderScoreboard(elId, highlightId){
     /* 叫「本机纪录」不叫「排行榜」：数据只在 localStorage 里，
        换台电脑、清个缓存就没了。叫排行榜会让玩家以为是全网共用的在线榜单，
        进而以为自己在和别人比 —— 那是个不存在的承诺。 */
-    '<div class="board-title">本机纪录</div>' +
+    '<div class="board-head"><div class="board-title">本机纪录</div>'
+      + (CloudLeaderboard.enabled() ? '<button class="board-switch board-cloud">全球榜</button>' : '')
+      + '</div>' +
     /* 只有**行**这一段滚，标题和「查看全部纪录」固定在外面。
        原来整块一起滚：屏幕一矮，榜单被压到 70px，那个展开按钮就跟着滚到看不见的
        地方 —— 一个看不见的展开入口等于没有。 */
@@ -2926,16 +3322,7 @@ function renderScoreboard(elId, highlightId){
      微信垫片造的假元素有 addEventListener 却没有 dataset，一读就抛，
      而这一行在 endGame 里，抛出来的表现就是"死一条命之后直接黑屏"。
      整个测试套件当场红了十条，这个坑之前踩过一模一样的一次。 */
-  if (typeof el.addEventListener === 'function' && !boardWired[elId]){
-    boardWired[elId] = true;
-    el.addEventListener('click', (e)=>{
-      const t = e.target;
-      if (!t || typeof t.closest !== 'function') return;
-      if (!t.closest('.board-more')) return;
-      boardExpanded = !boardExpanded;
-      renderScoreboard(elId, highlightId);
-    });
-  }
+  wireBoard(elId, highlightId);
 
   /* 榜单最多只露五行左右（再高就把按钮挤出屏幕了），可名次是第几名不由我们说了算。
      结算页写着"本次排名第 5 名"，而那一行正好在可视区外边——最该看到的一行看不见，
@@ -2956,6 +3343,7 @@ function renderScoreboard(elId, highlightId){
 }
 
 function endGame(won){
+  resetJoystick();
   gameState='over';
 
   if (won){
@@ -2970,6 +3358,10 @@ function endGame(won){
      这条边界必须硬 —— 一旦练习的成绩能进榜，排行榜就没意义了
      （谁都可以反复练第一关刷分），而排行榜正是"正式挑战"的全部价值。 */
   const practice = !!practiceLevel;
+  Analytics.track('game_end',{
+    mode:currentAnalyticsMode(), level, won:won === true,
+    score_band:analyticsScoreBand(score), duration_band:analyticsDurationBand(runActiveSeconds),
+  });
 
   /* 旧纪录必须在把本局写进榜单**之前**读，否则读到的就是本局自己，
      "破纪录了没有"永远是 false，"差多少分"永远是 0。 */
@@ -2988,6 +3380,15 @@ function endGame(won){
     : recordScore({ score, level, combo: maxComboSeen, won, name: remembered });
   lastRunId = id;
   justAddedId = id;      // 给它挂一个「新」徽章，开下一局就取消
+  if (!practice){
+    lastCloudEntry = {
+      playerId:getPlayerId(), runId:currentRunId,
+      name:remembered, score, level, maxCombo:maxComboSeen, won,
+      durationMs:Math.max(1000,Math.round(runActiveSeconds*1000)),
+      deaths:deathsThisRun, ghostsEaten:ghostsEatenThisRun, sweeps:sweepsThisRun,
+    };
+    submitCloudScore(lastCloudEntry);
+  }
 
   if (won) Audio2.victory(); else if (isNewBest) Audio2.newBest(); else Audio2.gameOver();
   const practiceCleared = practice && pelletsLeft <= 0;
@@ -3007,6 +3408,7 @@ function endGame(won){
   // 结算层上次滑到了底部时，浏览器会记住 scrollTop。新一局必须回到
   // 顶部，否则就算保存区已经提前，玩家打开时仍可能直接看到底部。
   overOverlay.scrollTop = 0;
+  notifyAdOpportunity('post_game');
   // 破纪录也放礼花：这是除了通关之外，唯一值得停下来庆祝一下的时刻
   if (isNewBest && !won && prevBest > 0) startFireworks(6000);
 
@@ -3066,6 +3468,10 @@ function commitName(){
   if (!name) { input.focus(); return; }
   saveName(name);
   renameScore(lastRunId, name);
+  if (lastCloudEntry){
+    lastCloudEntry.name = name;
+    CloudLeaderboard.submit(lastCloudEntry);
+  }
   renderScoreboard('overBoard', lastRunId);
   document.getElementById('nameRow').innerHTML =
     `<div class="name-done">已记录为 ${name}</div>`;
@@ -3554,6 +3960,121 @@ stage.addEventListener('touchend', (e)=>{
 /* 下拉通知栏、系统侧滑返回会中断手势且不发 touchend。
    不清理的话，下次 touchmove 会拿旧起点算出一次“自己转向”。 */
 stage.addEventListener('touchcancel', ()=>{ swipeFrom = null; }, { passive: true });
+
+/* ---------- 手机虚拟摇杆 ----------
+ *
+ * 外观像动作游戏的摇杆，规则仍然是迷宫规则：只输出四个正方向，不输出斜线；
+ * 松手后豆豆继续沿原方向跑。摇杆按住不动时每帧续写一次 requestDir，确保玩家
+ * 在离路口较远的地方提前推方向，到了路口仍然会转，而不是被 2.2 格的转向缓存
+ * 当成过期输入清掉。滑动手势保持原样，两套输入共用 requestDir，不维护第二套
+ * 移动逻辑。
+ */
+const touchJoystick = document.getElementById('touchJoystick');
+const joyKnob = document.getElementById('joyKnob');
+const JOY_DEADZONE_RATIO = 0.14;
+const JOY_TRAVEL_RATIO = 0.28;
+const JOY_AXIS_SWITCH_RATIO = 1.18;
+let joystickPointerId = null;
+let joystickHeldDir = null;
+let joystickLastDir = null;
+
+function resetJoystick(){
+  joystickPointerId = null;
+  joystickHeldDir = null;
+  joystickLastDir = null;
+  if (touchJoystick && touchJoystick.classList) touchJoystick.classList.remove('active');
+  if (joyKnob && joyKnob.style) joyKnob.style.transform = 'translate(0px,0px)';
+}
+
+function moveJoystick(clientX, clientY){
+  if (!touchJoystick || gameState !== 'playing') return;
+  const r = touchJoystick.getBoundingClientRect();
+  const size = Math.max(1, Math.min(r.width || 104, r.height || 104));
+  const dx = clientX - (r.left + (r.width || size) / 2);
+  const dy = clientY - (r.top + (r.height || size) / 2);
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const travel = size * JOY_TRAVEL_RATIO;
+  const scale = dist > travel ? travel / dist : 1;
+  if (joyKnob && joyKnob.style){
+    joyKnob.style.transform = `translate(${(dx*scale).toFixed(1)}px,${(dy*scale).toFixed(1)}px)`;
+  }
+  if (dist < size * JOY_DEADZONE_RATIO){
+    joystickHeldDir = null;
+    joystickLastDir = null;
+    return;
+  }
+
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  const lead = Math.max(ax,ay), trail = Math.min(ax,ay);
+  let dir;
+  /* 贴近 45° 时保留上一方向，避免手指轻微抖动让左右/上下每帧来回跳。 */
+  if (joystickLastDir && trail > 0 && lead < trail * JOY_AXIS_SWITCH_RATIO){
+    dir = joystickLastDir;
+  } else {
+    dir = ax > ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  }
+  joystickHeldDir = dir;
+  joystickLastDir = dir;
+  requestDir(dir);
+}
+
+function beginJoystick(id, clientX, clientY){
+  if (gameState !== 'playing' || joystickPointerId !== null) return false;
+  Audio2.unlock();
+  clearSwipe();
+  joystickPointerId = id;
+  touchJoystick.classList.add('active');
+  moveJoystick(clientX, clientY);
+  return true;
+}
+
+if (touchJoystick){
+  if (typeof window.PointerEvent === 'function'){
+    touchJoystick.addEventListener('pointerdown', (e)=>{
+      if (e.pointerType === 'mouse' || e.isPrimary === false) return;
+      if (!beginJoystick(e.pointerId, e.clientX, e.clientY)) return;
+      if (typeof touchJoystick.setPointerCapture === 'function'){
+        try { touchJoystick.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+      e.preventDefault();
+    }, { passive:false });
+    touchJoystick.addEventListener('pointermove', (e)=>{
+      if (e.pointerId !== joystickPointerId) return;
+      moveJoystick(e.clientX,e.clientY);
+      e.preventDefault();
+    }, { passive:false });
+    const finishPointer = (e)=>{
+      if (e.pointerId !== joystickPointerId) return;
+      resetJoystick();
+      if (e.cancelable) e.preventDefault();
+    };
+    touchJoystick.addEventListener('pointerup', finishPointer, { passive:false });
+    touchJoystick.addEventListener('pointercancel', finishPointer, { passive:false });
+    touchJoystick.addEventListener('lostpointercapture', finishPointer, { passive:false });
+  } else {
+    /* Pointer Events 出现前的旧版 iOS / 微信 WebView 备用路径。 */
+    touchJoystick.addEventListener('touchstart', (e)=>{
+      const list=e.touches||[];
+      if (list.length!==1) { resetJoystick(); return; }
+      const t=list[0];
+      if (beginJoystick(touchId(t),t.clientX,t.clientY)) e.preventDefault();
+    }, { passive:false });
+    touchJoystick.addEventListener('touchmove', (e)=>{
+      if (joystickPointerId===null) return;
+      const t=matchingTouch(e.touches,joystickPointerId);
+      if (!t) { resetJoystick(); return; }
+      moveJoystick(t.clientX,t.clientY);e.preventDefault();
+    }, { passive:false });
+    const finishTouch=(e)=>{
+      if (joystickPointerId===null) return;
+      const t=matchingTouch(e.changedTouches,joystickPointerId);
+      if (!t) return;
+      resetJoystick();
+    };
+    touchJoystick.addEventListener('touchend',finishTouch,{passive:true});
+    touchJoystick.addEventListener('touchcancel',()=>resetJoystick(),{passive:true});
+  }
+}
 document.getElementById('pauseBtn').addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
 /* 静音图标是一个 SVG 里的两组线条，切换的是显隐而不是重画整段 markup ——
    每次点击都重设 innerHTML 会把 SVG 拆了重建，在低端机上看得见闪一下。 */
@@ -3655,7 +4176,7 @@ function openHelp(){
   if (!helpOverlay.classList.contains('hidden')) return;
   closeAbout(); closeOwl();   // 文档页互斥
   helpPausedByUs = (gameState === 'playing');
-  if (helpPausedByUs) gameState = 'paused';
+  if (helpPausedByUs){ resetJoystick(); gameState = 'paused'; }
   helpOverlay.classList.remove('hidden');
   // 弹层刚显示出来，这一帧才量得到真实高度
   if (helpSync) setTimeout(helpSync, 0);
@@ -3699,6 +4220,7 @@ function openAbout(){
      否则焦点掉回 body，再按 Tab 是从整页最开头重新数起。 */
   aboutOpener = (typeof document.activeElement === 'object') ? document.activeElement : null;
   if (gameState === 'playing'){
+    resetJoystick();
     gameState = 'paused';
     const po = document.getElementById('pauseOverlay');
     if (po) po.classList.remove('hidden');   // 关掉这一页后露出的就是暂停页
@@ -3839,7 +4361,7 @@ function renderDaily(){
 
 function startDaily(){
   const d = todayKey(), lv = dailyLevel();
-  startPractice(lv);
+  startPractice(lv,'daily');
   /* 必须在 startPractice 之后 —— 它里面的 resetLevel(true) 会把这个标记清掉。
      顺序反了的话每日挑战永远不记成绩，而且不会报错。 */
   dailyRun = {d,lv};
@@ -3876,6 +4398,7 @@ function openOwl(){
      故意的 —— 查规则是打到一半的一个动作，读图鉴是离开游戏去看一页东西，
      看完抬头手指未必回到屏幕上，直接把对手放出来就是白掉一条命。 */
   if (gameState === 'playing'){
+    resetJoystick();
     gameState = 'paused';
     const po = document.getElementById('pauseOverlay');
     if (po) po.classList.remove('hidden');
@@ -3993,6 +4516,7 @@ function autoPause(){
   if (pausedByBlur) return;                                // 已经自动暂停过了
   pausedByBlur = true;
   clearSwipe();                                            // 系统中断后不能留下旧触点
+  resetJoystick();
   gameState = 'paused';
   document.getElementById('pauseOverlay').classList.remove('hidden');
   const why = document.getElementById('pauseWhy');
@@ -4017,6 +4541,7 @@ function togglePause(){
   if (docPanelOpen()) return;
   if (gameState==='playing'){
     clearSwipe();
+    resetJoystick();
     gameState='paused';
     document.getElementById('pauseOverlay').classList.remove('hidden');
   }
@@ -4039,6 +4564,7 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
   startSwipeHint();
   document.getElementById('startOverlay').classList.add('hidden');
   gameState='playing';
+  Analytics.track('game_start',{mode:'normal',level:1});
 });
 document.getElementById('resumeBtn').addEventListener('click', ()=>{ Audio2.unlock(); togglePause(); });
 document.getElementById('restartBtn').addEventListener('click', ()=>{
@@ -4052,11 +4578,13 @@ document.getElementById('restartBtn').addEventListener('click', ()=>{
   // 必须在 fullNewGame 之后：它内部会 resetLevel，而 resetLevel 会把卡片清零
   startLevelIntro();
   gameState='playing';
+  Analytics.track('game_start',{mode:'normal',level:1});
 });
 
 /* ---------- update loop ---------- */
 function update(dt){
   elapsed += dt;
+  runActiveSeconds += dt;
   if (invuln>0) invuln -= dt;
   if (player.phase>0){
     const was = player.phase;
@@ -4181,6 +4709,7 @@ function update(dt){
        ghostsEatenThisLevel 都会被那一句清掉。和上面那条奖励是同一个理由。 */
     const newStars = awardStars(level);
     const starMsg = newStars ? '　★ 新星星 ×' + newStars : '';
+    Analytics.track('level_complete',{mode:currentAnalyticsMode(),level});
 
     /* 练习只打这一关。清掉之后直接进结算，**不推进到下一关**——
        否则从第五关练起、连着清掉五和六，看起来就跟通关一样了，
@@ -4929,9 +5458,13 @@ let visualFrameDt = 1/60;
  * "测试验的不是真实路径"。共用一个函数，这类假绿就不可能再发生。 */
 function stepFrame(dt){
   visualFrameDt = Math.max(0,Math.min(0.05,dt));
+  // Pause can arrive between frames. Keep the DOM controls in sync even when
+  // the static canvas does not need repainting.
+  syncChrome();
   const wasPlaying = gameState === 'playing';
   const hadDeathFlash = deathFlash > 0;
   if (gameState==='playing'){
+    if (joystickHeldDir) requestDir(joystickHeldDir);
     // 关卡卡片期间整局冻住：不跑 update，elapsed 就不走，幽灵、恐惧倒计时、
     // 复活计时全部停在原地。玩家有个空拍看清这是哪一关。
     if (introTimer > 0) introTimer -= dt;
@@ -4954,6 +5487,17 @@ function loop(t){
 }
 
 fullNewGame();
+// 占位预览只验证版式；真正广告接入必须另行实现并重新做政策/误触检查。
+(function initAdPlaceholder(){
+  try {
+    const cfg = window.NEON_MAZE_CONFIG && window.NEON_MAZE_CONFIG.ads;
+    if (!cfg || cfg.showPlaceholders !== true) return;
+    const slot = document.getElementById('adSlotRail');
+    if (!slot) return;
+    slot.classList.remove('hidden');
+    slot.setAttribute('aria-hidden','false');
+  } catch (e) {}
+})();
 renderScoreboard('startBoard');
 renderBest(); renderWelcome();
 renderLevelSelect();

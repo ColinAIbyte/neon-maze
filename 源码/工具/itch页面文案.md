@@ -191,4 +191,4 @@ Safari 和 Firefox 的严格隐私模式会**拦截第三方 iframe 里的本地
 
 游戏本身不会崩 —— 所有存储访问都有兜底，`test_edge_cases.mjs` 里有一条专门验
 "localStorage 全程抛异常也能开局、能跑、能结算"。这是平台限制，不是游戏的问题。
-你自己的网址（colinaibyte.github.io）是第一方页面，不受影响。
+正式网址（playneonmaze.com）是第一方页面，不受影响。

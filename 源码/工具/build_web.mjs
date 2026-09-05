@@ -15,7 +15,7 @@
 // 外壳本身在 web_shell.mjs，跟测试版共用同一份。
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
-import { wrap, TITLE } from './web_shell.mjs';
+import { wrap, TITLE, SITE_URL } from './web_shell.mjs';
 import { toEnglish } from './i18n_en.mjs';
 
 const here = p => fileURLToPath(new URL(p, import.meta.url));
@@ -50,7 +50,7 @@ const notFound = `<!DOCTYPE html>
 <style>body{margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;
 justify-content:center;background:#0a0612;color:#ece7fb;font-family:system-ui,sans-serif;gap:16px}
 a{color:#ffcf5c}</style></head>
-<body><h1 style="font-size:20px">页面不存在</h1><a href="/neon-maze/">回到${TITLE}</a></body></html>
+<body><h1 style="font-size:20px">页面不存在</h1><a href="${SITE_URL}">回到${TITLE}</a></body></html>
 `;
 
 // GitHub Pages 直接读取仓库根目录。构建同时覆盖这里，避免源片段和线上页面漂移。
@@ -62,6 +62,10 @@ writeFileSync(`${OUT_DIR}/index.html`, html);
 mkdirSync(`${OUT_DIR}/assets`, { recursive: true });
 const assets = [
   'language-router.js',
+  'favicon.svg',
+  'favicon-32.png',
+  'apple-touch-icon.png',
+  'neon-maze-share.jpg',
   'doudou-hero.webp',
   'neon-logo-v2.webp',
   'neon-space-bg-v2.webp',
@@ -75,6 +79,8 @@ mkdirSync(`${OUT_DIR}/en`, { recursive: true });
 mkdirSync(`${ROOT_DIR}en`, { recursive: true });
 writeFileSync(`${ROOT_DIR}en/index.html`, englishHtml);
 writeFileSync(`${OUT_DIR}/en/index.html`, englishHtml);
+copyFileSync(here('../../config.js'), `${OUT_DIR}/config.js`);
+copyFileSync(here('../../analytics.js'), `${OUT_DIR}/analytics.js`);
 
 // 静态托管上没有这个文件时，访问不存在的路径会是平台自带的英文报错页。
 writeFileSync(`${OUT_DIR}/404.html`, notFound);

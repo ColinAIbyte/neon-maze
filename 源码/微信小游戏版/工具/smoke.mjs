@@ -443,13 +443,10 @@ try {
      进来都不该越权），所以只改 HTML 的话点第 3 关照样落回第 1 关 ——
      第一版就是这么红的，红在测试撒谎，不在代码。 */
   shim.env.localStorage.setItem('doudou.reached', '3');
-
-  // 照 renderLevelSelect 的产物造一份：前 3 关解锁，后 3 关锁着
-  const sel = el('levelSel');
-  sel.classList.remove('hidden');
-  sel.innerHTML = '<span class="levelsel-k">练习</span>'
-    + [1,2,3].map(i=>`<button class="lv" data-lv="${i}">${i}</button>`).join('')
-    + [4,5,6].map(i=>`<button class="lv" data-lv="${i}" disabled aria-label="未解锁">🔒</button>`).join('');
+  if (game.maxLevelReached() !== 3)
+    throw new Error('未读取启动后新增的兼容解锁进度');
+  // 由真实逻辑生成按钮，不能用手造 HTML 掩盖解锁读取或菜单渲染的回归。
+  game.renderLevelSelect();
 
   globalThis.__frame();                       // 让 game.js 那份 hits 跟上
   const h = draw(() => ui.drawOverlays(0));
@@ -485,6 +482,7 @@ try {
 finally {
   try { el('levelSel').classList.add('hidden'); } catch(e){}
   try { shim.env.localStorage.setItem('doudou.reached', '1'); } catch(e){}
+  if (game.maxLevelReached() < 3) fail('陈旧兼容存档不能重新锁定已解锁关卡');
   game.gameState = stateBeforePractice;
 }
 

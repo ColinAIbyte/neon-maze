@@ -11,6 +11,14 @@ const fail = [];
 
 if (english !== expected) fail.push('/en/ 没有由当前中文完整版直接生成');
 
+const feedback = english.match(/<p class="about about-fb about-mail">([\s\S]*?)<\/p>/);
+if (!feedback || !feedback[1].includes('from you. Email: <a class="mail-link" href="mailto:2685897@qq.com">2685897@qq.com</a>'))
+  fail.push('英文邮箱必须紧接 from you.，并保留原 mailto 链接');
+if (english.includes('<p class="about about-mail">') || /<br\b/i.test(feedback?.[1] || ''))
+  fail.push('英文反馈与邮箱不应分段或手动换行');
+if (!fragment.includes('<p class="about about-mail">邮箱：'))
+  fail.push('本次英文调整不应改变中文邮箱排版');
+
 for (const marker of [
   'class="brand-lockup"', 'class="power-card"', 'class="enemy-card"',
   'id="dailyBox"', 'id="owlOverlay"', 'class="record-box hidden"',

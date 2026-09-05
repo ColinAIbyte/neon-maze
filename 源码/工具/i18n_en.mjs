@@ -338,6 +338,11 @@ export function toEnglish(html){
   for (const [from, to] of [...PAIRS].sort((a,b)=>b[0].length-a[0].length)){
     out = out.split(from).join(to);
   }
+  // English feedback reads as one paragraph: “…from you. Email: …”. Keep
+  // the mail link and existing bottom spacing; Chinese retains its layout.
+  out = out.replace(
+    /<p class="about about-fb">([^<]*)<\/p>\s*<p class="about about-mail">([\s\S]*?)<\/p>/,
+    '<p class="about about-fb about-mail">$1 $2</p>');
   out = out.replace('<html lang="zh-CN">', '<html lang="en">');
   out = out.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n<base href="../">\n');
   return out;

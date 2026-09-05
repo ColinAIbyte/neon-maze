@@ -1,0 +1,157 @@
+{
+  "scope": "Local synthetic sustained test; not GPU-presented FPS or physical-mobile validation",
+  "environment": {
+    "cpu": "Apple M4",
+    "ramGiB": 16,
+    "browser": "Chromium 152",
+    "viewport": [
+      832,
+      746
+    ],
+    "dpr": 1
+  },
+  "durationMinutes": 10,
+  "visibleEveryMinute": true,
+  "scriptErrors": 0,
+  "longTasks": 0,
+  "intervalSamples": 44961,
+  "longIntervalsOver33_34ms": 1,
+  "method": "Force power+phase, change direction every 3s, emit a bounded feedback event every 250ms, report high combo every fourth event; color-assist on, both volumes 5%; alternate default/system and reduced motion by minute. Performance API heap includes the diagnostic harness. Numbers rounded.",
+  "minutes": [
+    {
+      "minute": 1,
+      "mode": "system",
+      "rafHz": 74.657,
+      "intervalP95Ms": 14.4,
+      "intervalP99Ms": 15.1,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.6,
+      "maxIntervalMs": 266.8,
+      "heapBytes": 38775873,
+      "feedbackPeak": 20,
+      "comboParticlesPeak": 26
+    },
+    {
+      "minute": 2,
+      "mode": "reduce",
+      "rafHz": 74.973,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.4,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 38536784,
+      "feedbackPeak": 0,
+      "comboParticlesPeak": 0
+    },
+    {
+      "minute": 3,
+      "mode": "system",
+      "rafHz": 74.974,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 38813742,
+      "feedbackPeak": 20,
+      "comboParticlesPeak": 26
+    },
+    {
+      "minute": 4,
+      "mode": "reduce",
+      "rafHz": 74.973,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.4,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.4,
+      "heapBytes": 37733287,
+      "feedbackPeak": 0,
+      "comboParticlesPeak": 0
+    },
+    {
+      "minute": 5,
+      "mode": "system",
+      "rafHz": 74.973,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 38026776,
+      "feedbackPeak": 20,
+      "comboParticlesPeak": 26
+    },
+    {
+      "minute": 6,
+      "mode": "reduce",
+      "rafHz": 74.973,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 39257848,
+      "feedbackPeak": 0,
+      "comboParticlesPeak": 0
+    },
+    {
+      "minute": 7,
+      "mode": "system",
+      "rafHz": 74.974,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 37509620,
+      "feedbackPeak": 20,
+      "comboParticlesPeak": 26
+    },
+    {
+      "minute": 8,
+      "mode": "reduce",
+      "rafHz": 74.972,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.4,
+      "heapBytes": 37333040,
+      "feedbackPeak": 0,
+      "comboParticlesPeak": 0
+    },
+    {
+      "minute": 9,
+      "mode": "system",
+      "rafHz": 74.973,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.5,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.5,
+      "heapBytes": 37998512,
+      "feedbackPeak": 20,
+      "comboParticlesPeak": 26
+    },
+    {
+      "minute": 10,
+      "mode": "reduce",
+      "rafHz": 74.974,
+      "intervalP95Ms": 14.3,
+      "intervalP99Ms": 14.4,
+      "renderP95Ms": 0.4,
+      "stepP95Ms": 0.5,
+      "maxIntervalMs": 14.4,
+      "heapBytes": 38802496,
+      "feedbackPeak": 0,
+      "comboParticlesPeak": 0
+    }
+  ],
+  "caveats": [
+    "The first-minute 266.8ms interval was not attributed: JS step maximum then was 1.5ms and Long Task observer saw zero; no matching pre-optimization stress run exists.",
+    "No steady growth observed in sampled heap readings, but this is not a heap-snapshot leak proof.",
+    "This runtime preceded the final CSS-only desktop marker-anchor correction; the tested game JavaScript is unchanged."
+  ]
+}

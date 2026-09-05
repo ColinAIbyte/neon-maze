@@ -3209,7 +3209,7 @@ const Audio2 = (()=>{
       // 吃到水果先"嗡"一下再叮 —— 那一声低频是"规则变了"的信号
       tone(90, t, 0.34, {type:'sine', gain:0.20, slideTo:200, slideDur:0.34});
       tone(700,t+0.06,0.09,{type:'triangle',gain:0.16}); tone(1050,t+0.15,0.16,{type:'triangle',gain:0.16}); },
-    /** 连击里程碑（x10 / x20 / x50）：明亮的上行音阶，档越高音符越多、越亮。 */
+    /** x10 / x20 / 之后每 50：提醒无上限，音阶和音符数始终只用三档。 */
     comboMilestone(m){
       const t=now();
       const tier = m>=50 ? 2 : m>=20 ? 1 : 0;
@@ -4199,26 +4199,27 @@ function addPelletScore(base){
  * 玩家没有理由为了保住 x47 而绷紧。给它几个台阶，让"别断"这件事自己有分量。
  *
  * 三条规矩：
- *   1 反馈只升不降：音高一档比一档亮，toast 的语气一档比一档激动
+ *   1 10 / 20 / 50 / 100 / 150……持续提醒；50 起音效强度封顶，不无限加码
  *   2 彩带**轻而短**：一把小彩点从上沿飘下来，一秒多就散 —— 是个道贺，
  *     不是烟花秀。绝不在迷宫中间炸开：玩家这时候正贴着小夜枭跑，
  *     屏幕中间糊一层特效等于害他送命。
  *   3 每档**每局**只响一次：断了重连不再重复报，comboMilestoneHit 只在
  *     开新一局（fullReset）时清零。
  */
-const COMBO_MILESTONES = [10, 20, 50];
+const COMBO_MILESTONE_STEP = 50;
 
 function checkComboMilestone(){
-  for (const m of COMBO_MILESTONES){
-    if (combo >= m && comboMilestoneHit < m){
-      comboMilestoneHit = m;
-      Audio2.comboMilestone(m);
-      startComboFx();
-      toast(m >= 50 ? `连击 x${m}！全场为你鼓掌`
-          : m >= 20 ? `连击 x${m}！停不下来了`
-          :           `连击 x${m}！好节奏`);
-    }
-  }
+  // 正常逐个续连击；即使恢复到跨越多档的值，也只报最高档，不排队轰炸。
+  const m = combo >= COMBO_MILESTONE_STEP
+    ? Math.floor(combo / COMBO_MILESTONE_STEP) * COMBO_MILESTONE_STEP
+    : combo >= 20 ? 20 : combo >= 10 ? 10 : 0;
+  if (!Number.isFinite(m) || m <= comboMilestoneHit) return;
+  comboMilestoneHit = m;
+  Audio2.comboMilestone(m);
+  startComboFx(m);
+  toast(m >= 50 ? `连击 x${m}！全场为你鼓掌`
+      : m >= 20 ? `连击 x${m}！停不下来了`
+      :           `连击 x${m}！好节奏`);
 }
 /* ---------- 新手提示 ----------
  * 「?」说明是可选的，绝大多数人不会点。真正有效的是在**正好需要的那一刻**
@@ -5100,7 +5101,16 @@ function startFireworks(ms){
  * 爆发**（fxUntil=0）——飘完这一把就自己收场，全程一秒多。粒子从画布上沿外
  * 出发往下飘，不在迷宫中间炸开：玩家正贴着幽灵跑，中间必须永远是清楚的。
  * 礼花正在放的时候不抢画布（里程碑只在游玩中触发，正常撞不上，兜底而已）。 */
-function startComboFx(){
+// 新增纯视觉效果使用独立序列，不多消耗敌人决策所用的 Math.random。
+let visualRandomState = 0x6d2b79f5;
+function visualRandom(){
+  visualRandomState ^= visualRandomState << 13;
+  visualRandomState ^= visualRandomState >>> 17;
+  visualRandomState ^= visualRandomState << 5;
+  return (visualRandomState >>> 0) / 4294967296;
+}
+
+function startComboFx(milestone=50){
   if (prefersReducedMotion()) return;
   if (fxRunning) return;
   fxCanvas.classList.add('on');
@@ -5108,15 +5118,17 @@ function startComboFx(){
   fxParticles = [];
   fxUntil = 0;   // 不产生新爆发，这把彩带飘完就结束
   const n = 26;
+  // 已有 10/20/50 档保留原随机调用；新增档位不扰动现有敌人随机序列。
+  const random = milestone > 50 ? visualRandom : Math.random;
   for (let i=0;i<n;i++){
     fxParticles.push({
-      x: w * (0.08 + Math.random()*0.84),
-      y: -4 - Math.random()*10,
-      vx: (Math.random()-0.5)*36,
-      vy: 30 + Math.random()*50,
+      x: w * (0.08 + random()*0.84),
+      y: -4 - random()*10,
+      vx: (random()-0.5)*36,
+      vy: 30 + random()*50,
       life: 1.1,
-      color: FX_COLORS[Math.floor(Math.random()*FX_COLORS.length)],
-      size: 1.8 + Math.random()*1.8,
+      color: FX_COLORS[Math.floor(random()*FX_COLORS.length)],
+      size: 1.8 + random()*1.8,
     });
   }
   fxLoopStart(w, h);

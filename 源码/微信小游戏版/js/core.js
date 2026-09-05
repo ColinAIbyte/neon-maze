@@ -1,7 +1,7 @@
 /* 自动生成，请勿手改。
  * 由 源码/工具/build_weapp.mjs 从 源码/neon_maze_fragment.html 提取。
  * 要改游戏逻辑，改网页版那一份，然后重新跑一次生成脚本。
- * 源码指纹: 884a5d14e90a   （只跟 neon_maze_fragment.html 的内容走）
+ * 源码指纹: ad929152d922   （只跟 neon_maze_fragment.html 的内容走）
  */
 function createGame(env){
   /* 浏览器全局一律从 env 取，声明成局部变量把宿主那份遮蔽掉。
@@ -3928,7 +3928,7 @@ function requestDir(dir){
 function gameHasKeyboard(){
   if (docPanelOpen()) return false;
   const a = document.activeElement;
-  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return false;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return false;
   return true;
 }
 
@@ -3947,7 +3947,9 @@ function currentScreen(){
    这样恢复逻辑只有一份，不会出现"按 Enter 和点按钮走了两条路"。 */
 function handleEnter(e){
   // 中文输入法正在组词时，Enter 是「上屏」，不是游戏指令
-  if (e.isComposing || e.keyCode === 229) return false;
+  if (e.repeat || e.isComposing || e.keyCode === 229) return false;
+  // 按钮/链接的 Enter 交给浏览器原生 click，不能顺便开始或重开游戏。
+  if (isNativeControl(e.target)) return false;
   const a = document.activeElement;
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')){
     // 昵称框自己会处理 Enter（记录），这里绝不能顺手再重开一局
@@ -3963,6 +3965,12 @@ function handleEnter(e){
   }
 }
 
+function isNativeControl(target){
+  if (!target) return false;
+  return /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(target.tagName || '')
+    || !!target.isContentEditable;
+}
+
 window.addEventListener('keydown', (e)=>{
   if (window.NeonCompetition && window.NeonCompetition.isOpen()) return;
   Audio2.unlock();
@@ -3970,12 +3978,13 @@ window.addEventListener('keydown', (e)=>{
   // 两个都关：两者不会同时打开，各调一次比先判断谁开着更省事，也不会漏。
   if (e.key==='Escape'){ closeHelp(); closeAbout(); closeOwl(); return; }
   if (e.key==='Enter'){ if (handleEnter(e)) e.preventDefault(); return; }
+  if ((e.key===' ' || e.key==='Spacebar') && isNativeControl(e.target)) return;
   if (!gameHasKeyboard()) return;      // 说明在读、名字在输，都不归游戏管
 
   const dir = keyMap[e.key];
   if (dir){ requestDir(dir); e.preventDefault(); }
   else if (e.key===' ' || e.key==='Spacebar'){ e.preventDefault(); }  // 空格别翻页
-  if (e.key==='p' || e.key==='P'){ togglePause(); }
+  if ((e.key==='p' || e.key==='P') && !e.repeat){ togglePause(); }
 });
 document.querySelectorAll('[data-dir]').forEach(btn=>{
   btn.addEventListener('click', ()=>{ Audio2.unlock(); requestDir(btn.dataset.dir); });
@@ -4122,12 +4131,27 @@ let joystickHeldDir = null;
 let joystickLastDir = null;
 
 function resetJoystick(){
+  const captured = joystickPointerId;
   joystickPointerId = null;
   joystickHeldDir = null;
   joystickLastDir = null;
+  // 清空所有权后再释放，避免 lostpointercapture 回调递归处理旧指针。
+  if (captured !== null && touchJoystick && typeof touchJoystick.releasePointerCapture === 'function'){
+    try { touchJoystick.releasePointerCapture(captured); } catch (e) {}
+  }
   if (touchJoystick && touchJoystick.classList) touchJoystick.classList.remove('active');
   if (joyKnob && joyKnob.style) joyKnob.style.transform = 'translate(0px,0px)';
 }
+
+// 地址栏造成的纯高度变化不取消正在按住的摇杆；旋转或宽度变化才清旧手势。
+let inputViewportWidth = window.innerWidth || 0;
+function resetLayoutInput(){ resetJoystick(); swipeFrom = null; }
+window.addEventListener('orientationchange', resetLayoutInput);
+window.addEventListener('resize', ()=>{
+  const width = window.innerWidth || 0;
+  if (width !== inputViewportWidth) resetLayoutInput();
+  inputViewportWidth = width;
+});
 
 function moveJoystick(clientX, clientY){
   if (!touchJoystick || gameState !== 'playing') return;

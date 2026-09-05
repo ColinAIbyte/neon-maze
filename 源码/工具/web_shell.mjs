@@ -148,7 +148,7 @@ body {
 <body>
 ${stripBuildComments(fragment)}
 <script src="assets/leaderboard-hall.js"></script>
-<script src="assets/leaderboard-bridge.js"></script>
+<script src="assets/leaderboard-bridge.js?v=20260906-about"></script>
 </body>
 </html>
 `;

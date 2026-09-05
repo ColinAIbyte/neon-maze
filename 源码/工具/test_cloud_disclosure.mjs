@@ -6,6 +6,10 @@ import vm from 'node:vm';
 import {toEnglish} from './i18n_en.mjs';
 
 const source = readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
+const bridge = readFileSync(new URL('../../assets/leaderboard-bridge.js',import.meta.url),'utf8');
+const shell = readFileSync(new URL('./web_shell.mjs',import.meta.url),'utf8');
+assert(shell.includes('assets/leaderboard-bridge.js?v=20260906-about'),'new HTML must not reuse a cached bridge that truncates its unified disclosure');
+assert(!bridge.includes("#cloudAbout p"),'bridge must not overwrite the unified disclosure with the old first paragraph');
 assert.match(source,/#startBoard \.board-cloud-note\{display:none;\}/,'short screens avoid duplicate cloud footnote overlap');
 assert.match(source,/@media \(max-width:420px\) and \(max-height:700px\)/,'compact portrait buttons retain their own layout rule');
 for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
@@ -13,6 +17,8 @@ for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
   new vm.Script(script);
   const notice = html.match(/<p class="cloud-notice hidden" id="cloudNotice">([\s\S]*?)<\/p>/)[1];
   const details = html.match(/<section class="hidden" id="cloudAbout">([\s\S]*?)<\/section>/)[1];
+  assert.equal((details.match(/<p\b/g)||[]).length,1,'About cloud disclosure stays in one paragraph');
+  assert(!/<br\b/i.test(details),'paragraph wraps naturally without manual line breaks');
   assert.equal((notice.match(/<span>/g) || []).length,2,'start notice stays in two short statements');
   assert(html.indexOf('id="cloudNotice"') < html.indexOf('id="startBtn"'));
   if (language === 'en'){
@@ -21,6 +27,9 @@ for (const [language,html] of [['zh',source],['en',toEnglish(source)]]){
       'score ownership and basic validation','not an account','does not sync progress across devices']){
       assert(details.includes(phrase),phrase);
     }
+    for (const phrase of ['nickname, score, level, best combo and clear status','Practice and Daily runs are not uploaded','stars and unlocks stay in this browser','real name or contact details']) assert(details.includes(phrase),phrase);
+  } else {
+    for (const phrase of ['确认昵称后才上传','昵称、成绩、关卡、最高连击和通关状态','练习与每日挑战不上传','星星与解锁仅存本机','随机生成的匿名玩家 ID','成绩归属与基础校验','不是账号','不支持跨设备同步','真实姓名或联系方式']) assert(details.includes(phrase),phrase);
   }
 
   const elements = new Map();

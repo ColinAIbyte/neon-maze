@@ -158,8 +158,8 @@
   const preview=document.getElementById('hallPreview');if (preview && actions) actions.after(preview);
   const notice=document.getElementById('cloudNotice');
   if (notice){notice.replaceChildren(node('span',text('结束后确认昵称，再将成绩公开到全球榜。','After each run, confirm your nickname to publish your score.')),node('span',text('星星与解锁仅存本机。','Stars and unlocks stay in this browser.')));}
-  const about=document.querySelector('#cloudAbout p');
-  if (about) about.textContent=text('正式挑战结束后，本机自动保存。确认昵称后才公开提交本局成绩、关卡和连击；练习与每日挑战不上传。星星与解锁仅存本机。','Normal runs save locally first. Only after nickname confirmation is the run submitted publicly with its score, level and combo. Practice and Daily runs are not uploaded. Stars and unlocks stay in this browser.');
+  // About disclosure is one complete, localized paragraph in the shared HTML.
+  // Do not replace it here: that would discard its privacy and storage details.
   if (onHallPath()) open({push:false});
   else refreshPreview();
 })();

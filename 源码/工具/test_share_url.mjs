@@ -91,8 +91,14 @@ async function make(shareUrl){
 const build = readFileSync(new URL('./build_itch.mjs', import.meta.url), 'utf8');
 if (!build.includes('window.DOUDOU_SHARE_URL='))
   fail.push('build_itch.mjs 不再注入 DOUDOU_SHARE_URL 了');
-if (!build.includes("'-j'"))
-  fail.push('build_itch.mjs 打包时没用 -j，index.html 会被塞进子目录，itch 会拒绝');
+/* 这条断言原来查的是 `-j`（把所有文件抖平到 zip 根）。那在游戏还是单文件时是对的，
+   现在不行了：游戏带 assets/ en/ leaderboard/ privacy/ 四层目录，抖平会让
+   en/index.html 和根部的 index.html 撞名。改成 -r 从暂存目录内部打包。
+
+   所以这里改成查**真正要保住的那个不变量** —— 打完之后脚本自己验过
+   index.html 在 zip 根目录。机制换了，要求没变。 */
+if (!build.includes("listing.includes('index.html')"))
+  fail.push('build_itch.mjs 不再校验 index.html 是否在 zip 根目录了，itch 会拒绝');
 
 console.log(fail.length
   ? '分享链接有问题：\n  ✗ ' + fail.join('\n  ✗ ')

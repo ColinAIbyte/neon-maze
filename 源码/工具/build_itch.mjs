@@ -77,6 +77,17 @@ for (const f of pages){
       只有打包分发到别处才会炸，实测就是这么炸的。
    2. 分享地址 —— 中文页和英文页玩家都可能打到结算，只注入一份会让
       另一半玩家分享出 itch 的 CDN 裸地址。 */
+/* 页面里写死的导航链接也是目录形式（href="en/leaderboard/"），
+   NEON_DIR_INDEX 只管语言路由的跳转，管不到这些 <a>。第一版就是漏了这半边：
+   游戏能开了，但点导航里的 Play / Leaderboard 仍然 404。
+   这里只改 <a> 上的相对 href，绝不碰 <base>（它是解析基准，不是链接）。 */
+function fixLinks(html){
+  return html.replace(/<a\b[^>]*>/g, tag =>
+    tag.replace(/href="([^"]+\/)"/g, (m, url) =>
+      /^(?:[a-z]+:|\/\/|#)/i.test(url) ? m : `href="${url}index.html"`));
+}
+for (const f of pages) writeFileSync(f, fixLinks(readFileSync(f, 'utf8')));
+
 const head = [`<script>window.NEON_DIR_INDEX='index.html';</script>`];
 if (shareUrl) head.push(`<script>window.DOUDOU_SHARE_URL=${JSON.stringify(shareUrl)};</script>`);
 for (const f of pages){

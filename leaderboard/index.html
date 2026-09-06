@@ -3151,16 +3151,14 @@ const Audio2 = (()=>{
   let actx = null, pelletToggle = 0;
   let audioChannel = 'effectVolume';
   let muted = localSave.settings.muted;
-  // Each entry is a [lo, hi] bite-tone pair, stepping up a pentatonic-ish scale
-  // (A4/C5 -> C5/E5 -> D5/G5 -> E5/A5 -> G5/C6): musical intervals rather
-  // than arbitrary frequencies, so later steps read as melody, not siren.
-  const PELLET_SCALE = [
-    [440, 523],
-    [523, 659],
-    [587, 784],
-    [659, 880],
-    [784, 1047],
-  ];
+  /* 吃豆声固定在开局这一对（A4/C5），高低交替出「哒-嘀」的节奏。
+
+     原来它是五档音阶，随本关吃掉的比例一路升上去（最高到 G5/C6），本意是
+     让耳朵也能当进度条用。实际效果是：越到收尾音越高、越短、越密，业主
+     反馈「很刺耳」—— 而这游戏的听众是小孩，一局最后那几十颗豆正是他们
+     最专注的时候，不该在那时候让声音变得难受。
+     进度反馈交给画面（剩余豆数提示、最后几颗的强调）就够了。 */
+  const PELLET_TONE = [440, 523];
   function ctx(){
     if (!actx){
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -3206,16 +3204,13 @@ const Audio2 = (()=>{
      * a rounder triangle wave and an eased curve that holds near the base
      * pitch for most of the level and only climbs in the final stretch.
      */
-    pellet(progress){
-      const p = Math.max(0, Math.min(1, progress || 0));
-      const step = Math.min(PELLET_SCALE.length - 1, Math.floor(p * p * PELLET_SCALE.length));
-      const [lo, hi] = PELLET_SCALE[step];
+    pellet(){
+      /* 音高、时长、音量三者都不再随进度变。原来那三条渐变是配套的
+         （升调的同时缩短、压低音量来抵消高频的刺耳），去掉升调之后
+         另外两条也就没有存在的理由了。 */
       const t = now();
       pelletToggle = 1 - pelletToggle;
-      const freq = pelletToggle ? hi : lo;
-      const dur = 0.058 - p * 0.016;
-      const gain = 0.115 - p * 0.02; // taper slightly so the higher steps don't read as louder/harsher
-      tone(freq, t, dur, {type:'triangle', gain});
+      tone(PELLET_TONE[pelletToggle], t, 0.058, {type:'triangle', gain:0.115});
     },
     power(){ const t=now(); tone(220, t, 0.32, {type:'sawtooth', gain:0.14, slideTo:440, slideDur:0.32}); },
     /**
@@ -4640,11 +4635,6 @@ function toast(msg){
 
 /* ---------- collisions / eating ---------- */
 
-/** 0 at level start, 1 once the last pellet is gone — drives the rising munch pitch. */
-function eatProgress(){
-  return pelletsTotal ? 1 - pelletsLeft / pelletsTotal : 0;
-}
-
 /** One compact bite per pellet. It must finish before the next high-speed pellet. */
 const CHOMP_SECONDS = 0.10;
 function triggerChomp(){
@@ -4656,7 +4646,7 @@ function eatPelletAt(x,y){
   if (ch==='.'){
     eraseDotCache(x,y);
     grid[y][x]=' '; pelletsLeft--; addPelletScore(10);
-    Audio2.pellet(eatProgress());
+    Audio2.pellet();
     triggerChomp();
   }
   else if (ch==='o'){

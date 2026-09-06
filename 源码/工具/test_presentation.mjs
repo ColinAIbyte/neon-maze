@@ -30,6 +30,19 @@ check('defaults retain original audio gain and system motion choice',()=>{
   const a=make();assert.deepEqual(a.t.prefs,{colorAssist:false,reduceMotion:'system',screenShake:true,effectVolume:1,alertVolume:1});
   a.t.Audio2.pellet(0);assert(a.t.stats.gains.some(v=>Math.abs(v-.115)<1e-9));
 });
+/* 吃豆声必须**全程恒定**。原来它随本关进度升五档音阶，越到收尾越高越短越密，
+   业主反馈刺耳 —— 听众是小孩，最后那几十颗豆正是他们最专注的时候。
+   这条断言锁住那个决定：不管吃了多少颗，音高和音量都不许变。 */
+check('pellet bite stays constant for the whole level',()=>{
+  const a=make(),t=a.t;
+  for(let i=0;i<40;i++) t.Audio2.pellet();
+  const freqs=[...new Set(t.stats.frequency)].sort((x,y)=>x-y);
+  assert.deepEqual(freqs,[440,523],'吃豆音高只能是开局那一对，不能随进度升调');
+  /* 每次 pellet 会推两个增益：峰值和衰减底。40 次调用之后仍然只有这两个
+     值，才说明音量没有随进度往下压。 */
+  const gains=[...new Set(t.stats.gains.map(v=>+v.toFixed(6)))].sort((x,y)=>x-y);
+  assert.deepEqual(gains,[0.0001,0.115],'吃豆音量也不许随进度衰减');
+});
 check('legacy mute remains authoritative over both channels',()=>{
   const a=make({storage:new Map([['doudou.muted.v1','1']])});
   assert(a.t.Audio2.isMuted());a.t.Audio2.pellet(0);a.t.Audio2.comboMilestone(200);assert.equal(a.t.stats.frequency.length,0);

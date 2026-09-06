@@ -35,6 +35,7 @@ const PAIRS = [
   ['查看全球排名', 'View global ranking'],
   ['本机最高', 'LOCAL BEST'],
   ['结束后确认昵称，再将成绩公开到全球榜。', 'After each run, confirm your nickname to publish your score.'],
+  ['href="privacy/" class="cloud-privacy">隐私政策', 'href="en/privacy/" class="cloud-privacy">Privacy'],
   ['正式挑战先存本机，确认昵称后才上传至全球榜，公开昵称、成绩、关卡、最高连击和通关状态；练习与每日挑战不上传，星星与解锁仅存本机。上传时附带随机生成的匿名玩家 ID，用于成绩归属与基础校验，它不是账号，也不支持跨设备同步。昵称请勿填写真实姓名或联系方式。',
    'Normal runs save locally and are uploaded only after nickname confirmation. The global board shows your nickname, score, level, best combo and clear status; Practice and Daily runs are not uploaded, and stars and unlocks stay in this browser. Uploads include a randomly generated anonymous player ID for score ownership and basic validation. This ID is not an account and does not sync progress across devices. Do not use your real name or contact details as your nickname.'],
   // Document shell and language switch.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gzipSync} from 'node:zlib';
-import {stripBuildComments,wrap} from './web_shell.mjs';
+import {stripBuildComments,wrap,withSiteNavigation} from './web_shell.mjs';
 const raw='<div><!-- dev note --><p>Keep text</p></div><script>const s="<!-- not markup -->";</script><style>.x::after{content:"<!-- also literal -->"}</style>';
 const cleaned=stripBuildComments(raw);
 assert(!cleaned.includes('dev note'));assert(cleaned.includes('Keep text'));
@@ -10,7 +10,9 @@ assert(cleaned.includes('content:"<!-- also literal -->"'));
 assert.equal(stripBuildComments('<p title="<!-- literal -->">ok</p>'),'<p title="<!-- literal -->">ok</p>');
 assert.equal(stripBuildComments('<div>\n  <!-- whole line -->  \n</div>'),'<div>\n\n</div>');
 const source=readFileSync(new URL('../neon_maze_fragment.html',import.meta.url),'utf8');
-const output=wrap(source),oldShape=output.replace(stripBuildComments(source),source);
+// Compare the same navigation-enabled feature set, with/without HTML comments.
+const prepared=withSiteNavigation(source);
+const output=wrap(source),oldShape=output.replace(stripBuildComments(prepared),prepared);
 const rawBlocks=s=>[...s.matchAll(/<(script|style)\b[^>]*>([\s\S]*?)<\/\1>/gi)].filter(m=>m[2]).map(m=>m[0]);
 for(const block of rawBlocks(source))assert(output.includes(block),'JS and CSS must remain byte-identical');
 assert(Buffer.byteLength(output)<Buffer.byteLength(oldShape));

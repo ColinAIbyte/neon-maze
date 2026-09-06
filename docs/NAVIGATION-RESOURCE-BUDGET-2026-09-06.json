@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-06",
+  "baseline": "327e1c0",
+  "method": "Byte lengths and Node gzipSync for changed/new resources; unchanged resources excluded from both totals. Local compression estimate, not network transfer or timing.",
+  "files": [
+    {"file":"index.html","beforeBytes":387439,"afterBytes":388894,"beforeGzip":148537,"afterGzip":149095},
+    {"file":"assets/language-router.js","beforeBytes":5199,"afterBytes":5438,"beforeGzip":1901,"afterGzip":1994},
+    {"file":"assets/site-navigation.css","beforeBytes":0,"afterBytes":5004,"beforeGzip":0,"afterGzip":1788},
+    {"file":"assets/site-navigation.js","beforeBytes":0,"afterBytes":5680,"beforeGzip":0,"afterGzip":1891}
+  ],
+  "totals": {"beforeBytes":392638,"afterBytes":405016,"deltaBytes":12378,"beforeGzip":150438,"afterGzip":154768,"deltaGzip":4330},
+  "additionalLocalRequests": 2,
+  "externalDependenciesAdded": 0,
+  "sharedGameSourceUnchanged": true,
+  "fpsMeasured": false,
+  "networkColdLoadMeasured": false,
+  "deployed": false
+}

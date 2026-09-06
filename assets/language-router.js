@@ -62,8 +62,10 @@
       var choice = node.getAttribute('data-language-choice');
       if (!validLanguage(choice)) return;
       event.preventDefault();
-      write(window.localStorage, MANUAL_KEY, choice);
-      go(choice, false);
+      // Ask before leaving an unfinished run; a cancelled choice is not saved.
+      var applyChoice = function () { write(window.localStorage, MANUAL_KEY, choice); go(choice, false); };
+      if (choice !== current && window.NeonNavigation) window.NeonNavigation.requestLeave(applyChoice);
+      else applyChoice();
       return;
     }
 

@@ -66,6 +66,8 @@ const assets = [
   'leaderboard-hall.css',
   'leaderboard-bridge.js',
   'leaderboard-entry.css',
+  'site-navigation.css',
+  'site-navigation.js',
   'favicon.svg',
   'favicon-32.png',
   'apple-touch-icon.png',

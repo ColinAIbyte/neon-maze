@@ -36,7 +36,7 @@ function element(tag){
   };
 }
 
-function simulate({ current='zh', languages=['en-US'], manual='', dismissed='', href } = {}){
+function simulate({ current='zh', languages=['en-US'], manual='', dismissed='', href, leaveAllowed=true } = {}){
   href ||= current === 'en'
     ? 'https://playneonmaze.com/en/?c=123&n=Kid#score'
     : 'https://playneonmaze.com/?c=123&n=Kid#score';
@@ -58,6 +58,7 @@ function simulate({ current='zh', languages=['en-US'], manual='', dismissed='', 
   };
   const window = {
     location, localStorage:local, sessionStorage:session,
+    NeonNavigation:{requestLeave:action=>{if(leaveAllowed)action();}},
     navigator:{languages,language:languages[0] || ''},
   };
   vm.runInNewContext(router, { window, document, URL });
@@ -110,6 +111,11 @@ const notice = r.body.children[0];
 r.clickHandler({target:notice.children[2],preventDefault(){}});
 if(r.session.value('neon-maze-language-suggestion-dismissed-v1') !== '1' || r.body.children.length)
   fail.push('关闭按钮没有移除提示并在本次会话记住');
+
+r = simulate({current:'zh',languages:['en-US'],leaveAllowed:false});
+r.clickHandler({target:r.body.children[0].children[1],preventDefault(){}});
+if(r.location.assigned || r.local.value('neon-maze-language-manual-v1'))
+  fail.push('取消离开本局后不应跳转或保存新的语言偏好');
 
 if(/api\.country\.is|window\.fetch|country lookup/i.test(router))
   fail.push('语言路由仍会查询外部 IP 服务');

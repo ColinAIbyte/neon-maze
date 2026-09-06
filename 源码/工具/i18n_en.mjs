@@ -3,6 +3,18 @@
 // every future feature remain identical in / and /en/.
 
 const PAIRS = [
+  ['>切换语言？</h2>', '>Switch language?</h2>'],
+  ['切换语言会离开本局，当前这一局不会保存。之前的本机记录不受影响。', 'Switching language leaves this run without saving it. Previous records stay in this browser.'],
+  ['>留在本局</button>', '>Stay in this run</button>'],
+  ['>切换语言</button>', '>Switch language</button>'],
+  ['aria-label="网站导航"', 'aria-label="Site navigation"'],
+  ['href="./" data-site-play', 'href="en/" data-site-play'],
+  ['data-site-play aria-current="page">游戏', 'data-site-play aria-current="page">Play'],
+  ['href="leaderboard/" data-open-hall>排行榜', 'href="en/leaderboard/" data-open-hall>Leaderboard'],
+  ['data-site-panel="helpBtn">玩法', 'data-site-panel="helpBtn">How to Play'],
+  ['data-site-panel="aboutBtn">关于', 'data-site-panel="aboutBtn">About'],
+  ['aria-controls="siteNavLinks">菜单', 'aria-controls="siteNavLinks">Menu'],
+  ['<span class="site-brand-extra"> · 豆豆</span>', ''],
   ['画面与声音','Display & Sound'],
   ['色弱辅助标记','Color-assist markers'],
   ['对手使用 A / B / C / D，配对传送门使用 1 / 2；不只靠颜色辨认。','Enemies use A / B / C / D; paired portals use 1 / 2. Identify them without relying on color.'],

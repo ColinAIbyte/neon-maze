@@ -24,13 +24,28 @@ export function stripBuildComments(fragment){
     part=>part.trimStart().startsWith('<!--') ? '' : part);
 }
 
-/**
- * 把游戏片段包成一个完整网页。
- * @param {string} fragment  neon_maze_fragment.html 的内容（可能已注入测试钩子）
- * @param {string} titleSuffix  测试版加个后缀，免得跟正式版的标签页混淆
- */
+/** Assemble web navigation without modifying the shared game fragment. */
+export function withSiteNavigation(fragment){
+  // Only the web wrapper owns website navigation. The native game stays intact.
+  const language=fragment.match(/<nav class="language-switch"[\s\S]*?<\/nav>/)?.[0] || '';
+  const header=`<header class="site-header" id="siteHeader">
+  <a class="site-brand" href="./" data-site-play aria-label="Neon Maze · 豆豆"><img src="assets/favicon.svg" alt="" width="28" height="28"><span class="site-brand-label">Neon Maze<span class="site-brand-extra"> · 豆豆</span></span></a>
+  <nav class="site-links" id="siteNavLinks" aria-label="网站导航" hidden>
+    <a href="./" data-site-play aria-current="page">游戏</a>
+    <a href="leaderboard/" data-open-hall>排行榜</a>
+    <button type="button" data-site-panel="helpBtn">玩法</button>
+    <button type="button" data-site-panel="aboutBtn">关于</button>
+  </nav>
+  ${language}
+  <button class="site-menu-toggle" id="siteMenuToggle" type="button" aria-expanded="false" aria-controls="siteNavLinks">菜单</button>
+</header>`;
+  return fragment.replace(language,'').replace('<div class="cabinet">','<div class="cabinet">\n'+header);
+}
+
+/** Wrap the shared fragment as a complete page; test builds may add a title suffix. */
 export function wrap(fragment, titleSuffix = ''){
   const title = TITLE + titleSuffix;
+  fragment=withSiteNavigation(fragment);
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -49,7 +64,7 @@ export function wrap(fragment, titleSuffix = ''){
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
 <!-- 不根据 IP 强制跳转，也不把访客 IP 发给第三方。首次访问只参考浏览器
      语言显示轻提示；玩家手动点过中 / EN 后，手动选择永远优先。 -->
-<script src="assets/language-router.js" data-current-language="zh"></script>
+<script src="assets/language-router.js?v=20260906-nav" data-current-language="zh"></script>
 <!-- 加到手机主屏后按全屏应用打开，而不是套一层浏览器地址栏 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -77,6 +92,7 @@ export function wrap(fragment, titleSuffix = ''){
 <script src="analytics.js"></script>
 <link rel="stylesheet" href="assets/leaderboard-hall.css">
 <link rel="stylesheet" href="assets/leaderboard-entry.css">
+<link rel="stylesheet" href="assets/site-navigation.css?v=20260906-nav">
 <style>
 /* 整页锁死不滚动。手机上边玩边让页面上下弹是最影响手感的一件事，
    而 iOS Safari 的橡皮筋回弹默认就会这么干。
@@ -147,7 +163,13 @@ body {
 </head>
 <body>
 ${stripBuildComments(fragment)}
+<dialog class="site-leave" id="siteLeaveDialog" role="dialog" aria-modal="true" aria-labelledby="siteLeaveTitle" aria-describedby="siteLeaveDescription">
+  <h2 id="siteLeaveTitle">切换语言？</h2>
+  <p id="siteLeaveDescription">切换语言会离开本局，当前这一局不会保存。之前的本机记录不受影响。</p>
+  <div class="site-leave-actions"><button type="button" id="siteLeaveCancel" autofocus>留在本局</button><button type="button" id="siteLeaveConfirm">切换语言</button></div>
+</dialog>
 <script src="assets/leaderboard-hall.js"></script>
+<script src="assets/site-navigation.js?v=20260906-nav"></script>
 <script src="assets/leaderboard-bridge.js?v=20260906-about"></script>
 </body>
 </html>

@@ -1,9 +1,11 @@
 /* Neon Maze language preference.
  *
- * The root page is Chinese and /en/ is English. We never send a visitor's IP
- * to a third party and never force a first-time redirect. A previous manual
- * choice still wins; otherwise the browser language may offer a small,
- * dismissible suggestion. Both full language buttons always remain visible.
+ * The root page is Chinese and /en/ is English, but English is the default
+ * face: a visitor who has never chosen is sent to /en/ regardless of browser
+ * language. We never send a visitor's IP to a third party. A previous manual
+ * choice always wins over that default; on the English page a Chinese browser
+ * still gets a small, dismissible suggestion. Both language buttons always
+ * remain visible.
  */
 (function () {
   'use strict';
@@ -83,6 +85,17 @@
   var manual = read(window.localStorage, MANUAL_KEY);
   if (validLanguage(manual)) {
     go(manual, true);
+    return;
+  }
+
+  /* 没有手动选择过的访客，一律先进英文版。
+
+     这是产品决定，不是语言检测：主要投放面向海外的 H5 平台和社区，英文是
+     默认门面。中文没有被藏起来 —— 顶部的语言开关始终可见，而且中文浏览器
+     还会额外收到一条「想用中文浏览？」的轻提示（见下面 showSuggestion）。
+     玩家点过一次之后，上面那段 manual 分支永久优先，不会被这里覆盖。 */
+  if (current !== 'en') {
+    go('en', true);
     return;
   }
 

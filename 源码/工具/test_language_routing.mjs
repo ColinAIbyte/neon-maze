@@ -1,5 +1,9 @@
-// Language preference: no IP disclosure, no forced first-visit redirect,
-// browser-language suggestion, remembered manual choice and URL preservation.
+// 语言偏好：默认英文、不泄露 IP、手动选择长期优先、切换不丢挑战参数。
+//
+// 2026-09-06 行为变更：首次访问不再「留在打开的那一页」，而是一律先进英文版。
+// 原因是主要投放面向海外平台，英文是默认门面。下面几条断言当初写的是旧行为
+// （首访不跳转），是随这次产品决定一起改的，不是为了让测试变绿。
+// 中文没有被削弱：手动选过中文的人永久优先，英文页上的中文浏览器仍有轻提示。
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
@@ -66,16 +70,14 @@ function simulate({ current='zh', languages=['en-US'], manual='', dismissed='', 
   return {location,local,session,body,clickHandler:handlers.click};
 }
 
+// 没选过语言的访客，无论浏览器什么语言，一律先进英文版，且挑战参数不丢。
 let r = simulate({current:'zh',languages:['en-GB']});
-if(r.location.replaced || r.location.assigned)
-  fail.push('英文浏览器首次打开中文页被强制跳转了');
-if(r.body.children.length !== 1 || r.body.children[0].className !== 'language-suggestion')
-  fail.push('英文浏览器在中文页没有得到轻量切换提示');
-else {
-  const link = r.body.children[0].children[1];
-  if(link.textContent !== 'Switch to English' || !link.href.includes('/en/?c=123&n=Kid#score'))
-    fail.push('英文切换提示文案或挑战链接不正确');
-}
+if(r.location.replaced !== 'https://playneonmaze.com/en/?c=123&n=Kid#score')
+  fail.push('英文浏览器首次打开中文页没有跳到英文版，或丢了挑战参数');
+
+r = simulate({current:'zh',languages:['zh-CN']});
+if(r.location.replaced !== 'https://playneonmaze.com/en/?c=123&n=Kid#score')
+  fail.push('中文浏览器首次访问也应先进英文版（默认门面是英文）');
 
 r = simulate({current:'en',languages:['zh-Hans-CN']});
 if(r.location.replaced || r.body.children.length !== 1
@@ -83,7 +85,6 @@ if(r.location.replaced || r.body.children.length !== 1
   fail.push('中文浏览器在英文页没有得到中文提示，或被强制跳转');
 
 for (const pair of [
-  {current:'zh',languages:['zh-CN']},
   {current:'en',languages:['en-US']},
   {current:'en',languages:['fr-FR']},
 ]) {
@@ -91,28 +92,29 @@ for (const pair of [
   if(r.body.children.length) fail.push(`${pair.languages[0]} 在匹配页面仍出现了语言提示`);
 }
 
-r = simulate({current:'zh',languages:['en-US'],dismissed:'1'});
+r = simulate({current:'en',languages:['zh-Hans-CN'],dismissed:'1'});
 if(r.body.children.length) fail.push('本次会话关闭过提示后仍重复出现');
 
 r = simulate({current:'en',languages:['en-US'],manual:'zh'});
 if(r.location.replaced !== 'https://playneonmaze.com/?c=123&n=Kid#score')
   fail.push('手动选择没有在再次访问时优先，或丢失挑战参数');
 
-r = simulate({current:'zh',languages:['en-US']});
+// 提示现在只出现在英文页上（给中文浏览器），点它应记住中文并回到根目录。
+r = simulate({current:'en',languages:['zh-Hans-CN']});
 let prevented = false;
 const suggestion = r.body.children[0];
 r.clickHandler({target:suggestion.children[1],preventDefault(){prevented=true;}});
-if(!prevented || r.local.value('neon-maze-language-manual-v1') !== 'en'
-   || r.location.assigned !== 'https://playneonmaze.com/en/?c=123&n=Kid#score')
+if(!prevented || r.local.value('neon-maze-language-manual-v1') !== 'zh'
+   || r.location.assigned !== 'https://playneonmaze.com/?c=123&n=Kid#score')
   fail.push('提示中的手动切换没有被记住，或丢失挑战参数');
 
-r = simulate({current:'zh',languages:['en-US']});
+r = simulate({current:'en',languages:['zh-Hans-CN']});
 const notice = r.body.children[0];
 r.clickHandler({target:notice.children[2],preventDefault(){}});
 if(r.session.value('neon-maze-language-suggestion-dismissed-v1') !== '1' || r.body.children.length)
   fail.push('关闭按钮没有移除提示并在本次会话记住');
 
-r = simulate({current:'zh',languages:['en-US'],leaveAllowed:false});
+r = simulate({current:'en',languages:['zh-Hans-CN'],leaveAllowed:false});
 r.clickHandler({target:r.body.children[0].children[1],preventDefault(){}});
 if(r.location.assigned || r.local.value('neon-maze-language-manual-v1'))
   fail.push('取消离开本局后不应跳转或保存新的语言偏好');
@@ -134,5 +136,5 @@ if(fail.length){
   fail.forEach(item=>console.error('✗ ' + item));
   process.exit(1);
 }
-console.log('语言偏好通过：首次访问不强制跳转、不查询 IP；浏览器语言只给轻提示。');
-console.log('手动选择长期优先，中英文页都有顶部切换，挑战参数完整保留。');
+console.log('语言偏好通过：未选过语言的访客一律先进英文版，不查询 IP。');
+console.log('手动选择长期优先；英文页对中文浏览器仍有轻提示；挑战参数完整保留。');

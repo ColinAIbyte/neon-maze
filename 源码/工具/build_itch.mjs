@@ -69,16 +69,21 @@ for (const f of pages){
   }
 }
 
-/* 分享地址注入每一份入口页。中文页和英文页玩家都可能打到结算，
-   只注入一份会让另一半玩家分享出 itch 的 CDN 裸地址。 */
-if (shareUrl){
-  const tag = `<script>window.DOUDOU_SHARE_URL=${JSON.stringify(shareUrl)};</script>`;
-  for (const f of pages){
-    let html = readFileSync(f, 'utf8');
-    const at = html.indexOf('<head>');
-    if (at < 0) continue;
-    writeFileSync(f, html.slice(0, at + 6) + '\n' + tag + html.slice(at + 6));
-  }
+/* 两段都注入 <head>：
+
+   1. NEON_DIR_INDEX —— itch 的 CDN **不把 `dir/` 映射到 `dir/index.html`**。
+      语言路由默认跳 `en/`，在 itch 上直接 404，游戏根本加载不出来。
+      GitHub Pages 会映射，所以这个问题在 playneonmaze.com 上完全看不见 ——
+      只有打包分发到别处才会炸，实测就是这么炸的。
+   2. 分享地址 —— 中文页和英文页玩家都可能打到结算，只注入一份会让
+      另一半玩家分享出 itch 的 CDN 裸地址。 */
+const head = [`<script>window.NEON_DIR_INDEX='index.html';</script>`];
+if (shareUrl) head.push(`<script>window.DOUDOU_SHARE_URL=${JSON.stringify(shareUrl)};</script>`);
+for (const f of pages){
+  let html = readFileSync(f, 'utf8');
+  const at = html.indexOf('<head>');
+  if (at < 0) continue;
+  writeFileSync(f, html.slice(0, at + 6) + '\n' + head.join('\n') + html.slice(at + 6));
 }
 
 // -r 递归、-q 安静；进到 STAGE 里打包，zip 内就不会带上 game/ 这一层

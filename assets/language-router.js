@@ -27,19 +27,25 @@
     return value === 'zh' || value === 'en';
   }
 
+  /* 有些静态主机不把 `dir/` 映射到 `dir/index.html`（itch.io 的 CDN 就是），
+     跳过去直接 404，游戏永远加载不出来。GitHub Pages 会映射，所以这个问题
+     在 playneonmaze.com 上完全看不见 —— 只有打包分发到别处时才会炸。
+     那种主机在页面里设 window.NEON_DIR_INDEX='index.html'，这里就补上文件名。 */
+  var DIR_INDEX = typeof window.NEON_DIR_INDEX === 'string' ? window.NEON_DIR_INDEX : '';
+
   function targetUrl(language) {
     // Hall deep links have their own static entry; keep the same view on a
     // manual preference redirect instead of appending en/ to leaderboard/.
     if (/\/leaderboard\/?$/.test(window.location.pathname)) {
       var root = new URL('../', script.src);
-      var hall = new URL(language === 'en' ? 'en/leaderboard/' : 'leaderboard/', root);
+      var hall = new URL((language === 'en' ? 'en/leaderboard/' : 'leaderboard/') + DIR_INDEX, root);
       hall.search = window.location.search;
       hall.hash = window.location.hash;
       return hall.href;
     }
-    var relative = language === 'en'
+    var relative = (language === 'en'
       ? (current === 'en' ? './' : 'en/')
-      : (current === 'en' ? '../' : './');
+      : (current === 'en' ? '../' : './')) + DIR_INDEX;
     var target = new URL(relative, window.location.href);
     // Challenge links use query parameters. Switching language must not throw
     // away the score and player name that made the link meaningful.

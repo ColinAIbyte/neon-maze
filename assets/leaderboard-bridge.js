@@ -20,9 +20,13 @@
   const DIR_INDEX = typeof window.NEON_DIR_INDEX === 'string' ? window.NEON_DIR_INDEX : '';
   const gamePath = () => new URL((originalLanguage === 'en' ? 'en/' : './') + DIR_INDEX,root).pathname;
   const hallPath = () => new URL((language === 'en' ? 'en/leaderboard/' : 'leaderboard/') + DIR_INDEX,root).pathname;
-  /* 改地址栏是锦上添花，浮层才是功能本身。嵌在别人站点的 iframe 里
-     （CrazyGames 就是）history 调用可能直接抛 —— 实测那边点排行榜毫无反应，
-     而同一份代码在 itch 上正常。绝不能因为地址没改成就把整个排行榜卡死。 */
+  /* 改地址栏是锦上添花，浮层才是功能本身：history 抛异常时不能把排行榜
+     一起带走（pushState 是 open() 的第一句，抛了后面的浮层就不执行了）。
+     嵌在别人站点的 iframe 里（itch、CrazyGames）确实存在这种可能。
+
+     订正：加这段时我以为 CrazyGames 上排行榜按钮点不开就是这个原因 ——
+     那是误判，我的自动点击进不去他们的跨域 iframe，真人点击一切正常。
+     这里保留 try/catch 是就事论事：装饰性的地址更新不该有能力弄死功能。 */
   function tryHistory(fn){ try { fn(); return true; } catch (e) { return false; } }
   /* 加上 DIR_INDEX 之后地址是 `.../leaderboard/index.html`，老的正则匹配不到，
      浏览器「后退」就再也拉不回排行榜了。两种形式都要认。 */

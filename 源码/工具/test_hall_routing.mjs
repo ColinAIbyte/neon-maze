@@ -1,9 +1,10 @@
 /* 排行榜浮层的地址处理。两个真实事故各锁一条。
  *
- * 1) 改地址栏不能把功能弄死。CrazyGames 把游戏放在 iframe 里，那边点
- *    「Global Leaderboard」毫无反应，而同一份构建在 itch 上正常 —— 差别只
- *    可能出在 history 调用上（它是 open() 里第一件事，抛了后面的浮层就没了）。
- *    地址是锦上添花，浮层才是功能：history 一律包 try/catch。
+ * 1) 改地址栏不能把功能弄死。pushState 是 open() 里的第一句，一旦抛异常，
+ *    后面的浮层就不执行了 —— 玩家看到的是「点了没反应」。嵌在别人站点的
+ *    iframe 里存在这种可能，所以 history 一律包 try/catch。
+ *    （加这条时我误判 CrazyGames 上按钮点不开是这个原因；实际是我的自动
+ *    点击进不去跨域 iframe，真人点击正常。规则本身仍然成立。）
  *
  * 2) 有些静态主机不把 `dir/` 映射到 `dir/index.html`（itch 和 CrazyGames 的
  *    CDN 都是）。地址栏改成 `.../leaderboard/` 后玩家一刷新就 404。语言路由

@@ -7,3 +7,4 @@ node_modules/
 # 每次改动都会全量变化。itch 那边只有一个 zip 所以入库了，这个不入。
 # 跑 test_channel_isolation 之前先 node 源码/工具/build_crazygames.mjs。
 crazygames上传包/
+gamemonetize上传包/

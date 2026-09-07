@@ -39,6 +39,9 @@ const files={
  'config.js':'8c48dce8c1df8183b98e9686693ddea8e172ead97b11cebf1bb2356dc52a092a',
 };
 for(const [file,expected] of Object.entries(files))assert.equal(hash(readFileSync(new URL('../../'+file,import.meta.url))),expected,file+' changed');
-assert.match(source,/const CLIENT_VERSION = 'web-2026\.09\.04'/);
+/* 规则版本号本身不能变（改了就等于换了一套计分规则）；渠道后缀是另一回事，
+   由构建脚本注入，默认为空 —— 自己的域名写出去的值和以前一致。 */
+assert.match(source,/'web-2026\.09\.04' \+ \(/);
+assert.match(source,/window\.NEON_CHANNEL/);
 assert.match(source,/const dt = Math.min\(0\.033, \(t-lastT\)\/1000\)/);
 console.log('Optimization boundaries: 6 maps, 7 movement/AI/scoring functions, 5 service files, rule version and simulation timestep unchanged. Parameter values are additionally covered by test_help_accuracy and test_combo_balance.');

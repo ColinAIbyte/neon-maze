@@ -14,9 +14,19 @@
   const button = (label, action, cls='hall-entry') => {
     const el=node('button',label,cls); el.type='button'; el.addEventListener('click',action); return el;
   };
-  const gamePath = () => new URL(originalLanguage === 'en' ? 'en/' : './',root).pathname;
-  const hallPath = () => new URL(language === 'en' ? 'en/leaderboard/' : 'leaderboard/',root).pathname;
-  const onHallPath = () => /\/leaderboard\/?$/.test(location.pathname);
+  /* 有些静态主机不把 `dir/` 映射到 `dir/index.html`（itch 和 CrazyGames 的
+     CDN 都是这样）。地址栏改成 `.../leaderboard/` 之后，玩家一刷新就是 404。
+     语言路由早就靠 NEON_DIR_INDEX 绕开了这个坑，这里当初漏了。 */
+  const DIR_INDEX = typeof window.NEON_DIR_INDEX === 'string' ? window.NEON_DIR_INDEX : '';
+  const gamePath = () => new URL((originalLanguage === 'en' ? 'en/' : './') + DIR_INDEX,root).pathname;
+  const hallPath = () => new URL((language === 'en' ? 'en/leaderboard/' : 'leaderboard/') + DIR_INDEX,root).pathname;
+  /* 改地址栏是锦上添花，浮层才是功能本身。嵌在别人站点的 iframe 里
+     （CrazyGames 就是）history 调用可能直接抛 —— 实测那边点排行榜毫无反应，
+     而同一份代码在 itch 上正常。绝不能因为地址没改成就把整个排行榜卡死。 */
+  function tryHistory(fn){ try { fn(); return true; } catch (e) { return false; } }
+  /* 加上 DIR_INDEX 之后地址是 `.../leaderboard/index.html`，老的正则匹配不到，
+     浏览器「后退」就再也拉不回排行榜了。两种形式都要认。 */
+  const onHallPath = () => /\/leaderboard(\/(index\.html)?)?$/.test(location.pathname);
   function closeView(){
     opened=false; hall.close();
     const cabinet=document.querySelector('.cabinet'); if (cabinet) {cabinet.inert=false;cabinet.removeAttribute('inert');cabinet.removeAttribute('aria-hidden');}
@@ -27,14 +37,14 @@
   function leave(challenge=false){
     // Replacing the route avoids Back re-opening a screen the player just dismissed.
     // The original game document and closure never reload, so the run survives.
-    history.replaceState(null,'',gamePath()+location.search);
+    tryHistory(()=>history.replaceState(null,'',gamePath()+location.search));
     enteredHere=false; closeView();
     if (challenge) game.challenge();
   }
   function open({mine=false,push=true}={}){
     if (!opened){ returnFocus=document.activeElement; game.pause(); }
     opened=true;
-    if (push && !onHallPath()) {history.pushState({neonHall:true},'',hallPath()+location.search);enteredHere=true;}
+    if (push && !onHallPath() && tryHistory(()=>history.pushState({neonHall:true},'',hallPath()+location.search))) enteredHere=true;
     const cabinet=document.querySelector('.cabinet'); if (cabinet) {cabinet.inert=true;cabinet.setAttribute('inert','');}
     document.body.classList.add('hall-active');
     hall.setLanguage(language); hall.open({mine});
@@ -48,7 +58,7 @@
     onLanguage:lang=>{
       language=lang==='en'?'en':'zh';
       try {localStorage.setItem('neon-maze-language-manual-v1',language);} catch(e){}
-      history.replaceState({neonHall:true},'',hallPath()+location.search);
+      tryHistory(()=>history.replaceState({neonHall:true},'',hallPath()+location.search));
       hall.setLanguage(language);
     },
   });

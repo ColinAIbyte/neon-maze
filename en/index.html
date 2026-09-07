@@ -3150,6 +3150,10 @@ const Audio2 = (()=>{
   let actx = null, pelletToggle = 0;
   let audioChannel = 'effectVolume';
   let muted = localSave.settings.muted;
+  /* `muted` 是玩家自己的选择，会存下来；`silenced` 是外部临时把声音摁住
+     （目前只有 CrazyGames 版本播广告时用），绝不落盘 —— 广告放完必须原样
+     回到玩家的选择，而不是把人家的音量设置改掉。 */
+  let silenced = false;
   /* Collect声固定在开局这一对（A4/C5），高低交替出「哒-嘀」的节奏。
 
      原来它是五档音阶，随本关吃掉的比例一路升上去（最高到 G5/C6），本意是
@@ -3169,7 +3173,7 @@ const Audio2 = (()=>{
   }
   function unlock(){ ctx(); }
   function tone(freq, t0, dur, {type='square', gain=0.16, slideTo=null, slideDur=null}={}){
-    const ac = ctx(); if (!ac || muted) return;
+    const ac = ctx(); if (!ac || muted || silenced) return;
     gain *= presentation[audioChannel];
     if (!(gain > 0) || !Number.isFinite(freq) || freq <= 0) return;
     const osc = ac.createOscillator();
@@ -3195,6 +3199,9 @@ const Audio2 = (()=>{
       try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* 存不下就只在本次生效 */ }
     },
     isMuted(){ return muted; },
+    /** 临时Mute，不写存储、不影响Mute按钮的显示。 */
+    setSilenced(v){ silenced = !!v; },
+    isSilenced(){ return silenced; },
     /**
      * `progress` is 0 at the start of a level and 1 when the last pellet is
      * eaten. Rather than sliding the pitch continuously upward (which, on a
@@ -5456,7 +5463,12 @@ function cleanName(raw){
  * 调用数据库里明确授权的 RPC / 只读视图。没配 config.js、网络失败或 Supabase
  * Pause时全部安静降级成本机榜，游戏本身不依赖云服务。
  */
-const CLIENT_VERSION = 'web-2026.09.04';
+/* 渠道后缀由各渠道的构建脚本注入 window.NEON_CHANNEL。自己的域名不注入，
+   写出来的值和以前一模一样。不打标记就永远分不清哪个渠道真的有人在玩 ——
+   榜是三个渠道共用的。数据库对这一列的约束是 1..32 字符，故截断兜底。 */
+const CLIENT_VERSION = ('web-2026.09.04' + (
+  typeof window.NEON_CHANNEL === 'string' && /^[a-z0-9-]{1,12}$/.test(window.NEON_CHANNEL)
+    ? '-' + window.NEON_CHANNEL : '')).slice(0, 32);
 const Analytics = {
   track(event, params={}){
     try {
@@ -8240,6 +8252,10 @@ window.NeonGame = {
   state: () => gameState,
   practice: () => !!practiceLevel,
   pause: () => { if (gameState === 'playing') togglePause(); },
+  resume: () => { if (gameState === 'paused') document.getElementById('resumeBtn').click(); },
+  /* 平台适配层专用：播广告时临时闭嘴，放完恢复。不碰玩家的Mute设置。 */
+  silence: v => Audio2.setSilenced(v),
+  start: () => { if (gameState === 'ready') document.getElementById('startBtn').click(); },
   challenge: () => {
     if (gameState === 'paused') document.getElementById('resumeBtn').click();
     else if (gameState === 'ready') document.getElementById('startBtn').click();

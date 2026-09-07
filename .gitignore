@@ -2,3 +2,8 @@
 node_modules/
 发布到网站/
 源码/工具/测试版.html
+
+# CrazyGames 上传包是纯派生物（25 个文件、1.8 MB，其中三份 index.html 各 389 KB），
+# 每次改动都会全量变化。itch 那边只有一个 zip 所以入库了，这个不入。
+# 跑 test_channel_isolation 之前先 node 源码/工具/build_crazygames.mjs。
+crazygames上传包/

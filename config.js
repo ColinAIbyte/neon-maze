@@ -10,7 +10,7 @@ window.NEON_MAZE_CONFIG = {
   analytics: {
     ga4MeasurementId: '',
     ga4ConsentGranted: false,
-    cloudflareBeaconToken: '',
+    cloudflareBeaconToken: 'f379ab90bd9a41c4b5703873c3c5574e',
   },
   ads: {
     // 仅用于本地检查布局；不会加载、请求或渲染任何真实广告。

@@ -36,7 +36,7 @@ const files={
  'supabase/migrations/002_basic_anti_cheat.sql':'a7671d71511f2169d62df3d40334d0bc4454e06e84a54fc8af0c5f7860197708',
  'supabase/migrations/003_public_view_readonly.sql':'ff581ff1ba075ccd9c58c6f583c070165c2797029fe47b59efc9455bcac06e49',
  'supabase/migrations/004_leaderboard_hall.sql':'ff0b8ee3b91e6cc22f7608ff21a117cf9f5417a9162eeed34abcb54604e80b9a',
- 'config.js':'942cb7c07468b5e12710f02f19a53d922df96019c550fa01afb1790e616e09a2',
+ 'config.js':'8c48dce8c1df8183b98e9686693ddea8e172ead97b11cebf1bb2356dc52a092a',
 };
 for(const [file,expected] of Object.entries(files))assert.equal(hash(readFileSync(new URL('../../'+file,import.meta.url))),expected,file+' changed');
 assert.match(source,/const CLIENT_VERSION = 'web-2026\.09\.04'/);

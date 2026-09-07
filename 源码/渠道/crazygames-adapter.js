@@ -12,8 +12,22 @@
  */
 (() => {
   'use strict';
-  const game = window.NeonGame;
-  if (!game) return;
+  /* 不在解析期就抓 NeonGame —— 它是在 <body> 末尾才定义的，而这个脚本
+     注入在 <head>。隔壁那个渠道的构建漏了 defer，于是第一行就 return，
+     SDK 从头到尾没加载，玩家玩到一局结束也不出广告 —— 线上实测才发现，
+     本地全绿（单元测试里游戏对象是提前塞好的，永远存在）。
+     这一份有 defer，但不能只靠它：宿主平台重排脚本就又会炸。这里等它出现。
+     （措辞刻意避开隔壁渠道的专属标识符：隔离测试拿那些词扫全部产物。） */
+  function whenGameReady(run){
+    if (window.NeonGame) return run(window.NeonGame);
+    let tries = 0;
+    const t = setInterval(() => {
+      if (window.NeonGame){ clearInterval(t); run(window.NeonGame); }
+      else if (++tries > 200) clearInterval(t);   // 50 秒还没有就放弃
+    }, 250);
+  }
+
+  let game = null;
 
   const sdk = () => (window.CrazyGames || {}).SDK;
   const safe = fn => { try { return fn(); } catch (e) { /* SDK 不可用就当没有 */ } };
@@ -99,6 +113,9 @@
     setInterval(tick, 250);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  whenGameReady(g => {
+    game = g;
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  });
 })();

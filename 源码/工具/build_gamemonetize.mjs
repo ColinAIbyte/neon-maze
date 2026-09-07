@@ -77,7 +77,11 @@ for (const f of pages){
   const head = [`<script>window.NEON_DIR_INDEX='index.html';window.NEON_CHANNEL='gamemonetize';</script>`];
   if (gamePages.includes(f)){
     head.push(`<script>window.NEON_GM_ID=${JSON.stringify(gameId)};</script>`);
-    head.push(`<script src="${'../'.repeat(depth)}${ADAPTER}"></script>`);
+    /* defer 是必须的：适配层注入在 <head>，而 window.NeonGame 是在 <body>
+       末尾才定义的。第一版漏了它，脚本在 head 里同步执行时游戏还不存在，
+       SDK 从头到尾没加载，玩家玩到结束也不出广告 —— 线上实测才发现。
+       适配层本身也加了等待逻辑兜底，两道都要有。 */
+    head.push(`<script src="${'../'.repeat(depth)}${ADAPTER}" defer></script>`);
   }
   writeFileSync(f, html.slice(0, at + 6) + '\n' + head.join('\n') + html.slice(at + 6));
 }
